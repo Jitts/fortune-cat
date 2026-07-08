@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import type { Category, Transaction } from "@/lib/types";
 import { addTransaction, deleteTransaction, updateTransaction } from "./actions";
 import BalanceHeader from "./components/BalanceHeader";
@@ -18,16 +19,44 @@ const FREE_TIER_LIMIT = 10;
 export default function AppShell({
   initialTransactions,
   categories,
-  isPro,
+  isPro: initialIsPro,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
   isPro: boolean;
 }) {
+  const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState(initialTransactions);
+  const [isPro, setIsPro] = useState(initialIsPro);
   const [modal, setModal] = useState<"add" | Transaction | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isPro || searchParams.get("checkout") !== "success") return;
+
+    let cancelled = false;
+    let attempts = 0;
+
+    const poll = async () => {
+      attempts += 1;
+      const res = await fetch("/api/payments/status");
+      const data = await res.json();
+      if (cancelled) return;
+      if (data.isPro) {
+        setIsPro(true);
+        setToast("Payment confirmed — you're Pro! ✨");
+      } else if (attempts < 6) {
+        setTimeout(poll, 1500);
+      }
+    };
+
+    poll();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const [pending, startTransition] = useTransition();
 
   const balance = useMemo(() => {

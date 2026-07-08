@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "./AppShell";
 
@@ -13,10 +14,12 @@ export default async function AppPage() {
   ]);
 
   return (
-    <AppShell
-      initialTransactions={transactions ?? []}
-      categories={categories ?? []}
-      isPro={!!activePayment}
-    />
+    <Suspense>
+      <AppShell
+        initialTransactions={transactions ?? []}
+        categories={categories ?? []}
+        isPro={!!activePayment}
+      />
+    </Suspense>
   );
 }

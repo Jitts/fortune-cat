@@ -41,65 +41,46 @@ export const PLATFORM_FEE_PERCENT = CONNECT_ACCOUNT_ID
 export const stripeAccountOptions = (): Stripe.RequestOptions | undefined =>
   CONNECT_ACCOUNT_ID ? { stripeAccount: CONNECT_ACCOUNT_ID } : undefined;
 
-// ─── Checkout ─────────────────────────────────────────────────────────────────
+// ─── Fortune Cat Pro — one-time checkout ──────────────────────────────────────
 
-export async function createCheckoutSession({
-  priceId,
-  customerId,
-  userId,
+export const PRO_PRICE_CENTS = 900; // $9.00 one-time
+
+export async function createProCheckoutSession({
   successUrl,
   cancelUrl,
-  mode = "subscription",
 }: {
-  priceId: string;
-  customerId?: string;
-  userId: string;
   successUrl: string;
   cancelUrl: string;
-  mode?: "payment" | "subscription";
 }) {
   const params: Stripe.Checkout.SessionCreateParams = {
-    mode,
-    line_items: [{ price: priceId, quantity: 1 }],
+    mode: "payment",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          unit_amount: PRO_PRICE_CENTS,
+          product_data: {
+            name: "Fortune Cat Pro",
+            description: "Unlock full transaction history",
+          },
+        },
+        quantity: 1,
+      },
+    ],
     success_url: successUrl,
     cancel_url: cancelUrl,
-    metadata: { userId },
-    ...(customerId
-      ? { customer: customerId }
-      : { customer_creation: "always" }),
-
-    // Subscription platform fee
-    ...(mode === "subscription" && PLATFORM_FEE_PERCENT > 0
+    ...(PLATFORM_FEE_PERCENT > 0
       ? {
-          subscription_data: {
-            metadata: { userId },
-            application_fee_percent: PLATFORM_FEE_PERCENT,
+          payment_intent_data: {
+            application_fee_amount: Math.round(
+              (PRO_PRICE_CENTS * PLATFORM_FEE_PERCENT) / 100,
+            ),
           },
         }
-      : mode === "subscription"
-      ? { subscription_data: { metadata: { userId } } }
       : {}),
-
-    // One-time payment platform fee — calculated after price lookup
-    // (handled in checkout route where we have the amount)
   };
 
   return stripe.checkout.sessions.create(params, stripeAccountOptions());
-}
-
-// ─── Billing portal ───────────────────────────────────────────────────────────
-
-export async function createPortalSession({
-  customerId,
-  returnUrl,
-}: {
-  customerId: string;
-  returnUrl: string;
-}) {
-  return stripe.billingPortal.sessions.create(
-    { customer: customerId, return_url: returnUrl },
-    stripeAccountOptions(),
-  );
 }
 
 // ─── Webhook ──────────────────────────────────────────────────────────────────

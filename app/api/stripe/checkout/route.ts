@@ -1,56 +1,55 @@
 import { createClient } from "@/lib/supabase/server";
-import { createCheckoutSession } from "@/lib/stripe";
+import { createProCheckoutSession, PRO_PRICE_CENTS } from "@/lib/stripe";
+import { logAudit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 
 /**
  * POST /api/stripe/checkout
- * Body: { priceId: string, successUrl?: string, cancelUrl?: string }
  *
- * Creates a Stripe Checkout Session for the authenticated user.
- * Respects Connect platform fee if STRIPE_PLATFORM_FEE_PERCENT is set.
+ * Creates a Stripe Checkout Session for the one-time "Fortune Cat Pro" purchase
+ * and records a pending `payments` row keyed by the Stripe session id. The
+ * webhook flips it to `active` once checkout.session.completed fires.
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { priceId, successUrl, cancelUrl } = body as {
-      priceId: string;
-      successUrl?: string;
-      cancelUrl?: string;
-    };
-
-    if (!priceId) {
-      return NextResponse.json({ error: "priceId is required" }, { status: 400 });
-    }
-
     const origin = request.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
 
-    // Look up existing Stripe customer ID if stored
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("stripe_customer_id")
-      .eq("id", user.id)
+    const session = await createProCheckoutSession({
+      successUrl: `${origin}/app?checkout=success`,
+      cancelUrl: `${origin}/upgrade?checkout=cancelled`,
+    });
+
+    const supabase = await createClient();
+    const { data: payment, error } = await supabase
+      .from("payments")
+      .insert({
+        stripe_session_id: session.id,
+        status: "pending",
+        plan: "pro",
+        amount_cents: PRO_PRICE_CENTS,
+        currency: "usd",
+      })
+      .select()
       .single();
 
-    const session = await createCheckoutSession({
-      priceId,
-      customerId: profile?.stripe_customer_id ?? undefined,
-      userId: user.id,
-      successUrl: successUrl ?? `${origin}/dashboard?checkout=success`,
-      cancelUrl: cancelUrl ?? `${origin}/dashboard?checkout=canceled`,
-    });
+    if (error) {
+      console.error("[stripe/checkout] failed to record pending payment:", error);
+    } else {
+      await logAudit(supabase, {
+        action: "payment.initiated",
+        entityType: "payment",
+        entityId: payment.id,
+        payload: { stripe_session_id: session.id, amount_cents: PRO_PRICE_CENTS },
+        riskLevel: "high",
+      });
+    }
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
     console.error("[stripe/checkout]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not start checkout — please try again." },
+      { status: 500 },
+    );
   }
 }
