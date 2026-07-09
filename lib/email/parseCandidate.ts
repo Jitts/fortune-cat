@@ -12,13 +12,24 @@ const INCOME_KEYWORDS = /\b(refund|deposit|payroll|payment received|direct depos
 // Common currency symbols/codes — not just USD/$, so receipts and bank
 // alerts in other currencies (SGD, MYR, EUR, GBP, ...) are still picked up.
 const CURRENCY = "(?:USD|US\\$|SGD|S\\$|MYR|RM|EUR|GBP|INR|AUD|CAD|JPY|CNY|HKD|\\$|€|£|¥|₹)";
-const AMOUNT_WITH_CURRENCY_RE = new RegExp(`${CURRENCY}\\s?([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?)`);
+// \s* (not \s?) between currency and amount — bank templates render these in
+// separate table cells, so HTML-to-text conversion often leaves multiple
+// spaces, tabs, or even a line break between "SGD" and the number.
+const AMOUNT_WITH_CURRENCY_RE = new RegExp(`${CURRENCY}\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?)`);
 // Fallback for amounts with no currency marker at all, e.g. "Total: 42.99" —
 // anchored to a money-ish label so it doesn't match arbitrary numbers.
 const AMOUNT_WITH_LABEL_RE = new RegExp(
-  `\\b(?:total|amount|sum|charged|paid|debited|credited)\\b\\s*:?\\s*${CURRENCY}?\\s?([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?)`,
+  `\\b(?:total|amount|sum|charged|paid|debited|credited)\\b\\s*:?\\s*${CURRENCY}?\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?)`,
   "i",
 );
+
+// Non-breaking space, zero-width space/joiner/BOM, and other exotic Unicode
+// whitespace that HTML-table-to-text conversion of bank email templates
+// commonly leaves behind (e.g. an &nbsp; between a label and its value).
+// Collapsed to a plain space so the regexes above see contiguous text
+// instead of being split by a character \s doesn't recognize.
+const EXOTIC_WHITESPACE_CODES = [0x00a0, 0x200b, 0x200c, 0x200d, 0x2060, 0x3000, 0xfeff];
+const EXOTIC_WHITESPACE_RE = new RegExp(`[${EXOTIC_WHITESPACE_CODES.map((c) => `\\u${c.toString(16).padStart(4, "0")}`).join("")}]`, "g");
 
 export type ParsedCandidate = {
   amount: number;
@@ -27,9 +38,13 @@ export type ParsedCandidate = {
   note: string;
 };
 
+function normalizeWhitespace(text: string): string {
+  return text.replace(EXOTIC_WHITESPACE_RE, " ");
+}
+
 /** Rule-based (no LLM) heuristic — same "no external API" approach as lib/tagger.ts. */
 export function parseEmailForTransaction(subject: string, bodyText: string): ParsedCandidate | null {
-  const combined = `${subject}\n${bodyText}`;
+  const combined = normalizeWhitespace(`${subject}\n${bodyText}`);
   if (!TRANSACTION_KEYWORDS.test(combined)) return null;
 
   const match = combined.match(AMOUNT_WITH_CURRENCY_RE) ?? combined.match(AMOUNT_WITH_LABEL_RE);
