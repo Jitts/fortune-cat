@@ -46,9 +46,14 @@ export async function addTransaction(formData: FormData): Promise<ActionResult> 
   if ("error" in parsed) return { error: parsed.error };
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in to add a transaction." };
+
   const { data, error } = await supabase
     .from("transactions")
-    .insert(parsed.value)
+    .insert({ ...parsed.value, user_id: user.id })
     .select()
     .single();
 
@@ -63,6 +68,7 @@ export async function addTransaction(formData: FormData): Promise<ActionResult> 
     entityId: data.id,
     payload: { after: data },
     riskLevel: "low",
+    userId: user.id,
   });
 
   revalidatePath("/app");
@@ -74,6 +80,11 @@ export async function updateTransaction(id: string, formData: FormData): Promise
   if ("error" in parsed) return { error: parsed.error };
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in to edit a transaction." };
+
   const { data: before } = await supabase.from("transactions").select().eq("id", id).single();
 
   const { data, error } = await supabase
@@ -94,6 +105,7 @@ export async function updateTransaction(id: string, formData: FormData): Promise
     entityId: data.id,
     payload: { before, after: data },
     riskLevel: "low",
+    userId: user.id,
   });
 
   revalidatePath("/app");
@@ -102,6 +114,11 @@ export async function updateTransaction(id: string, formData: FormData): Promise
 
 export async function deleteTransaction(id: string): Promise<{ error?: string }> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in to delete a transaction." };
+
   const { data: before } = await supabase.from("transactions").select().eq("id", id).single();
 
   const { error } = await supabase.from("transactions").delete().eq("id", id);
@@ -117,6 +134,7 @@ export async function deleteTransaction(id: string): Promise<{ error?: string }>
     entityId: id,
     payload: { before },
     riskLevel: "low",
+    userId: user.id,
   });
 
   revalidatePath("/app");

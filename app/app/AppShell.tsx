@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { Category, Transaction } from "@/lib/types";
 import { addTransaction, deleteTransaction, updateTransaction } from "./actions";
+import { signOutAction } from "@/app/auth/actions";
 import BalanceHeader from "./components/BalanceHeader";
 import CategoryBreakdown from "./components/CategoryBreakdown";
 import TransactionList from "./components/TransactionList";
@@ -20,10 +21,12 @@ export default function AppShell({
   initialTransactions,
   categories,
   isPro: initialIsPro,
+  userEmail,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
   isPro: boolean;
+  userEmail: string;
 }) {
   const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState(initialTransactions);
@@ -107,16 +110,27 @@ export default function AppShell({
   return (
     <main className="min-h-screen bg-neutral-50 p-6 sm:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">🐱 Fortune Cat</h1>
-          {!isPro && (
-            <Link
-              href="/upgrade"
-              className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"
-            >
-              Go Pro
-            </Link>
-          )}
+          <div className="flex items-center gap-3">
+            {!isPro && (
+              <Link
+                href="/upgrade"
+                className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"
+              >
+                Go Pro
+              </Link>
+            )}
+            <span className="hidden text-sm text-neutral-500 sm:inline">{userEmail}</span>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
 
         <BalanceHeader balance={balance} isPro={isPro} />

@@ -1,5 +1,5 @@
 import { constructWebhookEvent } from "@/lib/stripe";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -9,6 +9,9 @@ import type Stripe from "stripe";
  *
  * Register this URL in the Stripe dashboard: Developers → Webhooks → add
  * endpoint → /api/stripe/webhooks, listening for `checkout.session.completed`.
+ *
+ * Runs with the service-role key because Stripe calls us with no user session;
+ * the owning user comes from the checkout session metadata.
  */
 export async function POST(request: Request) {
   const payload = await request.text();
@@ -26,16 +29,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      const userId = session.metadata?.userId ?? null;
 
       const { data: payment, error } = await supabase
         .from("payments")
         .update({
           status: "active",
+          user_id: userId,
           stripe_customer_id: (session.customer as string) ?? null,
           paid_at: new Date().toISOString(),
         })
@@ -52,6 +57,7 @@ export async function POST(request: Request) {
           entityId: payment.id,
           payload: { stripe_session_id: session.id },
           riskLevel: "high",
+          userId,
         });
       }
     }

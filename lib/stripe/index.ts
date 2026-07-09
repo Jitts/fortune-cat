@@ -46,9 +46,11 @@ export const stripeAccountOptions = (): Stripe.RequestOptions | undefined =>
 export const PRO_PRICE_CENTS = 900; // $9.00 one-time
 
 export async function createProCheckoutSession({
+  userId,
   successUrl,
   cancelUrl,
 }: {
+  userId: string;
   successUrl: string;
   cancelUrl: string;
 }) {
@@ -67,6 +69,7 @@ export async function createProCheckoutSession({
         quantity: 1,
       },
     ],
+    metadata: { userId },
     success_url: successUrl,
     cancel_url: cancelUrl,
     ...(PLATFORM_FEE_PERCENT > 0
