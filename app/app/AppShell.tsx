@@ -4,10 +4,17 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { Category, Transaction } from "@/lib/types";
-import { addTransaction, deleteTransaction, updateTransaction } from "./actions";
+import {
+  acceptAiTag,
+  addTransaction,
+  deleteTransaction,
+  rejectAiTag,
+  updateTransaction,
+} from "./actions";
 import { signOutAction } from "@/app/auth/actions";
 import BalanceHeader from "./components/BalanceHeader";
 import CategoryBreakdown from "./components/CategoryBreakdown";
+import InsightCard from "./components/InsightCard";
 import TransactionList from "./components/TransactionList";
 import TransactionForm, {
   emptyFormValues,
@@ -107,6 +114,30 @@ export default function AppShell({
     });
   }
 
+  function handleAcceptTag(id: string) {
+    startTransition(async () => {
+      const result = await acceptAiTag(id);
+      if (result.error || !result.data) {
+        setToast(result.error ?? "Could not update — please try again.");
+        return;
+      }
+      const updated = result.data;
+      setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    });
+  }
+
+  function handleRejectTag(id: string) {
+    startTransition(async () => {
+      const result = await rejectAiTag(id);
+      if (result.error || !result.data) {
+        setToast(result.error ?? "Could not update — please try again.");
+        return;
+      }
+      const updated = result.data;
+      setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    });
+  }
+
   return (
     <main className="min-h-screen bg-neutral-50 p-6 sm:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -134,6 +165,7 @@ export default function AppShell({
         </div>
 
         <BalanceHeader balance={balance} isPro={isPro} />
+        <InsightCard transactions={transactions} categories={categories} />
         <CategoryBreakdown transactions={transactions} categories={categories} />
 
         <div className="flex items-center justify-between">
@@ -162,6 +194,9 @@ export default function AppShell({
           onEdit={(t) => setModal(t)}
           onDelete={handleDelete}
           deletingId={deletingId}
+          onAcceptTag={handleAcceptTag}
+          onRejectTag={handleRejectTag}
+          tagPending={pending}
         />
       </div>
 

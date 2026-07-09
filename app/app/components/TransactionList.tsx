@@ -1,5 +1,6 @@
 import { formatCurrency, formatDate } from "@/lib/format";
 import type { Category, Transaction } from "@/lib/types";
+import AiTagBadge from "./AiTagBadge";
 
 export default function TransactionList({
   transactions,
@@ -7,12 +8,18 @@ export default function TransactionList({
   onEdit,
   onDelete,
   deletingId,
+  onAcceptTag,
+  onRejectTag,
+  tagPending,
 }: {
   transactions: Transaction[];
   categories: Category[];
   onEdit: (t: Transaction) => void;
   onDelete: (id: string) => void;
   deletingId: string | null;
+  onAcceptTag: (id: string) => void;
+  onRejectTag: (id: string) => void;
+  tagPending: boolean;
 }) {
   if (transactions.length === 0) {
     return (
@@ -39,6 +46,13 @@ export default function TransactionList({
                   <p className="text-xs text-neutral-500">
                     {formatDate(t.date)} · {category?.name ?? "Uncategorized"}
                   </p>
+                  <AiTagBadge
+                    transaction={t}
+                    categories={categories}
+                    onAccept={onAcceptTag}
+                    onReject={onRejectTag}
+                    pending={tagPending}
+                  />
                 </div>
               </div>
               <div className="flex items-center gap-4">
