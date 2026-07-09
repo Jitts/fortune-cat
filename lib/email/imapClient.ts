@@ -1,5 +1,6 @@
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
+import { htmlToText } from "html-to-text";
 
 export type ImapCredentials = {
   host: string;
@@ -25,6 +26,19 @@ export type FetchedBatch = {
   // true once a batch reaches sequence 1 — there is nothing older to scan.
   reachedStart: boolean;
 };
+
+// mailparser only auto-derives `.text` from `.html` when the HTML part is
+// the document root or sits inside a `multipart/alternative` — a bare
+// `multipart/mixed` > `text/html` structure with no `text/plain` sibling
+// (common for bank/marketing templates with inline header images) leaves
+// `.text` undefined even though there's a perfectly readable HTML body.
+// Fall back to converting the HTML ourselves so we don't silently scan an
+// empty string for these emails.
+function extractText(parsed: { text?: string; html?: string | false }): string {
+  if (parsed.text) return parsed.text;
+  if (parsed.html) return htmlToText(parsed.html);
+  return "";
+}
 
 function describeImapError(err: unknown): string {
   if (err && typeof err === "object") {
@@ -80,7 +94,7 @@ async function fetchSequenceRange(
           date: parsed.date ?? new Date(),
           from: parsed.from?.text ?? "",
           subject: parsed.subject ?? "",
-          text: parsed.text ?? "",
+          text: extractText(parsed),
         });
       }
     } finally {
