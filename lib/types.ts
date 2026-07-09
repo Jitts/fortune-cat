@@ -48,3 +48,31 @@ export type FeatureRequest = {
   created_at: string;
   hasVoted?: boolean;
 };
+
+// Deliberately excludes encrypted_password — never sent to the client.
+export type EmailConnection = {
+  id: string;
+  email: string;
+  imap_host: string;
+  imap_port: number;
+  last_scanned_at: string | null;
+  created_at: string;
+};
+
+export type EmailCandidateStatus = "pending" | "accepted" | "dismissed";
+
+export type EmailTransactionCandidate = {
+  id: string;
+  user_id: string;
+  message_id: string;
+  email_date: string | null;
+  from_address: string | null;
+  subject: string | null;
+  amount: number | null;
+  suggested_type: TransactionType | null;
+  suggested_category: string | null;
+  suggested_note: string | null;
+  raw_snippet: string | null;
+  status: EmailCandidateStatus;
+  created_at: string;
+};

@@ -150,6 +150,12 @@ export default function AppShell({
             >
               💡 Feature requests
             </Link>
+            <Link
+              href="/settings"
+              className="hidden text-sm font-medium text-neutral-500 hover:text-neutral-900 sm:inline"
+            >
+              ⚙️ Settings
+            </Link>
             {!isPro && (
               <Link
                 href="/upgrade"
