@@ -57,6 +57,7 @@ export type EmailConnection = {
   imap_port: number;
   last_scanned_at: string | null;
   created_at: string;
+  oldest_scanned_seq: number | null;
 };
 
 export type EmailCandidateStatus = "pending" | "accepted" | "dismissed";

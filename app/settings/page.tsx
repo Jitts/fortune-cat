@@ -14,7 +14,7 @@ export default async function SettingsPage() {
   const [{ data: connection }, { data: candidates }] = await Promise.all([
     supabase
       .from("email_connections")
-      .select("id, email, imap_host, imap_port, last_scanned_at, created_at")
+      .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq")
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase

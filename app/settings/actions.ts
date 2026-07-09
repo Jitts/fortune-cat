@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
-import { testImapConnection, fetchRecentEmails } from "@/lib/email/imapClient";
+import { testImapConnection, fetchRecentEmails, fetchOlderEmails } from "@/lib/email/imapClient";
 import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
 import type { EmailConnection, EmailTransactionCandidate, Transaction } from "@/lib/types";
 
@@ -51,10 +51,11 @@ export async function connectEmailAccount(formData: FormData): Promise<ConnectRe
         imap_port: port,
         encrypted_password: encryptSecret(password),
         last_scanned_at: null,
+        oldest_scanned_seq: null,
       },
       { onConflict: "user_id" },
     )
-    .select("id, email, imap_host, imap_port, last_scanned_at, created_at")
+    .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq")
     .single();
 
   if (error || !data) {
@@ -109,7 +110,46 @@ export async function disconnectEmailAccount(): Promise<{ error?: string }> {
   return {};
 }
 
-export async function scanEmailInbox(): Promise<{ found: number; scanned: number } | { error: string }> {
+type ScanResult = { found: number; scanned: number; reachedStart: boolean } | { error: string };
+
+async function saveScannedEmails(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  emails: { messageId: string; date: Date; from: string; subject: string; text: string }[],
+): Promise<{ found: number } | { error: string }> {
+  const candidateRows = emails
+    .map((mail) => {
+      const parsed = parseEmailForTransaction(mail.subject, mail.text);
+      if (!parsed) return null;
+      return {
+        user_id: userId,
+        message_id: mail.messageId,
+        email_date: mail.date.toISOString(),
+        from_address: mail.from,
+        subject: mail.subject,
+        amount: parsed.amount,
+        suggested_type: parsed.type,
+        suggested_category: parsed.category,
+        suggested_note: parsed.note,
+        raw_snippet: mail.text.trim().slice(0, 200),
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+
+  if (candidateRows.length === 0) return { found: 0 };
+
+  const { data: inserted, error } = await supabase
+    .from("email_transaction_candidates")
+    .upsert(candidateRows, { onConflict: "user_id,message_id", ignoreDuplicates: true })
+    .select("id");
+  if (error) {
+    console.error("[saveScannedEmails]", error);
+    return { error: "Scan found matches but could not save them — please try again." };
+  }
+  return { found: inserted?.length ?? 0 };
+}
+
+export async function scanEmailInbox(): Promise<ScanResult> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -124,9 +164,9 @@ export async function scanEmailInbox(): Promise<{ found: number; scanned: number
 
   if (!connection) return { error: "Connect your email first." };
 
-  let emails;
+  let batch;
   try {
-    emails = await fetchRecentEmails(
+    batch = await fetchRecentEmails(
       {
         host: connection.imap_host,
         port: connection.imap_port,
@@ -140,54 +180,90 @@ export async function scanEmailInbox(): Promise<{ found: number; scanned: number
     return { error: "Could not read your inbox — please reconnect your email." };
   }
 
-  const candidateRows = emails
-    .map((mail) => {
-      const parsed = parseEmailForTransaction(mail.subject, mail.text);
-      if (!parsed) return null;
-      return {
-        user_id: user.id,
-        message_id: mail.messageId,
-        email_date: mail.date.toISOString(),
-        from_address: mail.from,
-        subject: mail.subject,
-        amount: parsed.amount,
-        suggested_type: parsed.type,
-        suggested_category: parsed.category,
-        suggested_note: parsed.note,
-        raw_snippet: mail.text.trim().slice(0, 200),
-      };
-    })
-    .filter((r): r is NonNullable<typeof r> => r !== null);
-
-  let found = 0;
-  if (candidateRows.length > 0) {
-    const { data: inserted, error } = await supabase
-      .from("email_transaction_candidates")
-      .upsert(candidateRows, { onConflict: "user_id,message_id", ignoreDuplicates: true })
-      .select("id");
-    if (error) {
-      console.error("[scanEmailInbox] insert candidates", error);
-      return { error: "Scan found matches but could not save them — please try again." };
-    }
-    found = inserted?.length ?? 0;
-  }
+  const saved = await saveScannedEmails(supabase, user.id, batch.emails);
+  if ("error" in saved) return saved;
 
   await supabase
     .from("email_connections")
-    .update({ last_scanned_at: new Date().toISOString() })
+    .update({ last_scanned_at: new Date().toISOString(), oldest_scanned_seq: batch.oldestSeq })
     .eq("user_id", user.id);
 
   await logAudit(supabase, {
     action: "email_scan.completed",
     entityType: "email_connection",
     entityId: connection.id,
-    payload: { emails_scanned: emails.length, candidates_found: found },
+    payload: { emails_scanned: batch.emails.length, candidates_found: saved.found },
     riskLevel: "low",
     userId: user.id,
   });
 
   revalidatePath("/settings");
-  return { found, scanned: emails.length };
+  return { found: saved.found, scanned: batch.emails.length, reachedStart: batch.reachedStart };
+}
+
+/**
+ * Continues scanning further back in the mailbox from wherever the last
+ * scan (recent or older) left off — the initial "Scan inbox" only looks at
+ * the most recent 50 messages, so older transactions (a months-old hotel
+ * receipt, an old subscription invoice) are otherwise never seen.
+ */
+export async function scanOlderEmails(): Promise<ScanResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const { data: connection } = await supabase
+    .from("email_connections")
+    .select("id, email, imap_host, imap_port, encrypted_password, oldest_scanned_seq")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!connection) return { error: "Connect your email first." };
+  if (connection.oldest_scanned_seq == null) {
+    return { error: "Run \"Scan inbox\" first before scanning further back." };
+  }
+  if (connection.oldest_scanned_seq <= 1) {
+    return { found: 0, scanned: 0, reachedStart: true };
+  }
+
+  let batch;
+  try {
+    batch = await fetchOlderEmails(
+      {
+        host: connection.imap_host,
+        port: connection.imap_port,
+        email: connection.email,
+        password: decryptSecret(connection.encrypted_password),
+      },
+      connection.oldest_scanned_seq,
+      50,
+    );
+  } catch (err) {
+    console.error("[scanOlderEmails]", err);
+    return { error: "Could not read your inbox — please reconnect your email." };
+  }
+
+  const saved = await saveScannedEmails(supabase, user.id, batch.emails);
+  if ("error" in saved) return saved;
+
+  await supabase
+    .from("email_connections")
+    .update({ oldest_scanned_seq: batch.oldestSeq })
+    .eq("user_id", user.id);
+
+  await logAudit(supabase, {
+    action: "email_scan.completed",
+    entityType: "email_connection",
+    entityId: connection.id,
+    payload: { emails_scanned: batch.emails.length, candidates_found: saved.found, older: true },
+    riskLevel: "low",
+    userId: user.id,
+  });
+
+  revalidatePath("/settings");
+  return { found: saved.found, scanned: batch.emails.length, reachedStart: batch.reachedStart };
 }
 
 type CandidateActionResult =

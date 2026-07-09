@@ -10,6 +10,7 @@ import {
   disconnectEmailAccount,
   dismissEmailCandidate,
   scanEmailInbox,
+  scanOlderEmails,
 } from "./actions";
 import ConnectEmailForm from "./components/ConnectEmailForm";
 import EmailCandidateList from "./components/EmailCandidateList";
@@ -31,6 +32,10 @@ export default function SettingsShell({
   const [candidateActionId, setCandidateActionId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [scanning, startScan] = useTransition();
+  const [scanningOlder, startScanOlder] = useTransition();
+  const [reachedStart, setReachedStart] = useState(
+    initialConnection?.oldest_scanned_seq != null && initialConnection.oldest_scanned_seq <= 1,
+  );
 
   // Sync local state when the server component re-fetches fresh data (e.g.
   // after router.refresh() post-scan) — useState only seeds from props once.
@@ -45,6 +50,7 @@ export default function SettingsShell({
         return;
       }
       setConnection(result.data);
+      setReachedStart(false);
       setToast("Inbox connected — click \"Scan inbox\" to look for transactions.");
     });
   }
@@ -70,10 +76,30 @@ export default function SettingsShell({
         return;
       }
       setConnection((prev) => (prev ? { ...prev, last_scanned_at: new Date().toISOString() } : prev));
+      setReachedStart(result.reachedStart);
       setToast(
         result.found > 0
           ? `Found ${result.found} new transaction${result.found === 1 ? "" : "s"} from ${result.scanned} emails scanned.`
           : `No new transactions found (scanned ${result.scanned} emails).`,
+      );
+      router.refresh();
+    });
+  }
+
+  function handleScanOlder() {
+    startScanOlder(async () => {
+      const result = await scanOlderEmails();
+      if ("error" in result) {
+        setToast(result.error);
+        return;
+      }
+      setReachedStart(result.reachedStart);
+      setToast(
+        result.scanned === 0
+          ? "Reached the oldest email in your inbox — nothing further back to scan."
+          : result.found > 0
+            ? `Found ${result.found} new transaction${result.found === 1 ? "" : "s"} from ${result.scanned} older emails scanned.`
+            : `No new transactions found (scanned ${result.scanned} older emails).`,
       );
       router.refresh();
     });
@@ -136,13 +162,27 @@ export default function SettingsShell({
                   </p>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button
                   onClick={handleScan}
                   disabled={scanning}
                   className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
                 >
                   {scanning ? "Scanning…" : "Scan inbox"}
+                </button>
+                <button
+                  onClick={handleScanOlder}
+                  disabled={scanningOlder || reachedStart || connection.oldest_scanned_seq == null}
+                  title={
+                    connection.oldest_scanned_seq == null
+                      ? "Run \"Scan inbox\" first"
+                      : reachedStart
+                        ? "Already reached the oldest email in your inbox"
+                        : "Look further back for older transactions (e.g. old receipts, hotel stays)"
+                  }
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                >
+                  {scanningOlder ? "Scanning…" : "Scan older emails"}
                 </button>
                 <button
                   onClick={handleDisconnect}
