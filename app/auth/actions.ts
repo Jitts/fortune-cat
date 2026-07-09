@@ -79,3 +79,50 @@ export async function signOutAction(): Promise<void> {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+// Always returns the same generic success message regardless of whether the
+// email is registered, so this can't be used to enumerate accounts.
+export async function requestPasswordReset(
+  formData: FormData,
+): Promise<{ error: string } | { success: true }> {
+  const email = formData.get("email");
+  if (typeof email !== "string" || !email.includes("@")) {
+    return { error: "Enter a valid email address." };
+  }
+
+  const supabase = await createClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${appUrl}/auth/callback?next=/reset-password`,
+  });
+
+  if (error && error.code !== "user_not_found") {
+    console.error("[requestPasswordReset]", error);
+    return { error: "Could not send the reset email — please try again." };
+  }
+
+  return { success: true };
+}
+
+export async function updatePassword(formData: FormData): Promise<AuthResult> {
+  const password = formData.get("password");
+  if (typeof password !== "string" || password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Your reset link has expired — request a new one." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    console.error("[updatePassword]", error);
+    return { error: "Could not update your password — please try again." };
+  }
+
+  redirect("/app");
+}

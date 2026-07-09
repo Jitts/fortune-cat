@@ -71,6 +71,14 @@ export default function AuthForm({
           >
             {pending ? "Please wait…" : isSignup ? "Create account" : "Log in"}
           </button>
+
+          {!isSignup && (
+            <p className="text-center text-sm">
+              <Link href="/forgot-password" className="text-neutral-500 hover:underline">
+                Forgot password?
+              </Link>
+            </p>
+          )}
         </form>
 
         <p className="text-center text-sm text-neutral-500">
