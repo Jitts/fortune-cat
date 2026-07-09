@@ -23,16 +23,17 @@ const KEYWORDS: Record<CategoryName, string[]> = {
     "food", "meal", "eat", "drink", "drinks", "bar", "pub", "pizza", "burger", "sushi",
     "grocery", "groceries", "snack", "takeout", "doordash", "ubereats", "starbucks",
     "mcdonald", "chipotle", "deli", "bakery", "tea", "beer", "wine",
+    "grabfood", "foodpanda", "kopitiam", "hawker",
   ],
   Transport: [
     "uber", "lyft", "taxi", "cab", "transit", "bus", "train", "subway", "metro", "gas",
     "fuel", "petrol", "parking", "flight", "airline", "airport", "ride", "toll", "bike",
-    "scooter", "commute", "fare",
+    "scooter", "commute", "fare", "grab", "gojek", "ez-link", "ezlink",
   ],
   Shopping: [
     "amazon", "amzn", "store", "mall", "clothes", "clothing", "shoes", "apparel", "order",
     "shop", "target", "walmart", "ikea", "purchase", "electronics", "headphones", "gadget",
-    "jacket", "shirt",
+    "jacket", "shirt", "lazada", "shopee", "taobao",
   ],
   Salary: [
     "salary", "paycheck", "payroll", "wage", "wages", "income", "bonus", "reimbursement",

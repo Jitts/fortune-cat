@@ -5,11 +5,20 @@ import type { TransactionType } from "@/lib/types";
 // email as a transaction candidate — keeps ordinary newsletters/notifications
 // out even though they might mention a dollar figure in passing.
 const TRANSACTION_KEYWORDS =
-  /\b(receipt|order|invoice|payment|transaction|charged|purchase|statement|confirmation|paid|refund|deposit|payroll|bill)\b/i;
+  /\b(receipt|order|invoice|payment|transaction|charged|purchase|statement|confirmation|paid|refund|deposit|payroll|bill|reference\s*(?:no\.?|number|#)?|txn|authoriz(?:ation|ed)|approval|debited|credited)\b/i;
 
-const INCOME_KEYWORDS = /\b(refund|deposit|payroll|payment received|direct deposit)\b/i;
+const INCOME_KEYWORDS = /\b(refund|deposit|payroll|payment received|direct deposit|credited)\b/i;
 
-const AMOUNT_RE = /(?:USD|US\$|\$)\s?([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/;
+// Common currency symbols/codes — not just USD/$, so receipts and bank
+// alerts in other currencies (SGD, MYR, EUR, GBP, ...) are still picked up.
+const CURRENCY = "(?:USD|US\\$|SGD|S\\$|MYR|RM|EUR|GBP|INR|AUD|CAD|JPY|CNY|HKD|\\$|€|£|¥|₹)";
+const AMOUNT_WITH_CURRENCY_RE = new RegExp(`${CURRENCY}\\s?([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?)`);
+// Fallback for amounts with no currency marker at all, e.g. "Total: 42.99" —
+// anchored to a money-ish label so it doesn't match arbitrary numbers.
+const AMOUNT_WITH_LABEL_RE = new RegExp(
+  `\\b(?:total|amount|sum|charged|paid|debited|credited)\\b\\s*:?\\s*${CURRENCY}?\\s?([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?)`,
+  "i",
+);
 
 export type ParsedCandidate = {
   amount: number;
@@ -23,14 +32,17 @@ export function parseEmailForTransaction(subject: string, bodyText: string): Par
   const combined = `${subject}\n${bodyText}`;
   if (!TRANSACTION_KEYWORDS.test(combined)) return null;
 
-  const match = combined.match(AMOUNT_RE);
+  const match = combined.match(AMOUNT_WITH_CURRENCY_RE) ?? combined.match(AMOUNT_WITH_LABEL_RE);
   if (!match) return null;
 
   const amount = parseFloat(match[1].replace(/,/g, ""));
   if (!amount || amount <= 0) return null;
 
   const type: TransactionType = INCOME_KEYWORDS.test(combined) ? "income" : "expense";
-  const suggestion = suggestCategory(subject, type);
+  // Category keywords (merchant names, etc.) often live in the body rather
+  // than the subject line — e.g. "GRAB*RIDE" or "STARBUCKS SG" in a bank
+  // debit alert whose subject is just "You have a new transaction".
+  const suggestion = suggestCategory(combined, type);
 
   return {
     amount,
