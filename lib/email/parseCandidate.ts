@@ -19,7 +19,7 @@ const PROMOTIONAL_SUBJECT_RE = /\b(redemption|redeem)\b[^\n]*\bvoucher/i;
 
 // Common currency symbols/codes — not just USD/$, so receipts and bank
 // alerts in other currencies (SGD, MYR, EUR, GBP, ...) are still picked up.
-const CURRENCY = "(?:USD|US\\$|SGD|S\\$|MYR|RM|EUR|GBP|INR|AUD|CAD|JPY|CNY|HKD|\\$|€|£|¥|₹)";
+const CURRENCY = "(?:USD|US\\$|SGD|S\\$|MYR|RM|EUR|GBP|INR|AUD|CAD|JPY|CNY|HKD|THB|\\$|€|£|¥|₹|฿)";
 // \s* (not \s?) between currency and amount — bank templates render these in
 // separate table cells, so HTML-to-text conversion often leaves multiple
 // spaces, tabs, or even a line break between "SGD" and the number.
@@ -57,7 +57,11 @@ export function parseEmailForTransaction(subject: string, bodyText: string): Par
   const combined = normalizeWhitespace(`${subject}\n${bodyText}`);
   if (!TRANSACTION_KEYWORDS.test(combined)) return null;
 
-  const match = combined.match(AMOUNT_WITH_CURRENCY_RE) ?? combined.match(AMOUNT_WITH_LABEL_RE);
+  // Labeled amount first: itemized receipts (e.g. a multi-night hotel stay
+  // with a per-night rate on every line) contain several currency-tagged
+  // numbers, and only the one next to "Total"/"Amount paid"/etc. is the real
+  // charge — the bare currency match would otherwise grab the first line item.
+  const match = combined.match(AMOUNT_WITH_LABEL_RE) ?? combined.match(AMOUNT_WITH_CURRENCY_RE);
   if (!match) return null;
 
   const amount = parseFloat(match[1].replace(/,/g, ""));

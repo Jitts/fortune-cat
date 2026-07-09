@@ -15,7 +15,8 @@ export type CategoryName =
   | "Shopping"
   | "Salary"
   | "Utilities"
-  | "Entertainment";
+  | "Entertainment"
+  | "Travel";
 
 const KEYWORDS: Record<CategoryName, string[]> = {
   "Food & Drink": [
@@ -47,6 +48,10 @@ const KEYWORDS: Record<CategoryName, string[]> = {
     "movie", "cinema", "netflix", "spotify", "hulu", "disney", "game", "gaming", "concert",
     "streaming", "subscription", "theater", "theatre", "show", "festival", "kindle", "book",
     "arcade",
+  ],
+  Travel: [
+    "hotel", "resort", "hostel", "motel", "guesthouse", "inn", "lodging", "accommodation",
+    "staycation", "agoda", "booking.com", "airbnb", "ascott", "somerset", "citadines",
   ],
 };
 
