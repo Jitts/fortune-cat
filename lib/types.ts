@@ -38,3 +38,13 @@ export type Payment = {
   paid_at: string | null;
   created_at: string;
 };
+
+export type FeatureRequest = {
+  id: string;
+  user_id: string | null;
+  title: string;
+  description: string | null;
+  vote_count: number;
+  created_at: string;
+  hasVoted?: boolean;
+};

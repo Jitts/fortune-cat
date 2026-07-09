@@ -144,6 +144,12 @@ export default function AppShell({
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">🐱 Fortune Cat</h1>
           <div className="flex items-center gap-3">
+            <Link
+              href="/feedback"
+              className="hidden text-sm font-medium text-neutral-500 hover:text-neutral-900 sm:inline"
+            >
+              💡 Feature requests
+            </Link>
             {!isPro && (
               <Link
                 href="/upgrade"
