@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { KNOWN_IMAP_HOSTS } from "@/lib/email/knownHosts";
+import { getAppPasswordGuide } from "@/lib/email/appPasswordGuides";
 
 export default function ConnectEmailForm({
   onSubmit,
@@ -16,6 +17,8 @@ export default function ConnectEmailForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [hostTouched, setHostTouched] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const guide = getAppPasswordGuide(email);
 
   function handleEmailChange(value: string) {
     setEmail(value);
@@ -104,6 +107,35 @@ export default function ConnectEmailForm({
           Outlook, Yahoo, iCloud) require one for IMAP access when 2FA is on. We only ever read
           your inbox, never send, delete, or modify anything.
         </p>
+        <button
+          type="button"
+          onClick={() => setShowGuide((v) => !v)}
+          className="mt-1.5 text-xs font-medium text-neutral-600 underline underline-offset-2 hover:text-neutral-900"
+        >
+          {showGuide ? "Hide" : "How do I get an app password?"}
+        </button>
+        {showGuide && (
+          <div className="mt-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600">
+            <p className="mb-2 font-semibold text-neutral-800">
+              Getting an app password for {guide.provider}
+            </p>
+            <ol className="list-decimal space-y-1 pl-4">
+              {guide.steps.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ol>
+            {guide.url && (
+              <a
+                href={guide.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block font-medium text-neutral-900 underline underline-offset-2"
+              >
+                {guide.urlLabel} →
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
