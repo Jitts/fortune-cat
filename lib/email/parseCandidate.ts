@@ -9,6 +9,14 @@ const TRANSACTION_KEYWORDS =
 
 const INCOME_KEYWORDS = /\b(refund|deposit|payroll|payment received|direct deposit|credited)\b/i;
 
+// Promotional voucher/redemption emails (e.g. a bank's "Redeem your S$80 Esso
+// Fuel Discount Vouchers" campaign) often mention "payment" in their T&Cs and
+// repeat a dollar figure that is a voucher face value, not a real charge —
+// which would otherwise false-positive as a transaction. Scoped to the
+// subject line only (not the body) so a real receipt that happens to mention
+// a voucher discount applied at checkout still gets through.
+const PROMOTIONAL_SUBJECT_RE = /\b(redemption|redeem)\b[^\n]*\bvoucher/i;
+
 // Common currency symbols/codes — not just USD/$, so receipts and bank
 // alerts in other currencies (SGD, MYR, EUR, GBP, ...) are still picked up.
 const CURRENCY = "(?:USD|US\\$|SGD|S\\$|MYR|RM|EUR|GBP|INR|AUD|CAD|JPY|CNY|HKD|\\$|€|£|¥|₹)";
@@ -44,6 +52,8 @@ function normalizeWhitespace(text: string): string {
 
 /** Rule-based (no LLM) heuristic — same "no external API" approach as lib/tagger.ts. */
 export function parseEmailForTransaction(subject: string, bodyText: string): ParsedCandidate | null {
+  if (PROMOTIONAL_SUBJECT_RE.test(subject)) return null;
+
   const combined = normalizeWhitespace(`${subject}\n${bodyText}`);
   if (!TRANSACTION_KEYWORDS.test(combined)) return null;
 
