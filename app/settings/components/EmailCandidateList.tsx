@@ -54,9 +54,9 @@ export default function EmailCandidateList({
                         {c.account_tag}
                       </span>
                     )}
-                    {c.source === "csv" && (
+                    {c.source !== "email" && (
                       <span className="inline-flex items-center rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500">
-                        📄 csv
+                        {c.source === "image" ? "🖼" : "📄"} {c.source}
                       </span>
                     )}
                     {c.review_reason && (

@@ -7,7 +7,10 @@ import { logAudit } from "@/lib/audit";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
 import { testImapConnection, fetchRecentEmails, fetchOlderEmails } from "@/lib/email/imapClient";
 import { processFetchedEmails, createTransactionFromCandidate } from "@/lib/email/processScan";
-import { parseStatementCsv } from "@/lib/csv/parseStatement";
+import { parseStatementCsv, type StatementRow } from "@/lib/csv/parseStatement";
+import { parseStatementText } from "@/lib/docs/parseStatementText";
+import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
+import { convertToSgd } from "@/lib/fx";
 import { suggestCategory } from "@/lib/tagger";
 import type { EmailConnection, EmailTransactionCandidate, Transaction, TrustedSender } from "@/lib/types";
 
@@ -302,7 +305,7 @@ export async function acceptEmailCandidate(id: string): Promise<CandidateActionR
     supabase,
     user.id,
     candidate,
-    candidate.source === "csv" ? "csv" : "email_review",
+    candidate.source === "email" ? "email_review" : "csv",
   );
   if ("error" in result) {
     return { error: "Could not save the transaction — please try again." };
@@ -494,17 +497,116 @@ type ImportResult =
   | { error: string };
 
 /**
- * Phase 2: bank-statement CSV backfill. Every parsed row becomes a review
- * candidate (statements never auto-post — the whole point of a backfill is
- * that you look before it lands). Rows whose amount+type match an existing
- * ledger transaction within ±3 days get flagged as possible duplicates so
- * "Accept all" can safely skip them.
+ * The shared tail of every document import (CSV, PDF, screenshot): parsed
+ * rows become review candidates (documents never auto-post — the whole point
+ * of a backfill is that you look before it lands). Dedup twice: content-hash
+ * ids make re-uploads idempotent, and rows whose amount+type match an
+ * existing ledger transaction within ±3 days get flagged as possible
+ * duplicates so "Accept all" skips them.
  */
-export async function importStatementCsv(formData: FormData): Promise<ImportResult> {
-  const csvText = formData.get("csv");
+async function importParsedRows(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  rows: StatementRow[],
+  meta: { fileLabel: string; accountTag: string | null; source: "csv" | "pdf" | "image"; skipped: number },
+): Promise<ImportResult> {
+  // One query for everything already in the ledger around the statement's
+  // date range — the duplicate check then runs in memory.
+  const dates = rows.map((r) => r.date).sort();
+  const pad = (iso: string, days: number) => {
+    const d = new Date(`${iso}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  };
+  const { data: existing } = await supabase
+    .from("transactions")
+    .select("amount, type, date")
+    .gte("date", pad(dates[0], -3))
+    .lte("date", pad(dates[dates.length - 1], 3));
+
+  const seen = new Map<string, number>();
+  const candidateRows = rows.map((row) => {
+    const base = `${row.date}|${row.description}|${row.amount}|${row.type}`;
+    const n = seen.get(base) ?? 0;
+    seen.set(base, n + 1);
+    const messageId = `doc-${createHash("sha1").update(base).digest("hex").slice(0, 24)}-${n}`;
+
+    const duplicate = (existing ?? []).find((t) => {
+      if (t.type !== row.type || Number(t.amount) !== row.amount) return false;
+      const diff = Math.abs(new Date(`${t.date}T00:00:00Z`).getTime() - new Date(`${row.date}T00:00:00Z`).getTime());
+      return diff <= 3 * 24 * 60 * 60 * 1000;
+    });
+
+    const suggestion = suggestCategory(row.description, row.type);
+
+    return {
+      user_id: userId,
+      message_id: messageId,
+      email_date: `${row.date}T00:00:00Z`,
+      from_address: meta.fileLabel,
+      subject: row.description,
+      amount: row.amount,
+      suggested_type: row.type,
+      suggested_category: suggestion?.category ?? null,
+      suggested_note: row.description,
+      raw_snippet: row.description,
+      account_tag: meta.accountTag,
+      review_reason: duplicate
+        ? `possible duplicate — same amount already in your ledger on ${duplicate.date}`
+        : null,
+      auto_posted: false,
+      status: "pending",
+      source: meta.source,
+    };
+  });
+
+  const { data: inserted, error } = await supabase
+    .from("email_transaction_candidates")
+    .upsert(candidateRows, { onConflict: "user_id,message_id", ignoreDuplicates: true })
+    .select("id, review_reason");
+
+  if (error) {
+    console.error("[importParsedRows]", error);
+    return { error: "Could not save the imported rows — please try again." };
+  }
+
+  // Only count flags among rows that were actually new this upload.
+  const flagged = (inserted ?? []).filter((r) => r.review_reason != null).length;
+
+  await logAudit(supabase, {
+    action: "document_import.completed",
+    entityType: "email_transaction_candidate",
+    payload: {
+      filename: meta.fileLabel,
+      source: meta.source,
+      parsed: rows.length,
+      inserted: inserted?.length ?? 0,
+      flagged,
+      skipped: meta.skipped,
+    },
+    riskLevel: "low",
+    userId: userId,
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/review");
+  revalidatePath("/app");
+  return { found: inserted?.length ?? 0, flagged, skipped: meta.skipped, parsed: rows.length };
+}
+
+function readMeta(formData: FormData, fallbackName: string) {
   const filename = formData.get("filename");
   const accountTagRaw = formData.get("account_tag");
+  return {
+    fileLabel:
+      typeof filename === "string" && filename.trim() ? filename.trim().slice(0, 80) : fallbackName,
+    accountTag:
+      typeof accountTagRaw === "string" && accountTagRaw.trim() ? accountTagRaw.trim().slice(0, 24) : null,
+  };
+}
 
+export async function importStatementCsv(formData: FormData): Promise<ImportResult> {
+  const csvText = formData.get("csv");
   if (typeof csvText !== "string" || !csvText.trim()) {
     return { error: "The file looks empty — export a CSV from your bank and try again." };
   }
@@ -523,93 +625,119 @@ export async function importStatementCsv(formData: FormData): Promise<ImportResu
   if (parsed.rows.length === 0) {
     return { error: "No transactions found in that file — check it's a bank statement export." };
   }
-  const rows = parsed.rows.slice(0, 500);
 
-  // One query for everything already in the ledger around the statement's
-  // date range — the duplicate check then runs in memory.
-  const dates = rows.map((r) => r.date).sort();
-  const pad = (iso: string, days: number) => {
-    const d = new Date(`${iso}T00:00:00Z`);
-    d.setUTCDate(d.getUTCDate() + days);
-    return d.toISOString().slice(0, 10);
-  };
-  const { data: existing } = await supabase
-    .from("transactions")
-    .select("amount, type, date")
-    .gte("date", pad(dates[0], -3))
-    .lte("date", pad(dates[dates.length - 1], 3));
-
-  const accountTag =
-    typeof accountTagRaw === "string" && accountTagRaw.trim() ? accountTagRaw.trim().slice(0, 24) : null;
-  const fileLabel = typeof filename === "string" && filename.trim() ? filename.trim().slice(0, 80) : "statement.csv";
-
-  const seen = new Map<string, number>();
-  const candidateRows = rows.map((row) => {
-    const base = `${row.date}|${row.description}|${row.amount}|${row.type}`;
-    const n = seen.get(base) ?? 0;
-    seen.set(base, n + 1);
-    const messageId = `csv-${createHash("sha1").update(base).digest("hex").slice(0, 24)}-${n}`;
-
-    const duplicate = (existing ?? []).find((t) => {
-      if (t.type !== row.type || Number(t.amount) !== row.amount) return false;
-      const diff = Math.abs(new Date(`${t.date}T00:00:00Z`).getTime() - new Date(`${row.date}T00:00:00Z`).getTime());
-      return diff <= 3 * 24 * 60 * 60 * 1000;
-    });
-
-    const suggestion = suggestCategory(row.description, row.type);
-
-    return {
-      user_id: user.id,
-      message_id: messageId,
-      email_date: `${row.date}T00:00:00Z`,
-      from_address: fileLabel,
-      subject: row.description,
-      amount: row.amount,
-      suggested_type: row.type,
-      suggested_category: suggestion?.category ?? null,
-      suggested_note: row.description,
-      raw_snippet: row.description,
-      account_tag: accountTag,
-      review_reason: duplicate
-        ? `possible duplicate — same amount already in your ledger on ${duplicate.date}`
-        : null,
-      auto_posted: false,
-      status: "pending",
-      source: "csv",
-    };
+  const meta = readMeta(formData, "statement.csv");
+  return importParsedRows(supabase, user.id, parsed.rows.slice(0, 500), {
+    ...meta,
+    source: "csv",
+    skipped: parsed.skipped,
   });
+}
 
-  const { data: inserted, error } = await supabase
-    .from("email_transaction_candidates")
-    .upsert(candidateRows, { onConflict: "user_id,message_id", ignoreDuplicates: true })
-    .select("id, review_reason");
+/**
+ * Turns statement TEXT — extracted from a PDF server-side, or OCR'd from a
+ * screenshot in the browser — into review candidates. Multi-line statements
+ * go through the line heuristic; when that finds nothing (a single-receipt
+ * PDF or a photo of one receipt), the email receipt parser takes over and
+ * produces one candidate.
+ */
+export async function importDocument(formData: FormData): Promise<ImportResult> {
+  const kind = formData.get("kind");
+  let text: string;
 
-  if (error) {
-    console.error("[importStatementCsv]", error);
-    return { error: "Could not save the imported rows — please try again." };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  if (kind === "pdf") {
+    const base64 = formData.get("pdf");
+    if (typeof base64 !== "string" || !base64) {
+      return { error: "The PDF didn't upload — please try again." };
+    }
+    try {
+      const { PDFParse } = await import("pdf-parse");
+      const parser = new PDFParse({ data: new Uint8Array(Buffer.from(base64, "base64")) });
+      const result = await parser.getText();
+      text = result.text ?? "";
+    } catch (err) {
+      console.error("[importDocument] pdf extraction", err);
+      return { error: "Couldn't read that PDF — if it's a scanned image, upload it as a screenshot instead." };
+    }
+    if (!text.trim()) {
+      return {
+        error:
+          "That PDF has no extractable text (it's likely a scan) — screenshot it and upload the image instead.",
+      };
+    }
+  } else {
+    const raw = formData.get("text");
+    if (typeof raw !== "string" || !raw.trim()) {
+      return { error: "Couldn't read any text from that image — try a sharper, closer screenshot." };
+    }
+    text = raw;
+  }
+  if (text.length > 2_000_000) {
+    return { error: "That document is too large — split it into shorter statement periods." };
   }
 
-  // Only count flags among rows that were actually new this upload.
-  const flagged = (inserted ?? []).filter((r) => r.review_reason != null).length;
+  const source = kind === "pdf" ? ("pdf" as const) : ("image" as const);
+  const meta = readMeta(formData, source === "pdf" ? "statement.pdf" : "screenshot");
 
-  await logAudit(supabase, {
-    action: "csv_import.completed",
-    entityType: "email_transaction_candidate",
-    payload: {
-      filename: fileLabel,
-      parsed: rows.length,
-      inserted: inserted?.length ?? 0,
-      flagged,
-      skipped: parsed.skipped,
-    },
-    riskLevel: "low",
-    userId: user.id,
-  });
+  const statement = parseStatementText(text);
+  if (statement.rows.length >= 2) {
+    return importParsedRows(supabase, user.id, statement.rows.slice(0, 500), {
+      ...meta,
+      source,
+      skipped: statement.skipped,
+    });
+  }
 
-  revalidatePath("/settings");
-  revalidatePath("/review");
-  revalidatePath("/app");
-  return { found: inserted?.length ?? 0, flagged, skipped: parsed.skipped, parsed: rows.length };
+  // Single-receipt fallback — same rule-based heuristic the email scanner
+  // uses, so a PDF invoice or a photo of one receipt still becomes a capture.
+  const receipt = parseEmailForTransaction(meta.fileLabel, text);
+  const single = statement.rows[0] ??
+    (receipt
+      ? {
+          date: new Date().toISOString().slice(0, 10),
+          description: receipt.note,
+          amount: receipt.amount,
+          type: receipt.type,
+        }
+      : null);
+
+  if (!single) {
+    return {
+      error:
+        "Couldn't find any transactions in that document — no dated statement lines and no receipt-style total.",
+    };
+  }
+
+  // Receipts parsed via the email heuristic may be in a foreign currency.
+  if (receipt && !statement.rows[0] && receipt.currency !== "SGD") {
+    const fx = await convertToSgd(receipt.amount, receipt.currency);
+    if (fx) single.amount = fx.sgd;
+    const rows = await importParsedRows(supabase, user.id, [single], { ...meta, source, skipped: 0 });
+    if ("error" in rows) return rows;
+    // Mark the FX guess for review visibility (importParsedRows only flags duplicates).
+    await supabase
+      .from("email_transaction_candidates")
+      .update({
+        original_amount: receipt.amount,
+        original_currency: receipt.currency,
+        review_reason: fx
+          ? `${receipt.currency} ${receipt.amount.toLocaleString("en-SG")} @ ${fx.rate.toFixed(4)} — confirm the rate`
+          : `${receipt.currency} ${receipt.amount.toLocaleString("en-SG")} — rate unavailable, edit the SGD amount`,
+      })
+      .eq("user_id", user.id)
+      .eq("status", "pending")
+      .eq("amount", single.amount)
+      .eq("from_address", meta.fileLabel);
+    return rows;
+  }
+
+  return importParsedRows(supabase, user.id, [single], { ...meta, source, skipped: 0 });
 }
 
 /**
@@ -641,7 +769,7 @@ export async function acceptAllCleanCandidates(): Promise<{ accepted: number; fa
       supabase,
       user.id,
       candidate,
-      candidate.source === "csv" ? "csv" : "email_review",
+      candidate.source === "email" ? "email_review" : "csv",
     );
     if ("error" in result) {
       failed++;

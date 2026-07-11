@@ -91,7 +91,7 @@ export type EmailTransactionCandidate = {
   review_reason: string | null;
   auto_posted: boolean;
   transaction_id: string | null;
-  source: "email" | "csv";
+  source: "email" | "csv" | "pdf" | "image";
 };
 
 export type TrustedSender = {

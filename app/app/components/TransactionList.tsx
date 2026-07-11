@@ -59,7 +59,7 @@ export default function TransactionList({
                     )}
                     {t.entry_source === "csv" && (
                       <span className="rounded-full bg-neutral-100 px-1.5 py-px font-mono text-[10px] text-neutral-500">
-                        📄 csv
+                        📄 import
                       </span>
                     )}
                     {t.account_tag && (

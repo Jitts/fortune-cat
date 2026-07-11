@@ -7,6 +7,7 @@ import type { EmailConnection, TrustedSender } from "@/lib/types";
 import {
   connectEmailAccount,
   disconnectEmailAccount,
+  importDocument,
   importStatementCsv,
   scanEmailInbox,
   scanOlderEmails,
@@ -40,6 +41,7 @@ export default function SettingsShell({
   const [scanning, startScan] = useTransition();
   const [scanningOlder, startScanOlder] = useTransition();
   const [importing, startImport] = useTransition();
+  const [importStage, setImportStage] = useState<string | null>(null);
   const [reachedStart, setReachedStart] = useState(
     initialConnection?.oldest_scanned_seq != null && initialConnection.oldest_scanned_seq <= 1,
   );
@@ -148,26 +150,65 @@ export default function SettingsShell({
     });
   }
 
-  function handleCsvUpload(file: File | null) {
+  function handleFileUpload(file: File | null) {
     if (!file) return;
     startImport(async () => {
-      const text = await file.text();
-      const formData = new FormData();
-      formData.set("csv", text);
-      formData.set("filename", file.name);
-      formData.set("account_tag", csvAccountTag);
-      const result = await importStatementCsv(formData);
-      if ("error" in result) {
-        setToast(result.error);
-        return;
+      try {
+        const formData = new FormData();
+        formData.set("filename", file.name);
+        formData.set("account_tag", csvAccountTag);
+
+        let result;
+        const name = file.name.toLowerCase();
+        if (name.endsWith(".csv") || file.type === "text/csv") {
+          setImportStage("Reading CSV…");
+          formData.set("csv", await file.text());
+          result = await importStatementCsv(formData);
+        } else if (name.endsWith(".pdf") || file.type === "application/pdf") {
+          if (file.size > 5_000_000) {
+            setToast("That PDF is over 5MB — export a shorter statement period.");
+            return;
+          }
+          setImportStage("Reading PDF…");
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          let binary = "";
+          for (let i = 0; i < bytes.length; i += 0x8000) {
+            binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+          }
+          formData.set("kind", "pdf");
+          formData.set("pdf", btoa(binary));
+          result = await importDocument(formData);
+        } else if (file.type.startsWith("image/")) {
+          // OCR runs HERE in the browser (tesseract.js) — the image never
+          // leaves the device; only the recognised text goes to the server.
+          setImportStage("Reading image… (first run downloads the OCR engine)");
+          const Tesseract = (await import("tesseract.js")).default;
+          const ocr = await Tesseract.recognize(file, "eng");
+          formData.set("kind", "image");
+          formData.set("text", ocr.data.text ?? "");
+          result = await importDocument(formData);
+        } else {
+          setToast("Unsupported file — upload a CSV, PDF, or a screenshot (PNG/JPG).");
+          return;
+        }
+
+        if ("error" in result) {
+          setToast(result.error);
+          return;
+        }
+        const parts = [
+          `Imported ${result.found} transaction${result.found === 1 ? "" : "s"} to review`,
+        ];
+        if (result.flagged > 0) parts.push(`${result.flagged} flagged as possible duplicates`);
+        if (result.parsed - result.found > 0) parts.push(`${result.parsed - result.found} already imported before`);
+        setToast(`${parts.join(" · ")}.`);
+        router.refresh();
+      } catch (err) {
+        console.error("[handleFileUpload]", err);
+        setToast("Something went wrong reading that file — please try again.");
+      } finally {
+        setImportStage(null);
       }
-      const parts = [
-        `Imported ${result.found} transaction${result.found === 1 ? "" : "s"} to review`,
-      ];
-      if (result.flagged > 0) parts.push(`${result.flagged} flagged as possible duplicates`);
-      if (result.parsed - result.found > 0) parts.push(`${result.parsed - result.found} already imported before`);
-      setToast(`${parts.join(" · ")}.`);
-      router.refresh();
     });
   }
 
@@ -290,14 +331,15 @@ export default function SettingsShell({
       <div className="space-y-3 pb-4">
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-medium text-neutral-500">📄 Bank statement CSV</h2>
+            <h2 className="text-sm font-medium text-neutral-500">📄 Statements &amp; receipts</h2>
             <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
-              ON
+              CSV · PDF · SCREENSHOT
             </span>
           </div>
           <p className="mt-1 text-xs text-neutral-400">
-            Upload a DBS / POSB / OCBC / UOB transaction-history export to backfill whole months at
-            once — catches card swipes that never emailed you. Every row lands in{" "}
+            Upload a DBS / POSB / OCBC / UOB statement (CSV or PDF e-statement), a PDF receipt, or a
+            screenshot of either — screenshots are read on your device and never uploaded. Every row
+            lands in{" "}
             <Link href="/review" className="underline hover:text-neutral-600">
               Review
             </Link>{" "}
@@ -317,14 +359,14 @@ export default function SettingsShell({
                 importing ? "pointer-events-none opacity-50" : ""
               }`}
             >
-              {importing ? "Importing…" : "Choose CSV file"}
+              {importing ? (importStage ?? "Importing…") : "Choose file"}
               <input
                 type="file"
-                accept=".csv,text/csv"
+                accept=".csv,text/csv,.pdf,application/pdf,image/*"
                 className="hidden"
                 disabled={importing}
                 onChange={(e) => {
-                  handleCsvUpload(e.target.files?.[0] ?? null);
+                  handleFileUpload(e.target.files?.[0] ?? null);
                   e.target.value = "";
                 }}
               />
