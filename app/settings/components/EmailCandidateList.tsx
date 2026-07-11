@@ -54,6 +54,11 @@ export default function EmailCandidateList({
                         {c.account_tag}
                       </span>
                     )}
+                    {c.source === "csv" && (
+                      <span className="inline-flex items-center rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500">
+                        📄 csv
+                      </span>
+                    )}
                     {c.review_reason && (
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${

@@ -49,7 +49,7 @@ export async function createTransactionFromCandidate(
   supabase: Db,
   userId: string,
   candidate: CandidateRow,
-  entrySource: "email_auto" | "email_review",
+  entrySource: "email_auto" | "email_review" | "csv",
 ): Promise<{ id: string } | { error: string }> {
   const categoryId = await lookupCategoryId(supabase, userId, candidate.suggested_category);
 

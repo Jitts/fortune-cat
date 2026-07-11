@@ -1,11 +1,14 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
 import { testImapConnection, fetchRecentEmails, fetchOlderEmails } from "@/lib/email/imapClient";
 import { processFetchedEmails, createTransactionFromCandidate } from "@/lib/email/processScan";
+import { parseStatementCsv } from "@/lib/csv/parseStatement";
+import { suggestCategory } from "@/lib/tagger";
 import type { EmailConnection, EmailTransactionCandidate, Transaction, TrustedSender } from "@/lib/types";
 
 type ConnectResult = { data: EmailConnection; error?: undefined } | { data?: undefined; error: string };
@@ -295,7 +298,12 @@ export async function acceptEmailCandidate(id: string): Promise<CandidateActionR
     .single();
   if (!candidate) return { error: "Could not find that item." };
 
-  const result = await createTransactionFromCandidate(supabase, user.id, candidate, "email_review");
+  const result = await createTransactionFromCandidate(
+    supabase,
+    user.id,
+    candidate,
+    candidate.source === "csv" ? "csv" : "email_review",
+  );
   if ("error" in result) {
     return { error: "Could not save the transaction — please try again." };
   }
@@ -479,4 +487,183 @@ export async function dismissEmailCandidate(id: string): Promise<CandidateAction
 
   revalidatePath("/settings");
   return { data };
+}
+
+type ImportResult =
+  | { found: number; flagged: number; skipped: number; parsed: number }
+  | { error: string };
+
+/**
+ * Phase 2: bank-statement CSV backfill. Every parsed row becomes a review
+ * candidate (statements never auto-post — the whole point of a backfill is
+ * that you look before it lands). Rows whose amount+type match an existing
+ * ledger transaction within ±3 days get flagged as possible duplicates so
+ * "Accept all" can safely skip them.
+ */
+export async function importStatementCsv(formData: FormData): Promise<ImportResult> {
+  const csvText = formData.get("csv");
+  const filename = formData.get("filename");
+  const accountTagRaw = formData.get("account_tag");
+
+  if (typeof csvText !== "string" || !csvText.trim()) {
+    return { error: "The file looks empty — export a CSV from your bank and try again." };
+  }
+  if (csvText.length > 1_000_000) {
+    return { error: "That file is over 1MB — export a shorter statement period." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const parsed = parseStatementCsv(csvText);
+  if ("error" in parsed) return parsed;
+  if (parsed.rows.length === 0) {
+    return { error: "No transactions found in that file — check it's a bank statement export." };
+  }
+  const rows = parsed.rows.slice(0, 500);
+
+  // One query for everything already in the ledger around the statement's
+  // date range — the duplicate check then runs in memory.
+  const dates = rows.map((r) => r.date).sort();
+  const pad = (iso: string, days: number) => {
+    const d = new Date(`${iso}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  };
+  const { data: existing } = await supabase
+    .from("transactions")
+    .select("amount, type, date")
+    .gte("date", pad(dates[0], -3))
+    .lte("date", pad(dates[dates.length - 1], 3));
+
+  const accountTag =
+    typeof accountTagRaw === "string" && accountTagRaw.trim() ? accountTagRaw.trim().slice(0, 24) : null;
+  const fileLabel = typeof filename === "string" && filename.trim() ? filename.trim().slice(0, 80) : "statement.csv";
+
+  const seen = new Map<string, number>();
+  const candidateRows = rows.map((row) => {
+    const base = `${row.date}|${row.description}|${row.amount}|${row.type}`;
+    const n = seen.get(base) ?? 0;
+    seen.set(base, n + 1);
+    const messageId = `csv-${createHash("sha1").update(base).digest("hex").slice(0, 24)}-${n}`;
+
+    const duplicate = (existing ?? []).find((t) => {
+      if (t.type !== row.type || Number(t.amount) !== row.amount) return false;
+      const diff = Math.abs(new Date(`${t.date}T00:00:00Z`).getTime() - new Date(`${row.date}T00:00:00Z`).getTime());
+      return diff <= 3 * 24 * 60 * 60 * 1000;
+    });
+
+    const suggestion = suggestCategory(row.description, row.type);
+
+    return {
+      user_id: user.id,
+      message_id: messageId,
+      email_date: `${row.date}T00:00:00Z`,
+      from_address: fileLabel,
+      subject: row.description,
+      amount: row.amount,
+      suggested_type: row.type,
+      suggested_category: suggestion?.category ?? null,
+      suggested_note: row.description,
+      raw_snippet: row.description,
+      account_tag: accountTag,
+      review_reason: duplicate
+        ? `possible duplicate — same amount already in your ledger on ${duplicate.date}`
+        : null,
+      auto_posted: false,
+      status: "pending",
+      source: "csv",
+    };
+  });
+
+  const { data: inserted, error } = await supabase
+    .from("email_transaction_candidates")
+    .upsert(candidateRows, { onConflict: "user_id,message_id", ignoreDuplicates: true })
+    .select("id, review_reason");
+
+  if (error) {
+    console.error("[importStatementCsv]", error);
+    return { error: "Could not save the imported rows — please try again." };
+  }
+
+  // Only count flags among rows that were actually new this upload.
+  const flagged = (inserted ?? []).filter((r) => r.review_reason != null).length;
+
+  await logAudit(supabase, {
+    action: "csv_import.completed",
+    entityType: "email_transaction_candidate",
+    payload: {
+      filename: fileLabel,
+      parsed: rows.length,
+      inserted: inserted?.length ?? 0,
+      flagged,
+      skipped: parsed.skipped,
+    },
+    riskLevel: "low",
+    userId: user.id,
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/review");
+  revalidatePath("/app");
+  return { found: inserted?.length ?? 0, flagged, skipped: parsed.skipped, parsed: rows.length };
+}
+
+/**
+ * Bulk-accepts every CLEAN pending capture (no review reason). Flagged rows —
+ * possible duplicates, foreign currency, unknown senders — stay behind for
+ * individual judgement; bulk never overrides a raised hand.
+ */
+export async function acceptAllCleanCandidates(): Promise<{ accepted: number; failed: number } | { error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const { data: candidates } = await supabase
+    .from("email_transaction_candidates")
+    .select()
+    .eq("user_id", user.id)
+    .eq("status", "pending")
+    .is("review_reason", null)
+    .limit(200);
+
+  if (!candidates || candidates.length === 0) return { accepted: 0, failed: 0 };
+
+  let accepted = 0;
+  let failed = 0;
+  for (const candidate of candidates) {
+    const result = await createTransactionFromCandidate(
+      supabase,
+      user.id,
+      candidate,
+      candidate.source === "csv" ? "csv" : "email_review",
+    );
+    if ("error" in result) {
+      failed++;
+      continue;
+    }
+    await supabase
+      .from("email_transaction_candidates")
+      .update({ status: "accepted", transaction_id: result.id })
+      .eq("id", candidate.id);
+    accepted++;
+  }
+
+  await logAudit(supabase, {
+    action: "email_candidates.bulk_accepted",
+    entityType: "email_transaction_candidate",
+    payload: { accepted, failed },
+    riskLevel: "low",
+    userId: user.id,
+  });
+
+  revalidatePath("/app");
+  revalidatePath("/review");
+  revalidatePath("/settings");
+  return { accepted, failed };
 }

@@ -7,6 +7,7 @@ import type { EmailConnection, TrustedSender } from "@/lib/types";
 import {
   connectEmailAccount,
   disconnectEmailAccount,
+  importStatementCsv,
   scanEmailInbox,
   scanOlderEmails,
   trustSender,
@@ -33,10 +34,12 @@ export default function SettingsShell({
   const [connection, setConnection] = useState(initialConnection);
   const [trustedSenders, setTrustedSenders] = useState(initialTrustedSenders);
   const [newPattern, setNewPattern] = useState("");
+  const [csvAccountTag, setCsvAccountTag] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [scanning, startScan] = useTransition();
   const [scanningOlder, startScanOlder] = useTransition();
+  const [importing, startImport] = useTransition();
   const [reachedStart, setReachedStart] = useState(
     initialConnection?.oldest_scanned_seq != null && initialConnection.oldest_scanned_seq <= 1,
   );
@@ -142,6 +145,29 @@ export default function SettingsShell({
         return;
       }
       setTrustedSenders((prev) => prev.filter((t) => t.id !== id));
+    });
+  }
+
+  function handleCsvUpload(file: File | null) {
+    if (!file) return;
+    startImport(async () => {
+      const text = await file.text();
+      const formData = new FormData();
+      formData.set("csv", text);
+      formData.set("filename", file.name);
+      formData.set("account_tag", csvAccountTag);
+      const result = await importStatementCsv(formData);
+      if ("error" in result) {
+        setToast(result.error);
+        return;
+      }
+      const parts = [
+        `Imported ${result.found} transaction${result.found === 1 ? "" : "s"} to review`,
+      ];
+      if (result.flagged > 0) parts.push(`${result.flagged} flagged as possible duplicates`);
+      if (result.parsed - result.found > 0) parts.push(`${result.parsed - result.found} already imported before`);
+      setToast(`${parts.join(" · ")}.`);
+      router.refresh();
     });
   }
 
@@ -262,17 +288,48 @@ export default function SettingsShell({
       )}
 
       <div className="space-y-3 pb-4">
-        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-5">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium text-neutral-600">📄 Bank statement CSV</h3>
-            <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-mono text-[10px] text-neutral-500">
-              PHASE 2
+            <h2 className="text-sm font-medium text-neutral-500">📄 Bank statement CSV</h2>
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
+              ON
             </span>
           </div>
           <p className="mt-1 text-xs text-neutral-400">
-            Drop a DBS / OCBC / UOB export to backfill whole months at once — catches card swipes
-            that never emailed you.
+            Upload a DBS / POSB / OCBC / UOB transaction-history export to backfill whole months at
+            once — catches card swipes that never emailed you. Every row lands in{" "}
+            <Link href="/review" className="underline hover:text-neutral-600">
+              Review
+            </Link>{" "}
+            first; anything matching an amount already in your ledger gets flagged as a possible
+            duplicate, and re-uploading the same file never double-imports.
           </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              value={csvAccountTag}
+              onChange={(e) => setCsvAccountTag(e.target.value)}
+              placeholder="account tag e.g. POSB"
+              className="w-44 rounded-lg border border-neutral-300 px-3 py-1.5 font-mono text-xs focus:border-neutral-500 focus:outline-none"
+            />
+            <label
+              className={`cursor-pointer rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 ${
+                importing ? "pointer-events-none opacity-50" : ""
+              }`}
+            >
+              {importing ? "Importing…" : "Choose CSV file"}
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                disabled={importing}
+                onChange={(e) => {
+                  handleCsvUpload(e.target.files?.[0] ?? null);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
         </div>
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-5">
           <div className="flex items-center justify-between gap-2">

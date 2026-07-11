@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { EmailTransactionCandidate } from "@/lib/types";
 import {
+  acceptAllCleanCandidates,
   acceptEmailCandidate,
   dismissEmailCandidate,
   trustSender,
@@ -34,6 +35,9 @@ export default function ReviewShell({
   const [toast, setToast] = useState<string | null>(null);
   const [candidateActionId, setCandidateActionId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const [bulkAccepting, startBulkAccept] = useTransition();
+
+  const cleanCount = candidates.filter((c) => !c.review_reason).length;
 
   useEffect(() => setCandidates(initialCandidates), [initialCandidates]);
   useEffect(() => setAutoPosted(initialAutoPosted), [initialAutoPosted]);
@@ -77,6 +81,23 @@ export default function ReviewShell({
     });
   }
 
+  function handleAcceptAll() {
+    startBulkAccept(async () => {
+      const result = await acceptAllCleanCandidates();
+      if ("error" in result) {
+        setToast(result.error);
+        return;
+      }
+      setCandidates((prev) => prev.filter((c) => c.review_reason));
+      setToast(
+        result.failed > 0
+          ? `Accepted ${result.accepted} — ${result.failed} failed, please retry those.`
+          : `Accepted ${result.accepted} transaction${result.accepted === 1 ? "" : "s"} to your ledger.`,
+      );
+      router.refresh();
+    });
+  }
+
   function handleUndo(id: string) {
     setCandidateActionId(id);
     startTransition(async () => {
@@ -95,10 +116,22 @@ export default function ReviewShell({
   return (
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={candidates.length}>
       <div className="space-y-3">
-        <h1 className="text-lg font-semibold text-neutral-900">
-          👀 Review{candidates.length > 0 ? ` · ${candidates.length}` : ""}
-        </h1>
-        {hasConnection ? (
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg font-semibold text-neutral-900">
+            👀 Review{candidates.length > 0 ? ` · ${candidates.length}` : ""}
+          </h1>
+          {cleanCount >= 2 && (
+            <button
+              onClick={handleAcceptAll}
+              disabled={bulkAccepting}
+              title="Accepts every capture without a warning — flagged items (duplicates, foreign currency, unknown senders) stay for individual review."
+              className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
+            >
+              {bulkAccepting ? "Accepting…" : `Accept all ${cleanCount} clean`}
+            </button>
+          )}
+        </div>
+        {candidates.length > 0 || hasConnection ? (
           <EmailCandidateList
             candidates={candidates}
             onAccept={handleAccept}
@@ -109,7 +142,7 @@ export default function ReviewShell({
         ) : (
           <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-neutral-200">
             <p className="text-sm text-neutral-500">
-              Connect your inbox on the{" "}
+              Connect your inbox or upload a bank statement on the{" "}
               <Link href="/settings" className="font-medium text-emerald-700 underline">
                 Capture
               </Link>{" "}

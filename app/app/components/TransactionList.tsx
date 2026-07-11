@@ -57,6 +57,11 @@ export default function TransactionList({
                         ✉ reviewed
                       </span>
                     )}
+                    {t.entry_source === "csv" && (
+                      <span className="rounded-full bg-neutral-100 px-1.5 py-px font-mono text-[10px] text-neutral-500">
+                        📄 csv
+                      </span>
+                    )}
                     {t.account_tag && (
                       <span className="rounded bg-neutral-100 px-1.5 py-px font-mono text-[10px] uppercase text-neutral-500">
                         {t.account_tag}
