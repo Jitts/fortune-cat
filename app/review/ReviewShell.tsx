@@ -1,0 +1,160 @@
+"use client";
+
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { EmailTransactionCandidate } from "@/lib/types";
+import {
+  acceptEmailCandidate,
+  dismissEmailCandidate,
+  trustSender,
+  undoAutoPost,
+} from "@/app/settings/actions";
+import EmailCandidateList from "@/app/settings/components/EmailCandidateList";
+import AppChrome from "@/app/components/AppChrome";
+import Toast from "@/app/app/components/Toast";
+import { formatCurrency, formatDate } from "@/lib/format";
+
+export default function ReviewShell({
+  hasConnection,
+  initialCandidates,
+  initialAutoPosted,
+  userEmail,
+  isPro,
+}: {
+  hasConnection: boolean;
+  initialCandidates: EmailTransactionCandidate[];
+  initialAutoPosted: EmailTransactionCandidate[];
+  userEmail: string;
+  isPro: boolean;
+}) {
+  const router = useRouter();
+  const [candidates, setCandidates] = useState(initialCandidates);
+  const [autoPosted, setAutoPosted] = useState(initialAutoPosted);
+  const [toast, setToast] = useState<string | null>(null);
+  const [candidateActionId, setCandidateActionId] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+
+  useEffect(() => setCandidates(initialCandidates), [initialCandidates]);
+  useEffect(() => setAutoPosted(initialAutoPosted), [initialAutoPosted]);
+
+  function handleAccept(id: string) {
+    setCandidateActionId(id);
+    startTransition(async () => {
+      const result = await acceptEmailCandidate(id);
+      setCandidateActionId(null);
+      if (result.error) {
+        setToast(result.error);
+        return;
+      }
+      setCandidates((prev) => prev.filter((c) => c.id !== id));
+      setToast("Added to your ledger.");
+    });
+  }
+
+  function handleDismiss(id: string) {
+    setCandidateActionId(id);
+    startTransition(async () => {
+      const result = await dismissEmailCandidate(id);
+      setCandidateActionId(null);
+      if (result.error) {
+        setToast(result.error);
+        return;
+      }
+      setCandidates((prev) => prev.filter((c) => c.id !== id));
+    });
+  }
+
+  function handleTrustSender(fromAddress: string) {
+    startTransition(async () => {
+      const result = await trustSender(fromAddress);
+      if (result.error || !result.data) {
+        setToast(result.error ?? "Could not save — please try again.");
+        return;
+      }
+      setToast(`Trusted ${result.data.pattern} — future SGD captures from it post automatically.`);
+      router.refresh();
+    });
+  }
+
+  function handleUndo(id: string) {
+    setCandidateActionId(id);
+    startTransition(async () => {
+      const result = await undoAutoPost(id);
+      setCandidateActionId(null);
+      if (result.error) {
+        setToast(result.error);
+        return;
+      }
+      setAutoPosted((prev) => prev.filter((c) => c.id !== id));
+      setToast("Undone — it's back in review.");
+      router.refresh();
+    });
+  }
+
+  return (
+    <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={candidates.length}>
+      <div className="space-y-3">
+        <h1 className="text-lg font-semibold text-neutral-900">
+          👀 Review{candidates.length > 0 ? ` · ${candidates.length}` : ""}
+        </h1>
+        {hasConnection ? (
+          <EmailCandidateList
+            candidates={candidates}
+            onAccept={handleAccept}
+            onDismiss={handleDismiss}
+            onTrustSender={handleTrustSender}
+            pendingId={candidateActionId}
+          />
+        ) : (
+          <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-neutral-200">
+            <p className="text-sm text-neutral-500">
+              Connect your inbox on the{" "}
+              <Link href="/settings" className="font-medium text-emerald-700 underline">
+                Capture
+              </Link>{" "}
+              screen and captured transactions will wait for you here.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {autoPosted.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-neutral-900">⚡ Auto-posted recently</h2>
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200">
+            <ul className="divide-y divide-neutral-100">
+              {autoPosted.map((c) => (
+                <li key={c.id} className="flex items-center gap-3 px-6 py-3">
+                  <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
+                    ⚡
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm text-neutral-900">{c.subject}</p>
+                    <p className="font-mono text-[10px] text-neutral-400">
+                      {c.email_date ? formatDate(c.email_date.slice(0, 10)) : ""}
+                      {c.account_tag ? ` · ${c.account_tag}` : ""}
+                    </p>
+                  </div>
+                  <span className="text-sm font-semibold text-neutral-900 [font-variant-numeric:tabular-nums]">
+                    {c.suggested_type === "income" ? "+" : "−"}
+                    {c.amount !== null ? formatCurrency(c.amount) : "—"}
+                  </span>
+                  <button
+                    onClick={() => handleUndo(c.id)}
+                    disabled={candidateActionId === c.id}
+                    className="font-mono text-[11px] font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+                  >
+                    {candidateActionId === c.id ? "…" : "UNDO"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+    </AppChrome>
+  );
+}

@@ -3,44 +3,37 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { EmailConnection, EmailTransactionCandidate, TrustedSender } from "@/lib/types";
+import type { EmailConnection, TrustedSender } from "@/lib/types";
 import {
-  acceptEmailCandidate,
   connectEmailAccount,
   disconnectEmailAccount,
-  dismissEmailCandidate,
   scanEmailInbox,
   scanOlderEmails,
   trustSender,
-  undoAutoPost,
   untrustSender,
 } from "./actions";
 import ConnectEmailForm from "./components/ConnectEmailForm";
-import EmailCandidateList from "./components/EmailCandidateList";
+import AppChrome from "@/app/components/AppChrome";
 import Toast from "@/app/app/components/Toast";
-import { formatCurrency, formatDate } from "@/lib/format";
 
 export default function SettingsShell({
   initialConnection,
-  initialCandidates,
   initialTrustedSenders,
-  initialAutoPosted,
+  pendingReviewCount,
   userEmail,
+  isPro,
 }: {
   initialConnection: EmailConnection | null;
-  initialCandidates: EmailTransactionCandidate[];
   initialTrustedSenders: TrustedSender[];
-  initialAutoPosted: EmailTransactionCandidate[];
+  pendingReviewCount: number;
   userEmail: string;
+  isPro: boolean;
 }) {
   const router = useRouter();
   const [connection, setConnection] = useState(initialConnection);
-  const [candidates, setCandidates] = useState(initialCandidates);
   const [trustedSenders, setTrustedSenders] = useState(initialTrustedSenders);
-  const [autoPosted, setAutoPosted] = useState(initialAutoPosted);
   const [newPattern, setNewPattern] = useState("");
   const [toast, setToast] = useState<string | null>(null);
-  const [candidateActionId, setCandidateActionId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [scanning, startScan] = useTransition();
   const [scanningOlder, startScanOlder] = useTransition();
@@ -50,10 +43,8 @@ export default function SettingsShell({
 
   // Sync local state when the server component re-fetches fresh data (e.g.
   // after router.refresh() post-scan) — useState only seeds from props once.
-  useEffect(() => setCandidates(initialCandidates), [initialCandidates]);
   useEffect(() => setConnection(initialConnection), [initialConnection]);
   useEffect(() => setTrustedSenders(initialTrustedSenders), [initialTrustedSenders]);
-  useEffect(() => setAutoPosted(initialAutoPosted), [initialAutoPosted]);
 
   function scanToast(result: { found: number; autoPosted: number; scanned: number }, older = false) {
     const where = older ? "older emails" : "emails";
@@ -73,7 +64,7 @@ export default function SettingsShell({
       }
       setConnection(result.data);
       setReachedStart(false);
-      setToast("Inbox connected — click \"Scan inbox\" to look for transactions.");
+      setToast("Inbox connected — click \"Scan now\" to look for transactions.");
     });
   }
 
@@ -85,7 +76,6 @@ export default function SettingsShell({
         return;
       }
       setConnection(null);
-      setCandidates([]);
       setToast("Inbox disconnected.");
     });
   }
@@ -121,36 +111,9 @@ export default function SettingsShell({
     });
   }
 
-  function handleAccept(id: string) {
-    setCandidateActionId(id);
+  function handleTrustPattern(value: string) {
     startTransition(async () => {
-      const result = await acceptEmailCandidate(id);
-      setCandidateActionId(null);
-      if (result.error) {
-        setToast(result.error);
-        return;
-      }
-      setCandidates((prev) => prev.filter((c) => c.id !== id));
-      setToast("Added to your ledger.");
-    });
-  }
-
-  function handleDismiss(id: string) {
-    setCandidateActionId(id);
-    startTransition(async () => {
-      const result = await dismissEmailCandidate(id);
-      setCandidateActionId(null);
-      if (result.error) {
-        setToast(result.error);
-        return;
-      }
-      setCandidates((prev) => prev.filter((c) => c.id !== id));
-    });
-  }
-
-  function handleTrustSender(fromAddress: string) {
-    startTransition(async () => {
-      const result = await trustSender(fromAddress);
+      const result = await trustSender(value);
       if (result.error || !result.data) {
         setToast(result.error ?? "Could not save — please try again.");
         return;
@@ -168,7 +131,7 @@ export default function SettingsShell({
     if (!newPattern.trim()) return;
     const value = newPattern.trim();
     setNewPattern("");
-    handleTrustSender(value.includes("@") ? value : `@${value}`);
+    handleTrustPattern(value.includes("@") ? value : `@${value}`);
   }
 
   function handleUntrust(id: string) {
@@ -182,224 +145,150 @@ export default function SettingsShell({
     });
   }
 
-  function handleUndo(id: string) {
-    setCandidateActionId(id);
-    startTransition(async () => {
-      const result = await undoAutoPost(id);
-      setCandidateActionId(null);
-      if (result.error) {
-        setToast(result.error);
-        return;
-      }
-      setAutoPosted((prev) => prev.filter((c) => c.id !== id));
-      setToast("Undone — it's back in review.");
-      router.refresh();
-    });
-  }
-
   return (
-    <main className="min-h-screen bg-neutral-50 p-6 sm:p-10">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <Link href="/app" className="text-sm text-neutral-400 hover:text-neutral-600">
-              ← Back to app
-            </Link>
-            <h1 className="text-2xl font-bold tracking-tight text-neutral-900">📡 Capture</h1>
-          </div>
-          <span className="hidden text-sm text-neutral-500 sm:inline">{userEmail}</span>
-        </div>
+    <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
+      <h1 className="text-lg font-semibold text-neutral-900">📡 Capture</h1>
 
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-medium text-neutral-500">📧 Email auto-scan</h2>
-            {connection && (
-              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
-                ON · DAILY 7AM SGT
-              </span>
-            )}
-          </div>
-
-          {connection ? (
-            <div className="mt-4 space-y-4">
-              <div className="rounded-lg bg-emerald-50 px-4 py-3">
-                <p className="text-sm font-medium text-emerald-800">✓ Connected as {connection.email}</p>
-                <p className="text-xs text-emerald-600">
-                  {connection.last_scanned_at
-                    ? `Last scanned ${new Date(connection.last_scanned_at).toLocaleString("en-SG")}`
-                    : "Never scanned yet"}
-                  {" · "}scans run automatically every morning; the buttons below scan on demand.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={handleScan}
-                  disabled={scanning}
-                  className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
-                >
-                  {scanning ? "Scanning…" : "Scan now"}
-                </button>
-                <button
-                  onClick={handleScanOlder}
-                  disabled={scanningOlder || reachedStart || connection.oldest_scanned_seq == null}
-                  title={
-                    connection.oldest_scanned_seq == null
-                      ? 'Run "Scan now" first'
-                      : reachedStart
-                        ? "Already reached the oldest email in your inbox"
-                        : "Look further back for older transactions (e.g. old receipts, hotel stays)"
-                  }
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
-                >
-                  {scanningOlder ? "Scanning…" : "Scan older emails"}
-                </button>
-                <button
-                  onClick={handleDisconnect}
-                  disabled={pending}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
-                >
-                  Disconnect
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-4">
-              <ConnectEmailForm onSubmit={handleConnect} pending={pending} />
-            </div>
+      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-neutral-500">📧 Email auto-scan</h2>
+          {connection && (
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
+              ON · DAILY 7AM SGT
+            </span>
           )}
         </div>
 
-        {connection && (
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-            <h2 className="text-sm font-medium text-neutral-500">⚡ Trusted senders</h2>
-            <p className="mt-1 text-xs text-neutral-400">
-              SGD transactions from these senders post straight to your ledger (with one-tap undo).
-              Everything else — including all foreign currency — waits in review. Nothing auto-posts
-              without a rule you set here.
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {trustedSenders.length === 0 && (
-                <p className="text-xs text-neutral-400">
-                  None yet — use “Trust sender” on a review item below, or add a domain:
-                </p>
-              )}
-              {trustedSenders.map((t) => (
-                <span
-                  key={t.id}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-mono text-xs text-emerald-700"
-                >
-                  ✓ {t.pattern}
-                  <button
-                    onClick={() => handleUntrust(t.id)}
-                    disabled={pending}
-                    title={`Stop auto-posting from ${t.pattern}`}
-                    className="text-emerald-400 hover:text-emerald-800 disabled:opacity-50"
-                  >
-                    ✕
-                  </button>
-                </span>
-              ))}
+        {connection ? (
+          <div className="mt-4 space-y-4">
+            <div className="rounded-lg bg-emerald-50 px-4 py-3">
+              <p className="text-sm font-medium text-emerald-800">✓ Connected as {connection.email}</p>
+              <p className="text-xs text-emerald-600">
+                {connection.last_scanned_at
+                  ? `Last scanned ${new Date(connection.last_scanned_at).toLocaleString("en-SG")}`
+                  : "Never scanned yet"}
+                {" · "}scans run automatically every morning; the buttons below scan on demand.
+              </p>
             </div>
-            <form onSubmit={handleAddPattern} className="mt-3 flex gap-2">
-              <input
-                type="text"
-                value={newPattern}
-                onChange={(e) => setNewPattern(e.target.value)}
-                placeholder="dbs.com"
-                className="w-44 rounded-lg border border-neutral-300 px-3 py-1.5 font-mono text-xs focus:border-neutral-500 focus:outline-none"
-              />
+            <div className="flex flex-wrap gap-3">
               <button
-                type="submit"
-                disabled={pending || !newPattern.trim()}
-                className="rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                onClick={handleScan}
+                disabled={scanning}
+                className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
               >
-                Trust domain
+                {scanning ? "Scanning…" : "Scan now"}
               </button>
-            </form>
-          </div>
-        )}
-
-        {connection && (
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-neutral-900">
-              👀 Review{candidates.length > 0 ? ` · ${candidates.length}` : ""}
-            </h2>
-            <EmailCandidateList
-              candidates={candidates}
-              onAccept={handleAccept}
-              onDismiss={handleDismiss}
-              onTrustSender={handleTrustSender}
-              pendingId={candidateActionId}
-            />
-          </div>
-        )}
-
-        {connection && autoPosted.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-neutral-900">⚡ Auto-posted recently</h2>
-            <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200">
-              <ul className="divide-y divide-neutral-100">
-                {autoPosted.map((c) => (
-                  <li key={c.id} className="flex items-center gap-3 px-6 py-3">
-                    <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
-                      ⚡
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-neutral-900">{c.subject}</p>
-                      <p className="font-mono text-[10px] text-neutral-400">
-                        {c.email_date ? formatDate(c.email_date.slice(0, 10)) : ""}
-                        {c.account_tag ? ` · ${c.account_tag}` : ""}
-                      </p>
-                    </div>
-                    <span className="text-sm font-semibold text-neutral-900 [font-variant-numeric:tabular-nums]">
-                      {c.suggested_type === "income" ? "+" : "−"}
-                      {c.amount !== null ? formatCurrency(c.amount) : "—"}
-                    </span>
-                    <button
-                      onClick={() => handleUndo(c.id)}
-                      disabled={candidateActionId === c.id}
-                      className="font-mono text-[11px] font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
-                    >
-                      {candidateActionId === c.id ? "…" : "UNDO"}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <button
+                onClick={handleScanOlder}
+                disabled={scanningOlder || reachedStart || connection.oldest_scanned_seq == null}
+                title={
+                  connection.oldest_scanned_seq == null
+                    ? 'Run "Scan now" first'
+                    : reachedStart
+                      ? "Already reached the oldest email in your inbox"
+                      : "Look further back for older transactions (e.g. old receipts, hotel stays)"
+                }
+                className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+              >
+                {scanningOlder ? "Scanning…" : "Scan older emails"}
+              </button>
+              <button
+                onClick={handleDisconnect}
+                disabled={pending}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+              >
+                Disconnect
+              </button>
             </div>
           </div>
-        )}
-
-        {connection && (
-          <div className="space-y-3 pb-4">
-            <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-5">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium text-neutral-600">📄 Bank statement CSV</h3>
-                <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-mono text-[10px] text-neutral-500">
-                  PHASE 2
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-neutral-400">
-                Drop a DBS / OCBC / UOB export to backfill whole months at once — catches card swipes
-                that never emailed you.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-5">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium text-neutral-600">💬 SMS forwarding</h3>
-                <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-mono text-[10px] text-neutral-500">
-                  PHASE 3
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-neutral-400">
-                SG banks SMS every card transaction. A phone shortcut will forward them here — the
-                widest net, in real time.
-              </p>
-            </div>
+        ) : (
+          <div className="mt-4">
+            <ConnectEmailForm onSubmit={handleConnect} pending={pending} />
           </div>
         )}
       </div>
 
+      {connection && (
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+          <h2 className="text-sm font-medium text-neutral-500">⚡ Trusted senders</h2>
+          <p className="mt-1 text-xs text-neutral-400">
+            SGD transactions from these senders post straight to your ledger (with one-tap undo).
+            Everything else — including all foreign currency — waits in{" "}
+            <Link href="/review" className="underline hover:text-neutral-600">
+              Review
+            </Link>
+            . Nothing auto-posts without a rule you set here.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {trustedSenders.length === 0 && (
+              <p className="text-xs text-neutral-400">
+                None yet — use “Trust sender” on a review item, or add a domain:
+              </p>
+            )}
+            {trustedSenders.map((t) => (
+              <span
+                key={t.id}
+                className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-mono text-xs text-emerald-700"
+              >
+                ✓ {t.pattern}
+                <button
+                  onClick={() => handleUntrust(t.id)}
+                  disabled={pending}
+                  title={`Stop auto-posting from ${t.pattern}`}
+                  className="text-emerald-400 hover:text-emerald-800 disabled:opacity-50"
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+          <form onSubmit={handleAddPattern} className="mt-3 flex gap-2">
+            <input
+              type="text"
+              value={newPattern}
+              onChange={(e) => setNewPattern(e.target.value)}
+              placeholder="dbs.com"
+              className="w-44 rounded-lg border border-neutral-300 px-3 py-1.5 font-mono text-xs focus:border-neutral-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={pending || !newPattern.trim()}
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+            >
+              Trust domain
+            </button>
+          </form>
+        </div>
+      )}
+
+      <div className="space-y-3 pb-4">
+        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-5">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-medium text-neutral-600">📄 Bank statement CSV</h3>
+            <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-mono text-[10px] text-neutral-500">
+              PHASE 2
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-neutral-400">
+            Drop a DBS / OCBC / UOB export to backfill whole months at once — catches card swipes
+            that never emailed you.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-5">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-medium text-neutral-600">💬 SMS forwarding</h3>
+            <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-mono text-[10px] text-neutral-500">
+              PHASE 3
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-neutral-400">
+            SG banks SMS every card transaction. A phone shortcut will forward them here — the
+            widest net, in real time.
+          </p>
+        </div>
+      </div>
+
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
-    </main>
+    </AppChrome>
   );
 }

@@ -133,7 +133,7 @@ export default function PulseCard({
 
       {pendingReviewCount > 0 && (
         <Link
-          href="/settings"
+          href="/review"
           className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3.5 text-sm font-medium text-amber-800 shadow-sm transition hover:bg-amber-100"
         >
           <span>

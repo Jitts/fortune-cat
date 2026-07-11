@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Category, Transaction } from "@/lib/types";
 import {
   acceptAiTag,
@@ -11,7 +11,7 @@ import {
   rejectAiTag,
   updateTransaction,
 } from "./actions";
-import { signOutAction } from "@/app/auth/actions";
+import AppChrome from "@/app/components/AppChrome";
 import PulseCard from "./components/PulseCard";
 import CategoryBreakdown from "./components/CategoryBreakdown";
 import InsightCard from "./components/InsightCard";
@@ -20,7 +20,6 @@ import TransactionForm, {
   emptyFormValues,
   transactionToFormValues,
 } from "./components/TransactionForm";
-import ProBadge from "./components/ProBadge";
 import Toast from "./components/Toast";
 
 const FREE_TIER_LIMIT = 10;
@@ -39,11 +38,21 @@ export default function AppShell({
   pendingReviewCount: number;
 }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions);
   const [isPro, setIsPro] = useState(initialIsPro);
   const [modal, setModal] = useState<"add" | Transaction | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // The "+ Add" tab and drawer item deep-link here as /app?add=1 so the
+  // add-transaction modal is reachable from any screen.
+  useEffect(() => {
+    if (searchParams.get("add") === "1") {
+      setModal("add");
+      router.replace("/app", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     if (isPro || searchParams.get("checkout") !== "success") return;
@@ -71,6 +80,10 @@ export default function AppShell({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
   const [pending, startTransition] = useTransition();
+
+  // Auto-posted captures land server-side (cron/scans) — pick them up when
+  // the server component re-renders with fresh data.
+  useEffect(() => setTransactions(initialTransactions), [initialTransactions]);
 
   const balance = useMemo(() => {
     return transactions.reduce((sum, t) => sum + (t.type === "income" ? t.amount : -t.amount), 0);
@@ -142,46 +155,8 @@ export default function AppShell({
   }
 
   return (
-    <main className="min-h-screen bg-neutral-50 p-6 sm:p-10">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-neutral-900">🐱 Fortune Cat</h1>
-            {isPro && <ProBadge />}
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/feedback"
-              className="hidden text-sm font-medium text-neutral-500 hover:text-neutral-900 sm:inline"
-            >
-              💡 Feature requests
-            </Link>
-            <Link
-              href="/settings"
-              className="hidden text-sm font-medium text-neutral-500 hover:text-neutral-900 sm:inline"
-            >
-              📡 Capture
-            </Link>
-            {!isPro && (
-              <Link
-                href="/upgrade"
-                className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"
-              >
-                Go Pro
-              </Link>
-            )}
-            <span className="hidden text-sm text-neutral-500 sm:inline">{userEmail}</span>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100"
-              >
-                Sign out
-              </button>
-            </form>
-          </div>
-        </div>
-
+    <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
+      <>
         <PulseCard
           transactions={transactions}
           balance={balance}
@@ -220,10 +195,10 @@ export default function AppShell({
           onRejectTag={handleRejectTag}
           tagPending={pending}
         />
-      </div>
+      </>
 
       {modal && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/30 p-4">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <h3 className="mb-4 text-lg font-semibold text-neutral-900">
               {modal === "add" ? "Add Transaction" : "Edit Transaction"}
@@ -243,6 +218,6 @@ export default function AppShell({
       )}
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
-    </main>
+    </AppChrome>
   );
 }
