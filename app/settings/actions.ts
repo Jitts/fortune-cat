@@ -651,30 +651,18 @@ export async function importDocument(formData: FormData): Promise<ImportResult> 
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
 
-  if (kind === "pdf") {
-    const base64 = formData.get("pdf");
-    if (typeof base64 !== "string" || !base64) {
-      return { error: "The PDF didn't upload — please try again." };
-    }
-    try {
-      const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: new Uint8Array(Buffer.from(base64, "base64")) });
-      const result = await parser.getText();
-      text = result.text ?? "";
-    } catch (err) {
-      console.error("[importDocument] pdf extraction", err);
-      return { error: "Couldn't read that PDF — if it's a scanned image, upload it as a screenshot instead." };
-    }
-    if (!text.trim()) {
-      return {
-        error:
-          "That PDF has no extractable text (it's likely a scan) — screenshot it and upload the image instead.",
-      };
-    }
-  } else {
+  // Both kinds arrive as already-extracted text: PDFs are read by pdfjs in
+  // the browser and screenshots are OCR'd there — the file itself never
+  // reaches the server.
+  {
     const raw = formData.get("text");
     if (typeof raw !== "string" || !raw.trim()) {
-      return { error: "Couldn't read any text from that image — try a sharper, closer screenshot." };
+      return {
+        error:
+          kind === "pdf"
+            ? "Couldn't read any text from that PDF — if it's a scanned image, upload it as a screenshot instead."
+            : "Couldn't read any text from that image — try a sharper, closer screenshot.",
+      };
     }
     text = raw;
   }

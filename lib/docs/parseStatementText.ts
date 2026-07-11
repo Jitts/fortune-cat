@@ -86,7 +86,10 @@ export function parseStatementText(text: string): { rows: StatementRow[]; skippe
       .slice(dateMatch[0].length, chosen.index)
       .replace(/\s+/g, " ")
       .trim();
-    if (!description) {
+    // A description with no real words is layout debris, not a merchant —
+    // e.g. a credit-card header line "14 Jun 2026 $2,000.00 $120.16" would
+    // otherwise import the credit limit as a $2,000 transaction.
+    if (!/[A-Za-z]{2}/.test(description)) {
       skipped++;
       continue;
     }

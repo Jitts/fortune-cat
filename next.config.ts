@@ -6,14 +6,10 @@ const nextConfig: NextConfig = {
   // so we don't let them block a deployment.
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
-  // pdfjs-dist blows up when webpack processes it into the server bundle
-  // ("Object.defineProperty called on non-object") — load it natively via
-  // Node at runtime instead. Verified working un-bundled.
-  serverExternalPackages: ["pdf-parse", "pdfjs-dist"],
   experimental: {
     serverActions: {
-      // PDF statements reach the import action as base64 — the 1MB default
-      // rejects anything beyond a couple of pages.
+      // PDFs and screenshots arrive as extracted text (a long statement can
+      // still be hundreds of KB) — headroom over the 1MB default.
       bodySizeLimit: "8mb",
     },
   },

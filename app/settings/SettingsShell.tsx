@@ -165,18 +165,39 @@ export default function SettingsShell({
           formData.set("csv", await file.text());
           result = await importStatementCsv(formData);
         } else if (name.endsWith(".pdf") || file.type === "application/pdf") {
-          if (file.size > 5_000_000) {
-            setToast("That PDF is over 5MB — export a shorter statement period.");
+          if (file.size > 20_000_000) {
+            setToast("That PDF is over 20MB — export a shorter statement period.");
             return;
           }
+          // Text extraction runs HERE in the browser (pdfjs) — the PDF never
+          // leaves the device; only the extracted text goes to the server.
+          // (Server-side pdfjs needs DOM globals that serverless Node lacks.)
           setImportStage("Reading PDF…");
-          const bytes = new Uint8Array(await file.arrayBuffer());
-          let binary = "";
-          for (let i = 0; i < bytes.length; i += 0x8000) {
-            binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+          const pdfjs = await import("pdfjs-dist");
+          pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+            "pdfjs-dist/build/pdf.worker.min.mjs",
+            import.meta.url,
+          ).toString();
+          const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) })
+            .promise;
+          let text = "";
+          for (let p = 1; p <= doc.numPages; p++) {
+            const page = await doc.getPage(p);
+            const content = await page.getTextContent();
+            for (const item of content.items) {
+              if ("str" in item) text += item.str + (item.hasEOL ? "\n" : " ");
+            }
+            text += "\n";
+          }
+          await doc.cleanup();
+          if (!text.trim()) {
+            setToast(
+              "That PDF has no extractable text (it's likely a scan) — screenshot it and upload the image instead.",
+            );
+            return;
           }
           formData.set("kind", "pdf");
-          formData.set("pdf", btoa(binary));
+          formData.set("text", text);
           result = await importDocument(formData);
         } else if (file.type.startsWith("image/")) {
           // OCR runs HERE in the browser (tesseract.js) — the image never
