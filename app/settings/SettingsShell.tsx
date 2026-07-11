@@ -3,10 +3,12 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { EmailConnection, TrustedSender } from "@/lib/types";
+import type { EmailConnection, SmsTokenInfo, TrustedSender } from "@/lib/types";
 import {
   connectEmailAccount,
+  disableSmsForwarding,
   disconnectEmailAccount,
+  enableSmsForwarding,
   importDocument,
   importStatementCsv,
   scanEmailInbox,
@@ -21,12 +23,14 @@ import Toast from "@/app/app/components/Toast";
 export default function SettingsShell({
   initialConnection,
   initialTrustedSenders,
+  initialSmsToken,
   pendingReviewCount,
   userEmail,
   isPro,
 }: {
   initialConnection: EmailConnection | null;
   initialTrustedSenders: TrustedSender[];
+  initialSmsToken: SmsTokenInfo | null;
   pendingReviewCount: number;
   userEmail: string;
   isPro: boolean;
@@ -34,6 +38,8 @@ export default function SettingsShell({
   const router = useRouter();
   const [connection, setConnection] = useState(initialConnection);
   const [trustedSenders, setTrustedSenders] = useState(initialTrustedSenders);
+  const [smsToken, setSmsToken] = useState(initialSmsToken);
+  const [showSmsGuide, setShowSmsGuide] = useState(false);
   const [newPattern, setNewPattern] = useState("");
   const [csvAccountTag, setCsvAccountTag] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -50,6 +56,7 @@ export default function SettingsShell({
   // after router.refresh() post-scan) — useState only seeds from props once.
   useEffect(() => setConnection(initialConnection), [initialConnection]);
   useEffect(() => setTrustedSenders(initialTrustedSenders), [initialTrustedSenders]);
+  useEffect(() => setSmsToken(initialSmsToken), [initialSmsToken]);
 
   function scanToast(result: { found: number; autoPosted: number; scanned: number }, older = false) {
     const where = older ? "older emails" : "emails";
@@ -147,6 +154,31 @@ export default function SettingsShell({
         return;
       }
       setTrustedSenders((prev) => prev.filter((t) => t.id !== id));
+    });
+  }
+
+  function handleEnableSms() {
+    startTransition(async () => {
+      const result = await enableSmsForwarding();
+      if (result.error || !result.data) {
+        setToast(result.error ?? "Could not enable — please try again.");
+        return;
+      }
+      setSmsToken(result.data);
+      setShowSmsGuide(true);
+      setToast(smsToken ? "Token rotated — update your phone shortcut." : "SMS forwarding is on — set up the phone shortcut below.");
+    });
+  }
+
+  function handleDisableSms() {
+    startTransition(async () => {
+      const result = await disableSmsForwarding();
+      if (result.error) {
+        setToast(result.error);
+        return;
+      }
+      setSmsToken(null);
+      setToast("SMS forwarding disabled — the old token no longer works.");
     });
   }
 
@@ -394,17 +426,104 @@ export default function SettingsShell({
             </label>
           </div>
         </div>
-        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-5">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium text-neutral-600">💬 SMS forwarding</h3>
-            <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-mono text-[10px] text-neutral-500">
-              PHASE 3
-            </span>
+            <h2 className="text-sm font-medium text-neutral-500">💬 SMS forwarding</h2>
+            {smsToken ? (
+              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
+                ON
+              </span>
+            ) : (
+              <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-mono text-[10px] text-neutral-500">
+                OFF
+              </span>
+            )}
           </div>
           <p className="mt-1 text-xs text-neutral-400">
-            SG banks SMS every card transaction. A phone shortcut will forward them here — the
-            widest net, in real time.
+            SG banks SMS every card transaction. A one-time phone shortcut forwards them here in
+            real time — the widest net, catching swipes that never email you. OTPs and promos are
+            recognised and dropped; captures follow the same rules as email (trusted senders
+            auto-post, everything else waits in review).
           </p>
+
+          {smsToken ? (
+            <div className="mt-3 space-y-3">
+              <div className="rounded-lg bg-neutral-50 p-3">
+                <p className="font-mono text-[10px] uppercase tracking-wide text-neutral-400">
+                  Webhook · POST
+                </p>
+                <p className="break-all font-mono text-xs text-neutral-700">
+                  {typeof window !== "undefined" ? window.location.origin : ""}/api/inbound/sms
+                </p>
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-neutral-400">
+                  Your token
+                </p>
+                <p className="break-all font-mono text-xs text-neutral-700">{smsToken.token}</p>
+                <p className="mt-2 font-mono text-[10px] text-neutral-400">
+                  {smsToken.last_received_at
+                    ? `last SMS received ${new Date(smsToken.last_received_at).toLocaleString("en-SG")}`
+                    : "no SMS received yet"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSmsGuide((v) => !v)}
+                className="text-xs font-medium text-neutral-600 underline underline-offset-2 hover:text-neutral-900"
+              >
+                {showSmsGuide ? "Hide setup guide" : "How do I set up my phone?"}
+              </button>
+              {showSmsGuide && (
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600">
+                  <p className="font-semibold text-neutral-800">iPhone (Shortcuts app)</p>
+                  <ol className="mt-1 list-decimal space-y-1 pl-4">
+                    <li>Automation → New Automation → <b>Message</b> → “Message Contains” = <span className="font-mono">SGD</span> → Run Immediately</li>
+                    <li>Add action <b>Get Contents of URL</b>: URL = the webhook above, Method = POST, Request Body = JSON</li>
+                    <li>
+                      Add fields: <span className="font-mono">token</span> = your token,{" "}
+                      <span className="font-mono">body</span> = shortcut input (message text),{" "}
+                      <span className="font-mono">from</span> = sender
+                    </li>
+                  </ol>
+                  <p className="mt-2 font-semibold text-neutral-800">Android (MacroDroid / Tasker)</p>
+                  <ol className="mt-1 list-decimal space-y-1 pl-4">
+                    <li>Trigger: SMS received (optionally filter sender to your banks)</li>
+                    <li>
+                      Action: HTTP POST to the webhook with JSON{" "}
+                      <span className="font-mono">{`{"token":"…","from":"[sms_sender]","body":"[sms_message]"}`}</span>
+                    </li>
+                  </ol>
+                  <p className="mt-2 text-neutral-500">
+                    It’s safe to forward everything — non-transaction SMS are ignored. Rotating the
+                    token instantly cuts off the old one.
+                  </p>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={handleEnableSms}
+                  disabled={pending}
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                >
+                  Rotate token
+                </button>
+                <button
+                  onClick={handleDisableSms}
+                  disabled={pending}
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                >
+                  Disable
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleEnableSms}
+              disabled={pending}
+              className="mt-3 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+            >
+              Enable SMS forwarding
+            </button>
+          )}
         </div>
       </div>
 

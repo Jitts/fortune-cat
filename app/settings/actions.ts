@@ -783,3 +783,71 @@ export async function acceptAllCleanCandidates(): Promise<{ accepted: number; fa
   revalidatePath("/settings");
   return { accepted, failed };
 }
+
+type SmsTokenResult =
+  | { data: { token: string; created_at: string; last_received_at: string | null }; error?: undefined }
+  | { data?: undefined; error: string };
+
+/**
+ * Turns SMS forwarding on (or rotates the token — calling it again mints a
+ * fresh token, instantly invalidating the old one). The token is the only
+ * credential the phone shortcut holds.
+ */
+export async function enableSmsForwarding(): Promise<SmsTokenResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const token = createHash("sha1")
+    .update(`${user.id}-${Date.now()}-${Math.random()}`)
+    .digest("hex");
+
+  const { data, error } = await supabase
+    .from("sms_tokens")
+    .upsert({ user_id: user.id, token }, { onConflict: "user_id" })
+    .select("token, created_at, last_received_at")
+    .single();
+
+  if (error || !data) {
+    console.error("[enableSmsForwarding]", error);
+    return { error: "Could not enable SMS forwarding — please try again." };
+  }
+
+  await logAudit(supabase, {
+    action: "sms_forwarding.enabled",
+    entityType: "sms_token",
+    payload: {},
+    riskLevel: "medium",
+    userId: user.id,
+  });
+
+  revalidatePath("/settings");
+  return { data };
+}
+
+export async function disableSmsForwarding(): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const { error } = await supabase.from("sms_tokens").delete().eq("user_id", user.id);
+  if (error) {
+    console.error("[disableSmsForwarding]", error);
+    return { error: "Could not disable — please try again." };
+  }
+
+  await logAudit(supabase, {
+    action: "sms_forwarding.disabled",
+    entityType: "sms_token",
+    payload: {},
+    riskLevel: "medium",
+    userId: user.id,
+  });
+
+  revalidatePath("/settings");
+  return {};
+}

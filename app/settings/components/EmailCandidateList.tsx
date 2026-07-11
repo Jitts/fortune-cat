@@ -56,7 +56,7 @@ export default function EmailCandidateList({
                     )}
                     {c.source !== "email" && (
                       <span className="inline-flex items-center rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500">
-                        {c.source === "image" ? "🖼" : "📄"} {c.source}
+                        {c.source === "image" ? "🖼" : c.source === "sms" ? "💬" : "📄"} {c.source}
                       </span>
                     )}
                     {c.review_reason && (

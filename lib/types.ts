@@ -91,7 +91,15 @@ export type EmailTransactionCandidate = {
   review_reason: string | null;
   auto_posted: boolean;
   transaction_id: string | null;
-  source: "email" | "csv" | "pdf" | "image";
+  source: "email" | "csv" | "pdf" | "image" | "sms";
+};
+
+// Deliberately excludes nothing sensitive beyond the token itself — the token
+// is the user's own webhook credential, shown once on the Capture screen.
+export type SmsTokenInfo = {
+  token: string;
+  created_at: string;
+  last_received_at: string | null;
 };
 
 export type TrustedSender = {

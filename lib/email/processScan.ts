@@ -86,17 +86,29 @@ export async function createTransactionFromCandidate(
  * (trusted sender + SGD + rule-clean) or stage for review with a stated
  * reason. Dedup by (user_id, message_id) means rescans never double-post.
  */
+export type ProcessOptions = {
+  // Channel-specific parsing/tagging — email is the default; the SMS inbound
+  // route supplies its own (bank SMS wording differs from email alerts).
+  parser?: (subject: string, text: string) => ReturnType<typeof parseEmailForTransaction>;
+  accountTagger?: (from: string, text: string) => string | null;
+  source?: "email" | "sms";
+};
+
 export async function processFetchedEmails(
   supabase: Db,
   userId: string,
   emails: FetchedEmail[],
   trustedPatterns: string[],
+  options: ProcessOptions = {},
 ): Promise<ScanOutcome | { error: string }> {
+  const parser = options.parser ?? parseEmailForTransaction;
+  const accountTagger = options.accountTagger ?? suggestAccountTag;
+  const source = options.source ?? "email";
   const patterns = trustedPatterns.map((p) => p.toLowerCase()).filter(Boolean);
 
   const candidateRows = [];
   for (const mail of emails) {
-    const parsed = parseEmailForTransaction(mail.subject, mail.text);
+    const parsed = parser(mail.subject, mail.text);
     if (!parsed) continue;
 
     const foreign = parsed.currency !== "SGD";
@@ -132,12 +144,13 @@ export async function processFetchedEmails(
       suggested_category: parsed.category,
       suggested_note: parsed.note,
       raw_snippet: mail.text.trim().slice(0, 200),
-      account_tag: suggestAccountTag(mail.from, mail.text),
+      account_tag: accountTagger(mail.from, mail.text),
       original_amount: foreign ? parsed.amount : null,
       original_currency: foreign ? parsed.currency : null,
       review_reason: autoPost ? null : reviewReason,
       auto_posted: autoPost,
       status: autoPost ? "accepted" : "pending",
+      source,
     });
   }
 

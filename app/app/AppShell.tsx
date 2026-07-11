@@ -13,6 +13,7 @@ import {
 } from "./actions";
 import AppChrome from "@/app/components/AppChrome";
 import PulseCard from "./components/PulseCard";
+import MonthlyOverview from "./components/MonthlyOverview";
 import CategoryBreakdown from "./components/CategoryBreakdown";
 import InsightCard from "./components/InsightCard";
 import TransactionList from "./components/TransactionList";
@@ -164,6 +165,7 @@ export default function AppShell({
         />
         <InsightCard transactions={transactions} categories={categories} />
         <CategoryBreakdown transactions={transactions} categories={categories} />
+        <MonthlyOverview transactions={transactions} />
 
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-neutral-900">Transactions</h2>

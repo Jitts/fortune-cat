@@ -20,8 +20,10 @@ const PROMOTIONAL_SUBJECT_RE = /\b(redemption|redeem)\b[^\n]*\bvoucher/i;
 // Common currency symbols/codes — not just USD/$, so receipts and bank
 // alerts in other currencies (SGD, MYR, EUR, GBP, THB, ...) are still picked
 // up. The token is captured so foreign amounts can be converted to SGD.
-const CURRENCY =
+// Exported for the SMS parser, which shares the same money grammar.
+export const CURRENCY_PATTERN =
   "(USD|US\\$|SGD|S\\$|MYR|RM|EUR|GBP|INR|AUD|CAD|JPY|CNY|HKD|THB|\\$|€|£|¥|₹|฿)";
+const CURRENCY = CURRENCY_PATTERN;
 // \s* (not \s?) between currency and amount — bank templates render these in
 // separate table cells, so HTML-to-text conversion often leaves multiple
 // spaces, tabs, or even a line break between "SGD" and the number.
@@ -38,7 +40,7 @@ const AMOUNT_WITH_LABEL_RE = new RegExp(
 // Symbol/token → ISO code. A bare "$" is treated as SGD: this is an
 // SGD-primary app for the Singapore market, and local receipts (AXS, hawker
 // POS, telco bills) write plain "$" meaning Singapore dollars.
-const CURRENCY_TOKEN_TO_ISO: Record<string, string> = {
+export const CURRENCY_TOKEN_TO_ISO: Record<string, string> = {
   "USD": "USD", "US$": "USD",
   "SGD": "SGD", "S$": "SGD", "$": "SGD",
   "MYR": "MYR", "RM": "MYR",
