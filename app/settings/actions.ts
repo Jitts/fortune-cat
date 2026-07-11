@@ -5,8 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
 import { testImapConnection, fetchRecentEmails, fetchOlderEmails } from "@/lib/email/imapClient";
-import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
-import type { EmailConnection, EmailTransactionCandidate, Transaction } from "@/lib/types";
+import { processFetchedEmails, createTransactionFromCandidate } from "@/lib/email/processScan";
+import type { EmailConnection, EmailTransactionCandidate, Transaction, TrustedSender } from "@/lib/types";
 
 type ConnectResult = { data: EmailConnection; error?: undefined } | { data?: undefined; error: string };
 
@@ -110,43 +110,16 @@ export async function disconnectEmailAccount(): Promise<{ error?: string }> {
   return {};
 }
 
-type ScanResult = { found: number; scanned: number; reachedStart: boolean } | { error: string };
+type ScanResult =
+  | { found: number; autoPosted: number; scanned: number; reachedStart: boolean }
+  | { error: string };
 
-async function saveScannedEmails(
+async function loadTrustedPatterns(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-  emails: { messageId: string; date: Date; from: string; subject: string; text: string }[],
-): Promise<{ found: number } | { error: string }> {
-  const candidateRows = emails
-    .map((mail) => {
-      const parsed = parseEmailForTransaction(mail.subject, mail.text);
-      if (!parsed) return null;
-      return {
-        user_id: userId,
-        message_id: mail.messageId,
-        email_date: mail.date.toISOString(),
-        from_address: mail.from,
-        subject: mail.subject,
-        amount: parsed.amount,
-        suggested_type: parsed.type,
-        suggested_category: parsed.category,
-        suggested_note: parsed.note,
-        raw_snippet: mail.text.trim().slice(0, 200),
-      };
-    })
-    .filter((r): r is NonNullable<typeof r> => r !== null);
-
-  if (candidateRows.length === 0) return { found: 0 };
-
-  const { data: inserted, error } = await supabase
-    .from("email_transaction_candidates")
-    .upsert(candidateRows, { onConflict: "user_id,message_id", ignoreDuplicates: true })
-    .select("id");
-  if (error) {
-    console.error("[saveScannedEmails]", error);
-    return { error: "Scan found matches but could not save them — please try again." };
-  }
-  return { found: inserted?.length ?? 0 };
+): Promise<string[]> {
+  const { data } = await supabase.from("trusted_senders").select("pattern").eq("user_id", userId);
+  return (data ?? []).map((row) => row.pattern);
 }
 
 export async function scanEmailInbox(): Promise<ScanResult> {
@@ -158,7 +131,7 @@ export async function scanEmailInbox(): Promise<ScanResult> {
 
   const { data: connection } = await supabase
     .from("email_connections")
-    .select("id, email, imap_host, imap_port, encrypted_password")
+    .select("id, email, imap_host, imap_port, encrypted_password, oldest_scanned_seq")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -180,25 +153,47 @@ export async function scanEmailInbox(): Promise<ScanResult> {
     return { error: "Could not read your inbox — please reconnect your email." };
   }
 
-  const saved = await saveScannedEmails(supabase, user.id, batch.emails);
-  if ("error" in saved) return saved;
+  const outcome = await processFetchedEmails(
+    supabase,
+    user.id,
+    batch.emails,
+    await loadTrustedPatterns(supabase, user.id),
+  );
+  if ("error" in outcome) return outcome;
+
+  // The cursor only ever moves further back — a recent-window rescan must
+  // not erase "scan older" progress.
+  const oldestSeq =
+    connection.oldest_scanned_seq != null && batch.oldestSeq != null
+      ? Math.min(connection.oldest_scanned_seq, batch.oldestSeq)
+      : (batch.oldestSeq ?? connection.oldest_scanned_seq);
 
   await supabase
     .from("email_connections")
-    .update({ last_scanned_at: new Date().toISOString(), oldest_scanned_seq: batch.oldestSeq })
+    .update({ last_scanned_at: new Date().toISOString(), oldest_scanned_seq: oldestSeq })
     .eq("user_id", user.id);
 
   await logAudit(supabase, {
     action: "email_scan.completed",
     entityType: "email_connection",
     entityId: connection.id,
-    payload: { emails_scanned: batch.emails.length, candidates_found: saved.found },
+    payload: {
+      emails_scanned: batch.emails.length,
+      candidates_found: outcome.found,
+      auto_posted: outcome.autoPosted,
+    },
     riskLevel: "low",
     userId: user.id,
   });
 
   revalidatePath("/settings");
-  return { found: saved.found, scanned: batch.emails.length, reachedStart: batch.reachedStart };
+  revalidatePath("/app");
+  return {
+    found: outcome.found,
+    autoPosted: outcome.autoPosted,
+    scanned: batch.emails.length,
+    reachedStart: batch.reachedStart,
+  };
 }
 
 /**
@@ -225,7 +220,7 @@ export async function scanOlderEmails(): Promise<ScanResult> {
     return { error: "Run \"Scan inbox\" first before scanning further back." };
   }
   if (connection.oldest_scanned_seq <= 1) {
-    return { found: 0, scanned: 0, reachedStart: true };
+    return { found: 0, autoPosted: 0, scanned: 0, reachedStart: true };
   }
 
   let batch;
@@ -245,8 +240,13 @@ export async function scanOlderEmails(): Promise<ScanResult> {
     return { error: "Could not read your inbox — please reconnect your email." };
   }
 
-  const saved = await saveScannedEmails(supabase, user.id, batch.emails);
-  if ("error" in saved) return saved;
+  const outcome = await processFetchedEmails(
+    supabase,
+    user.id,
+    batch.emails,
+    await loadTrustedPatterns(supabase, user.id),
+  );
+  if ("error" in outcome) return outcome;
 
   await supabase
     .from("email_connections")
@@ -257,13 +257,24 @@ export async function scanOlderEmails(): Promise<ScanResult> {
     action: "email_scan.completed",
     entityType: "email_connection",
     entityId: connection.id,
-    payload: { emails_scanned: batch.emails.length, candidates_found: saved.found, older: true },
+    payload: {
+      emails_scanned: batch.emails.length,
+      candidates_found: outcome.found,
+      auto_posted: outcome.autoPosted,
+      older: true,
+    },
     riskLevel: "low",
     userId: user.id,
   });
 
   revalidatePath("/settings");
-  return { found: saved.found, scanned: batch.emails.length, reachedStart: batch.reachedStart };
+  revalidatePath("/app");
+  return {
+    found: outcome.found,
+    autoPosted: outcome.autoPosted,
+    scanned: batch.emails.length,
+    reachedStart: batch.reachedStart,
+  };
 }
 
 type CandidateActionResult =
@@ -284,42 +295,14 @@ export async function acceptEmailCandidate(id: string): Promise<CandidateActionR
     .single();
   if (!candidate) return { error: "Could not find that item." };
 
-  let categoryId: string | null = null;
-  if (candidate.suggested_category) {
-    const { data: cat } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("name", candidate.suggested_category)
-      .or(`user_id.is.null,user_id.eq.${user.id}`)
-      .limit(1)
-      .maybeSingle();
-    categoryId = cat?.id ?? null;
-  }
-
-  const { data: transaction, error: txError } = await supabase
-    .from("transactions")
-    .insert({
-      user_id: user.id,
-      type: candidate.suggested_type ?? "expense",
-      amount: candidate.amount ?? 0,
-      category_id: categoryId,
-      date: (candidate.email_date ?? new Date().toISOString()).slice(0, 10),
-      note: candidate.suggested_note,
-      ai_category: candidate.suggested_category,
-      ai_category_source: "email_import",
-      ai_category_review_status: "accepted",
-    })
-    .select()
-    .single();
-
-  if (txError || !transaction) {
-    console.error("[acceptEmailCandidate]", txError);
+  const result = await createTransactionFromCandidate(supabase, user.id, candidate, "email_review");
+  if ("error" in result) {
     return { error: "Could not save the transaction — please try again." };
   }
 
   const { data: updatedCandidate } = await supabase
     .from("email_transaction_candidates")
-    .update({ status: "accepted" })
+    .update({ status: "accepted", transaction_id: result.id })
     .eq("id", id)
     .select()
     .single();
@@ -327,15 +310,143 @@ export async function acceptEmailCandidate(id: string): Promise<CandidateActionR
   await logAudit(supabase, {
     action: "transaction.created",
     entityType: "transaction",
-    entityId: transaction.id,
-    payload: { after: transaction, source: "email_import" },
+    entityId: result.id,
+    payload: { source: "email_import", candidate_id: id },
     riskLevel: "low",
     userId: user.id,
   });
 
   revalidatePath("/app");
   revalidatePath("/settings");
-  return { data: updatedCandidate ?? transaction };
+  return { data: updatedCandidate ?? candidate };
+}
+
+/**
+ * One-tap undo for an auto-posted transaction: removes it from the ledger and
+ * puts the candidate back in review so the user can edit or dismiss instead.
+ * Priya's rule — the machine never gets the last word.
+ */
+export async function undoAutoPost(id: string): Promise<CandidateActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const { data: candidate } = await supabase
+    .from("email_transaction_candidates")
+    .select()
+    .eq("id", id)
+    .single();
+  if (!candidate || !candidate.auto_posted) return { error: "Could not find that item." };
+
+  if (candidate.transaction_id) {
+    const { error: delError } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", candidate.transaction_id);
+    if (delError) {
+      console.error("[undoAutoPost]", delError);
+      return { error: "Could not undo — please try again." };
+    }
+  }
+
+  const { data: updated, error } = await supabase
+    .from("email_transaction_candidates")
+    .update({
+      status: "pending",
+      auto_posted: false,
+      transaction_id: null,
+      review_reason: "auto-post undone — review manually",
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error || !updated) {
+    console.error("[undoAutoPost]", error);
+    return { error: "Could not undo — please try again." };
+  }
+
+  await logAudit(supabase, {
+    action: "email_candidate.auto_post_undone",
+    entityType: "email_transaction_candidate",
+    entityId: id,
+    payload: { transaction_id: candidate.transaction_id },
+    riskLevel: "low",
+    userId: user.id,
+  });
+
+  revalidatePath("/app");
+  revalidatePath("/settings");
+  return { data: updated };
+}
+
+type TrustResult = { data: TrustedSender; error?: undefined } | { data?: undefined; error: string };
+
+/**
+ * Adds a sender's domain to the trusted list — from now on, SGD transactions
+ * parsed from matching senders auto-post instead of waiting in review.
+ */
+export async function trustSender(fromAddress: string): Promise<TrustResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const emailMatch = fromAddress.toLowerCase().match(/@([a-z0-9.-]+)/);
+  const pattern = (emailMatch?.[1] ?? fromAddress.toLowerCase()).trim();
+  if (!pattern || pattern.length < 3) return { error: "Could not read a sender domain." };
+
+  const { data, error } = await supabase
+    .from("trusted_senders")
+    .upsert({ user_id: user.id, pattern }, { onConflict: "user_id,pattern" })
+    .select()
+    .single();
+
+  if (error || !data) {
+    console.error("[trustSender]", error);
+    return { error: "Could not save — please try again." };
+  }
+
+  await logAudit(supabase, {
+    action: "trusted_sender.added",
+    entityType: "trusted_sender",
+    entityId: data.id,
+    payload: { pattern },
+    riskLevel: "medium",
+    userId: user.id,
+  });
+
+  revalidatePath("/settings");
+  return { data };
+}
+
+export async function untrustSender(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const { error } = await supabase.from("trusted_senders").delete().eq("id", id);
+  if (error) {
+    console.error("[untrustSender]", error);
+    return { error: "Could not remove — please try again." };
+  }
+
+  await logAudit(supabase, {
+    action: "trusted_sender.removed",
+    entityType: "trusted_sender",
+    entityId: id,
+    payload: {},
+    riskLevel: "medium",
+    userId: user.id,
+  });
+
+  revalidatePath("/settings");
+  return {};
 }
 
 export async function dismissEmailCandidate(id: string): Promise<CandidateActionResult> {

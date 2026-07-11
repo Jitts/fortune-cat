@@ -1,7 +1,9 @@
+// SGD-primary ledger for the Singapore market — en-SG renders SGD with the
+// plain "$" symbol locals expect.
 export function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-SG", {
     style: "currency",
-    currency: "USD",
+    currency: "SGD",
   }).format(amount);
 }
 

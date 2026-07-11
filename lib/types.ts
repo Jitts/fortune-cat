@@ -10,6 +10,10 @@ export type TransactionType = "expense" | "income";
 
 export type AiReviewStatus = "unreviewed" | "accepted" | "rejected";
 
+// Provenance: how a row entered the ledger. "email_auto" = posted by a
+// trusted-sender rule, "email_review" = accepted from the review tray.
+export type EntrySource = "manual" | "email_auto" | "email_review";
+
 export type Transaction = {
   id: string;
   user_id: string | null;
@@ -23,6 +27,10 @@ export type Transaction = {
   ai_category_confidence: number | null;
   ai_category_review_status: AiReviewStatus;
   created_at: string;
+  entry_source: EntrySource;
+  account_tag: string | null;
+  original_amount: number | null;
+  original_currency: string | null;
 };
 
 export type Payment = {
@@ -75,5 +83,18 @@ export type EmailTransactionCandidate = {
   suggested_note: string | null;
   raw_snippet: string | null;
   status: EmailCandidateStatus;
+  created_at: string;
+  account_tag: string | null;
+  original_amount: number | null;
+  original_currency: string | null;
+  review_reason: string | null;
+  auto_posted: boolean;
+  transaction_id: string | null;
+};
+
+export type TrustedSender = {
+  id: string;
+  user_id: string;
+  pattern: string;
   created_at: string;
 };

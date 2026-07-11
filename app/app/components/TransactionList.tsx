@@ -43,8 +43,30 @@ export default function TransactionList({
                   <p className="truncate text-sm font-medium text-neutral-900">
                     {t.note || category?.name || "Transaction"}
                   </p>
-                  <p className="text-xs text-neutral-500">
-                    {formatDate(t.date)} · {category?.name ?? "Uncategorized"}
+                  <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-neutral-500">
+                    <span>
+                      {formatDate(t.date)} · {category?.name ?? "Uncategorized"}
+                    </span>
+                    {t.entry_source === "email_auto" && (
+                      <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
+                        ⚡ auto
+                      </span>
+                    )}
+                    {t.entry_source === "email_review" && (
+                      <span className="rounded-full bg-neutral-100 px-1.5 py-px font-mono text-[10px] text-neutral-500">
+                        ✉ reviewed
+                      </span>
+                    )}
+                    {t.account_tag && (
+                      <span className="rounded bg-neutral-100 px-1.5 py-px font-mono text-[10px] uppercase text-neutral-500">
+                        {t.account_tag}
+                      </span>
+                    )}
+                    {t.original_currency && t.original_amount != null && (
+                      <span className="font-mono text-[10px] text-neutral-400">
+                        {t.original_currency} {t.original_amount.toLocaleString("en-SG")}
+                      </span>
+                    )}
                   </p>
                   <AiTagBadge
                     transaction={t}
@@ -57,7 +79,7 @@ export default function TransactionList({
               </div>
               <div className="flex items-center gap-4">
                 <span
-                  className={`text-sm font-semibold ${isIncome ? "text-emerald-600" : "text-neutral-900"}`}
+                  className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700" : "text-neutral-900"}`}
                 >
                   {isIncome ? "+" : "-"}
                   {formatCurrency(t.amount)}

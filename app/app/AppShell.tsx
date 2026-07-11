@@ -12,7 +12,7 @@ import {
   updateTransaction,
 } from "./actions";
 import { signOutAction } from "@/app/auth/actions";
-import BalanceHeader from "./components/BalanceHeader";
+import PulseCard from "./components/PulseCard";
 import CategoryBreakdown from "./components/CategoryBreakdown";
 import InsightCard from "./components/InsightCard";
 import TransactionList from "./components/TransactionList";
@@ -20,6 +20,7 @@ import TransactionForm, {
   emptyFormValues,
   transactionToFormValues,
 } from "./components/TransactionForm";
+import ProBadge from "./components/ProBadge";
 import Toast from "./components/Toast";
 
 const FREE_TIER_LIMIT = 10;
@@ -29,11 +30,13 @@ export default function AppShell({
   categories,
   isPro: initialIsPro,
   userEmail,
+  pendingReviewCount,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
   isPro: boolean;
   userEmail: string;
+  pendingReviewCount: number;
 }) {
   const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState(initialTransactions);
@@ -142,7 +145,10 @@ export default function AppShell({
     <main className="min-h-screen bg-neutral-50 p-6 sm:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">🐱 Fortune Cat</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-neutral-900">🐱 Fortune Cat</h1>
+            {isPro && <ProBadge />}
+          </div>
           <div className="flex items-center gap-3">
             <Link
               href="/feedback"
@@ -154,7 +160,7 @@ export default function AppShell({
               href="/settings"
               className="hidden text-sm font-medium text-neutral-500 hover:text-neutral-900 sm:inline"
             >
-              ⚙️ Settings
+              📡 Capture
             </Link>
             {!isPro && (
               <Link
@@ -176,7 +182,11 @@ export default function AppShell({
           </div>
         </div>
 
-        <BalanceHeader balance={balance} isPro={isPro} />
+        <PulseCard
+          transactions={transactions}
+          balance={balance}
+          pendingReviewCount={pendingReviewCount}
+        />
         <InsightCard transactions={transactions} categories={categories} />
         <CategoryBreakdown transactions={transactions} categories={categories} />
 
