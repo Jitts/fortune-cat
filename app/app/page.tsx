@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { FortuneGoal, TransactionProvenance } from "@/lib/types";
+import type { CategoryBudget, FortuneGoal, TransactionProvenance } from "@/lib/types";
 import AppShell from "./AppShell";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +24,7 @@ export default async function AppPage() {
     { count: trustedCount },
     { count: backfilledCount },
     { data: goals },
+    { data: budgets },
   ] = await Promise.all([
     supabase.from("transactions").select().order("date", { ascending: false }).order("created_at", { ascending: false }),
     supabase.from("categories").select().order("name"),
@@ -45,6 +46,7 @@ export default async function AppPage() {
       .select("id", { count: "exact", head: true })
       .in("source", ["csv", "pdf", "image"]),
     supabase.from("fortune_goals").select().order("created_at", { ascending: true }),
+    supabase.from("category_budgets").select(),
   ]);
 
   const provenance: Record<string, TransactionProvenance> = {};
@@ -70,6 +72,7 @@ export default async function AppPage() {
         provenance={provenance}
         setup={setup}
         goals={(goals ?? []) as FortuneGoal[]}
+        budgets={(budgets ?? []) as CategoryBudget[]}
       />
     </Suspense>
   );

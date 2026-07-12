@@ -138,3 +138,13 @@ export type FortuneGoal = {
   saved_amount: number;
   created_at: string;
 };
+
+// A monthly spending ceiling for one category. Spend is derived from the
+// current month's expense transactions — this row is just the limit.
+export type CategoryBudget = {
+  id: string;
+  user_id: string | null;
+  category_id: string;
+  monthly_limit: number;
+  created_at: string;
+};
