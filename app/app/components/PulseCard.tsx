@@ -2,9 +2,14 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { formatCurrency } from "@/lib/format";
 import type { Transaction } from "@/lib/types";
+import FortuneCat, { catState } from "./FortuneCat";
 
 function monthKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}`;
+}
+
+function isoDay(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /**
@@ -65,6 +70,29 @@ export default function PulseCard({
     return { days, inTotal, outTotal, net: inTotal - outTotal, maxBar, burnPerDay, burnDelta };
   }, [transactions]);
 
+  // Capture streak: consecutive days (ending today or yesterday) on which at
+  // least one row entered the ledger — the habit the autopilot builds.
+  const streak = useMemo(() => {
+    const daysWithRows = new Set(transactions.map((t) => t.created_at.slice(0, 10)));
+    const cursor = new Date();
+    if (!daysWithRows.has(isoDay(cursor))) cursor.setDate(cursor.getDate() - 1);
+    let count = 0;
+    while (daysWithRows.has(isoDay(cursor))) {
+      count += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return count;
+  }, [transactions]);
+
+  const state = catState(pulse.net, pulse.burnDelta);
+  const savingsRate = pulse.inTotal > 0 ? Math.round((pulse.net / pulse.inTotal) * 100) : null;
+  const caption =
+    state === "saving"
+      ? `The cat is well fed${savingsRate != null && savingsRate > 0 ? ` · saving ${savingsRate}%` : ""}`
+      : state === "even"
+        ? "The cat is watching · breaking even"
+        : "Ears back · out is beating in";
+
   const monthLabel = new Date().toLocaleDateString("en-SG", { month: "long", year: "numeric" });
 
   return (
@@ -77,17 +105,30 @@ export default function PulseCard({
           </p>
         </div>
 
-        <p
-          className={`mt-1 text-3xl font-bold tracking-tight [font-variant-numeric:tabular-nums] ${
-            pulse.net >= 0 ? "text-emerald-700" : "text-neutral-900"
-          }`}
-        >
-          {pulse.net >= 0 ? "+" : "−"}
-          {formatCurrency(Math.abs(pulse.net))}
-        </p>
-        <div className="mt-1 flex gap-4 font-mono text-xs text-neutral-500 [font-variant-numeric:tabular-nums]">
-          <span className="text-emerald-700">▲ in {formatCurrency(pulse.inTotal)}</span>
-          <span>▼ out {formatCurrency(pulse.outTotal)}</span>
+        <div className="mt-2 flex items-center gap-4">
+          <FortuneCat state={state} />
+          <div className="min-w-0">
+            <p
+              className={`text-3xl font-bold tracking-tight [font-variant-numeric:tabular-nums] ${
+                pulse.net >= 0 ? "text-emerald-700" : "text-neutral-900"
+              }`}
+            >
+              {pulse.net >= 0 ? "+" : "−"}
+              {formatCurrency(Math.abs(pulse.net))}
+            </p>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-xs text-neutral-500 [font-variant-numeric:tabular-nums]">
+              <span className="text-emerald-700">▲ in {formatCurrency(pulse.inTotal)}</span>
+              <span>▼ out {formatCurrency(pulse.outTotal)}</span>
+            </div>
+            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-neutral-500">
+              <span>{caption}</span>
+              {streak >= 2 && (
+                <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+                  🔥 {streak}-day capture streak
+                </span>
+              )}
+            </p>
+          </div>
         </div>
 
         {pulse.days.length > 1 && (
