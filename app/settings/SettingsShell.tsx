@@ -474,16 +474,26 @@ export default function SettingsShell({
               </button>
               {showSmsGuide && (
                 <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600">
-                  <p className="font-semibold text-neutral-800">iPhone (Shortcuts app)</p>
+                  <p className="font-semibold text-neutral-800">iPhone (Shortcuts app) — about 5 minutes</p>
                   <ol className="mt-1 list-decimal space-y-1 pl-4">
-                    <li>Automation → New Automation → <b>Message</b> → “Message Contains” = <span className="font-mono">SGD</span> → Run Immediately</li>
-                    <li>Add action <b>Get Contents of URL</b>: URL = the webhook above, Method = POST, Request Body = JSON</li>
-                    <li>
-                      Add fields: <span className="font-mono">token</span> = your token,{" "}
-                      <span className="font-mono">body</span> = shortcut input (message text),{" "}
-                      <span className="font-mono">from</span> = sender
-                    </li>
+                    <li>Open the <b>Shortcuts</b> app (pre-installed — swipe down on the home screen and search for it)</li>
+                    <li>Tap <b>Automation</b> at the bottom, then <b>+</b> at the top right</li>
+                    <li>Scroll down and pick <b>Message</b></li>
+                    <li>Tap <b>Message Contains</b> and type <span className="font-mono">SGD</span> (leave Sender empty)</li>
+                    <li>Below that, pick <b>Run Immediately</b>, then tap <b>Next</b></li>
+                    <li>Tap <b>New Blank Automation</b>, then <b>Add Action</b></li>
+                    <li>Search for <b>Get Contents of URL</b> and tap it</li>
+                    <li>Tap the pale-blue word <b>URL</b> and paste the webhook address shown above</li>
+                    <li>Tap the small <b>›</b> arrow on that action to expand it, tap <b>Method</b>, choose <b>POST</b></li>
+                    <li>Under Request Body, tap <b>Add new field</b> → <b>Text</b>. Type <span className="font-mono">token</span> as the key, and paste your token (above) as the value</li>
+                    <li>Tap <b>Add new field</b> → <b>Text</b> again. Type <span className="font-mono">body</span> as the key, then tap the value box and pick the blue <b>Shortcut Input</b> chip that appears above the keyboard</li>
+                    <li>Tap <b>Done</b> — the next bank SMS will appear in Review within seconds</li>
                   </ol>
+                  <p className="mt-1 text-neutral-500">
+                    If your bank writes amounts as <span className="font-mono">S$</span> instead of{" "}
+                    <span className="font-mono">SGD</span>, repeat steps 2–12 once more with “Message
+                    Contains” = <span className="font-mono">S$</span>.
+                  </p>
                   <p className="mt-2 font-semibold text-neutral-800">Android (MacroDroid / Tasker)</p>
                   <ol className="mt-1 list-decimal space-y-1 pl-4">
                     <li>Trigger: SMS received (optionally filter sender to your banks)</li>
