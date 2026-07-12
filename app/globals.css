@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+/* Plus Jakarta Sans (design/DESIGN.md) is loaded via next/font in layout.tsx
+   and exposed as --font-jakarta; mapping it here makes it Tailwind's font-sans. */
+@theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Fortune gold — the maneki-neko accent from design/DESIGN.md. Reserved for
+   the cat, streaks, Pro and "lucky" states; never for money amounts
+   (jade = in, ink = out, red = attention only). */
+@theme {
+  --color-fortune-50: #fff8d6;
+  --color-fortune-400: #ffd700;
+  --color-fortune-700: #705d00;
+}

@@ -11,9 +11,10 @@ export type TransactionType = "expense" | "income";
 export type AiReviewStatus = "unreviewed" | "accepted" | "rejected";
 
 // Provenance: how a row entered the ledger. "email_auto" = posted by a
-// trusted-sender rule, "email_review" = accepted from the review tray,
-// "csv" = accepted from a bank-statement import.
-export type EntrySource = "manual" | "email_auto" | "email_review" | "csv";
+// trusted-sender rule (any channel), "email_review" = accepted from the review
+// tray (email), "sms" = accepted from the review tray (SMS), "csv" = accepted
+// from a statement import (CSV/PDF/screenshot).
+export type EntrySource = "manual" | "email_auto" | "email_review" | "csv" | "sms";
 
 export type Transaction = {
   id: string;
@@ -92,6 +93,20 @@ export type EmailTransactionCandidate = {
   auto_posted: boolean;
   transaction_id: string | null;
   source: "email" | "csv" | "pdf" | "image" | "sms";
+};
+
+// The capture trail behind a posted transaction — joined from its candidate by
+// transaction_id so a row can be double-checked against the original source.
+export type TransactionProvenance = {
+  transaction_id: string;
+  source: "email" | "csv" | "pdf" | "image" | "sms";
+  from_address: string | null;
+  subject: string | null;
+  raw_snippet: string | null;
+  message_id: string;
+  email_date: string | null;
+  review_reason: string | null;
+  auto_posted: boolean;
 };
 
 // Deliberately excludes nothing sensitive beyond the token itself — the token

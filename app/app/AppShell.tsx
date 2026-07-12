@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Category, Transaction } from "@/lib/types";
+import type { Category, Transaction, TransactionProvenance } from "@/lib/types";
 import {
   acceptAiTag,
   addTransaction,
@@ -12,6 +12,8 @@ import {
   updateTransaction,
 } from "./actions";
 import AppChrome from "@/app/components/AppChrome";
+import AutopilotChecklist from "./components/AutopilotChecklist";
+import TransactionDetailModal from "./components/TransactionDetailModal";
 import PulseCard from "./components/PulseCard";
 import MonthlyOverview from "./components/MonthlyOverview";
 import CategoryBreakdown from "./components/CategoryBreakdown";
@@ -31,18 +33,23 @@ export default function AppShell({
   isPro: initialIsPro,
   userEmail,
   pendingReviewCount,
+  provenance,
+  setup,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
   isPro: boolean;
   userEmail: string;
   pendingReviewCount: number;
+  provenance: Record<string, TransactionProvenance>;
+  setup: { captured: boolean; trusted: boolean; backfilled: boolean };
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions);
   const [isPro, setIsPro] = useState(initialIsPro);
   const [modal, setModal] = useState<"add" | Transaction | null>(null);
+  const [detail, setDetail] = useState<Transaction | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -158,6 +165,7 @@ export default function AppShell({
   return (
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
       <>
+        <AutopilotChecklist {...setup} />
         <PulseCard
           transactions={transactions}
           balance={balance}
@@ -190,6 +198,8 @@ export default function AppShell({
         <TransactionList
           transactions={visibleTransactions}
           categories={categories}
+          provenance={provenance}
+          onDetails={(t) => setDetail(t)}
           onEdit={(t) => setModal(t)}
           onDelete={handleDelete}
           deletingId={deletingId}
@@ -217,6 +227,19 @@ export default function AppShell({
             />
           </div>
         </div>
+      )}
+
+      {detail && (
+        <TransactionDetailModal
+          transaction={detail}
+          category={categories.find((c) => c.id === detail.category_id)}
+          provenance={provenance[detail.id]}
+          onClose={() => setDetail(null)}
+          onEdit={() => {
+            setModal(detail);
+            setDetail(null);
+          }}
+        />
       )}
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}

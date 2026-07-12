@@ -757,7 +757,11 @@ export async function acceptAllCleanCandidates(): Promise<{ accepted: number; fa
       supabase,
       user.id,
       candidate,
-      candidate.source === "email" ? "email_review" : "csv",
+      candidate.source === "email"
+        ? "email_review"
+        : candidate.source === "sms"
+          ? "sms"
+          : "csv",
     );
     if ("error" in result) {
       failed++;
