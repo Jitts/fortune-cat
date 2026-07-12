@@ -15,6 +15,7 @@ import AppChrome from "@/app/components/AppChrome";
 import AutopilotChecklist from "./components/AutopilotChecklist";
 import TransactionDetailModal from "./components/TransactionDetailModal";
 import PulseCard from "./components/PulseCard";
+import RecurringRadar from "./components/RecurringRadar";
 import MonthlyOverview from "./components/MonthlyOverview";
 import CategoryBreakdown from "./components/CategoryBreakdown";
 import InsightCard from "./components/InsightCard";
@@ -171,6 +172,7 @@ export default function AppShell({
           balance={balance}
           pendingReviewCount={pendingReviewCount}
         />
+        <RecurringRadar transactions={transactions} isPro={isPro} />
         <InsightCard transactions={transactions} categories={categories} />
         <CategoryBreakdown transactions={transactions} categories={categories} />
         <MonthlyOverview transactions={transactions} />
