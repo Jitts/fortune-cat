@@ -64,3 +64,11 @@ through the sprints until the app actually works end-to-end — the PRD's succes
 just auth + an empty dashboard. The schema is already applied, so pull env with vercel env pull
 and build on the existing tables; commit + push after each sprint to deploy. Stop only when a
 real user can do the core job."
+
+## DevSecOps ##
+Always implement security development related to coding, authentication and data. Before completion, you must write and execute automated tests to verify: 
+1) Data Isolation (assert User A gets a 403/404 error when requesting User B’s data), 
+2) SQL Injection Prevention (inject raw payloads like ' OR '1'='1 into endpoints to assert they fail safely), 
+3) Brute-Force Defenses (simulate rapid login attempts to assert rate-limiting triggers), and 
+4) Data Exfiltration Prevention (verify no bulk data or unintended fields are leaked).
+Report the detailed results only when all verification tests has been completed.
