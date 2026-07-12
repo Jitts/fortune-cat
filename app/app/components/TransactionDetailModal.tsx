@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCurrency, formatDate } from "@/lib/format";
+import { resolveMerchant } from "@/lib/merchants";
 import type { Category, Transaction, TransactionProvenance } from "@/lib/types";
 
 const SOURCE_LABEL: Record<TransactionProvenance["source"], string> = {
@@ -38,6 +39,8 @@ export default function TransactionDetailModal({
   onEdit: () => void;
 }) {
   const isIncome = t.type === "income";
+  const merchant = resolveMerchant(t.note);
+  const rawDiffers = !!merchant && !!t.note && merchant.name !== t.note;
 
   return (
     <div
@@ -53,7 +56,7 @@ export default function TransactionDetailModal({
             <span className="text-2xl">{category?.icon ?? "•"}</span>
             <div className="min-w-0">
               <p className="truncate text-base font-semibold text-neutral-900">
-                {t.note || category?.name || "Transaction"}
+                {merchant?.name ?? t.note ?? category?.name ?? "Transaction"}
               </p>
               <p className="text-xs text-neutral-500">{formatDate(t.date)}</p>
             </div>
@@ -67,6 +70,12 @@ export default function TransactionDetailModal({
         </div>
 
         <dl className="mt-4 divide-y divide-neutral-100 border-t border-neutral-100">
+          {rawDiffers && (
+            <Row label="Raw description">
+              <span className="break-all font-mono text-xs text-neutral-500">{t.note}</span>
+            </Row>
+          )}
+          {merchant?.biller && <Row label="Biller">↻ recognised recurring biller</Row>}
           <Row label="Category">{category?.name ?? "Uncategorized"}</Row>
           {t.account_tag && <Row label="Account">{t.account_tag}</Row>}
           {t.original_currency && t.original_amount != null && (

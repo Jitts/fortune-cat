@@ -1,4 +1,5 @@
 import { formatCurrency, formatDate } from "@/lib/format";
+import { resolveMerchant } from "@/lib/merchants";
 import type { Category, Transaction, TransactionProvenance } from "@/lib/types";
 import AiTagBadge from "./AiTagBadge";
 
@@ -40,6 +41,9 @@ export default function TransactionList({
           const category = categories.find((c) => c.id === t.category_id);
           const isIncome = t.type === "income";
           const prov = provenance[t.id];
+          const merchant = resolveMerchant(t.note);
+          const title = merchant?.name ?? t.note ?? category?.name ?? "Transaction";
+          const rawDiffers = !!merchant && !!t.note && merchant.name !== t.note;
           return (
             <li key={t.id} className="flex items-center justify-between gap-4 px-6 py-4">
               <div className="min-w-0 flex-1">
@@ -50,9 +54,7 @@ export default function TransactionList({
                 >
                   <span className="text-xl">{category?.icon ?? "•"}</span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-neutral-900">
-                      {t.note || category?.name || "Transaction"}
-                    </p>
+                    <p className="truncate text-sm font-medium text-neutral-900">{title}</p>
                   <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-neutral-500">
                     <span>
                       {formatDate(t.date)} · {category?.name ?? "Uncategorized"}
@@ -87,10 +89,21 @@ export default function TransactionList({
                         {t.original_currency} {t.original_amount.toLocaleString("en-SG")}
                       </span>
                     )}
+                    {merchant?.biller && (
+                      <span className="rounded-full bg-neutral-100 px-1.5 py-px font-mono text-[10px] text-neutral-500">
+                        ↻ biller
+                      </span>
+                    )}
                   </p>
-                    {prov && (
+                    {(rawDiffers || prov) && (
                       <p className="truncate font-mono text-[10px] text-neutral-300">
-                        {prov.from_address ?? prov.source} · ref {prov.message_id.slice(0, 18)}
+                        {[
+                          rawDiffers ? t.note : null,
+                          prov ? (prov.from_address ?? prov.source) : null,
+                          prov ? `ref ${prov.message_id.slice(0, 18)}` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </p>
                     )}
                   </div>

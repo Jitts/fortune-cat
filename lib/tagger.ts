@@ -1,12 +1,14 @@
 /**
- * Rule-based category tagger (v1). No LLM — matches keywords in a transaction's
- * free-text note against the system categories. Writes into the same
+ * Rule-based category tagger (v2). No LLM — first consults the SG merchant
+ * dictionary (lib/merchants.ts) for an exact merchant hit, then falls back to
+ * keyword matching against the system categories. Writes into the same
  * ai_category* fields the schema reserves for auto-tagging, with source
- * "rules:v1" so the origin is transparent. An LLM can be swapped in later
+ * "rules:v2" so the origin is transparent. An LLM can be swapped in later
  * behind this same interface.
  */
+import { resolveMerchant } from "@/lib/merchants";
 
-export const TAG_SOURCE = "rules:v1";
+export const TAG_SOURCE = "rules:v2";
 
 // System category names (must match the seeded `categories.name` values).
 export type CategoryName =
@@ -72,6 +74,10 @@ export function suggestCategory(
   note: string | null | undefined,
   type: "expense" | "income",
 ): TagSuggestion | null {
+  // A known SG merchant is the strongest signal we have.
+  const merchant = resolveMerchant(note);
+  if (merchant?.category) return { category: merchant.category, confidence: 0.95 };
+
   const text = (note ?? "").toLowerCase().trim();
 
   let best: { category: CategoryName; hits: number } | null = null;
