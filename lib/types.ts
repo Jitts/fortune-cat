@@ -123,3 +123,18 @@ export type TrustedSender = {
   pattern: string;
   created_at: string;
 };
+
+// A Fortune Goal — the goal-directed layer. "emergency" is a savings goal whose
+// target is anchored to the user's real monthly spending (N months of expenses).
+export type FortuneGoalKind = "savings" | "emergency";
+
+export type FortuneGoal = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  kind: FortuneGoalKind;
+  target_amount: number;
+  target_date: string | null;
+  saved_amount: number;
+  created_at: string;
+};

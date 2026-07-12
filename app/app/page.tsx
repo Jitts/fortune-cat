@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { TransactionProvenance } from "@/lib/types";
+import type { FortuneGoal, TransactionProvenance } from "@/lib/types";
 import AppShell from "./AppShell";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +23,7 @@ export default async function AppPage() {
     { count: capturedCount },
     { count: trustedCount },
     { count: backfilledCount },
+    { data: goals },
   ] = await Promise.all([
     supabase.from("transactions").select().order("date", { ascending: false }).order("created_at", { ascending: false }),
     supabase.from("categories").select().order("name"),
@@ -43,6 +44,7 @@ export default async function AppPage() {
       .from("email_transaction_candidates")
       .select("id", { count: "exact", head: true })
       .in("source", ["csv", "pdf", "image"]),
+    supabase.from("fortune_goals").select().order("created_at", { ascending: true }),
   ]);
 
   const provenance: Record<string, TransactionProvenance> = {};
@@ -67,6 +69,7 @@ export default async function AppPage() {
         pendingReviewCount={pendingReviewCount ?? 0}
         provenance={provenance}
         setup={setup}
+        goals={(goals ?? []) as FortuneGoal[]}
       />
     </Suspense>
   );

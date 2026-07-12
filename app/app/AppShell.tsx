@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Category, Transaction, TransactionProvenance } from "@/lib/types";
+import type { Category, FortuneGoal, Transaction, TransactionProvenance } from "@/lib/types";
 import {
   acceptAiTag,
   addTransaction,
@@ -15,6 +15,7 @@ import AppChrome from "@/app/components/AppChrome";
 import AutopilotChecklist from "./components/AutopilotChecklist";
 import TransactionDetailModal from "./components/TransactionDetailModal";
 import PulseCard from "./components/PulseCard";
+import FortuneGoals from "./components/FortuneGoals";
 import RecurringRadar from "./components/RecurringRadar";
 import MonthlyOverview from "./components/MonthlyOverview";
 import CategoryBreakdown from "./components/CategoryBreakdown";
@@ -36,6 +37,7 @@ export default function AppShell({
   pendingReviewCount,
   provenance,
   setup,
+  goals,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
@@ -44,6 +46,7 @@ export default function AppShell({
   pendingReviewCount: number;
   provenance: Record<string, TransactionProvenance>;
   setup: { captured: boolean; trusted: boolean; backfilled: boolean };
+  goals: FortuneGoal[];
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -172,6 +175,7 @@ export default function AppShell({
           balance={balance}
           pendingReviewCount={pendingReviewCount}
         />
+        <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
         <RecurringRadar transactions={transactions} isPro={isPro} />
         <InsightCard transactions={transactions} categories={categories} />
         <CategoryBreakdown transactions={transactions} categories={categories} />

@@ -1,0 +1,406 @@
+"use client";
+
+import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
+import { formatCurrency } from "@/lib/format";
+import type { FortuneGoal, Transaction } from "@/lib/types";
+import { createGoal, updateGoal, contributeToGoal, deleteGoal } from "../goalActions";
+
+/** Average monthly expense from history — powers the emergency-fund target. */
+function avgMonthlyExpense(transactions: Transaction[]): number {
+  const byMonth = new Map<string, number>();
+  for (const t of transactions) {
+    if (t.type !== "expense") continue;
+    const key = t.date.slice(0, 7);
+    byMonth.set(key, (byMonth.get(key) ?? 0) + t.amount);
+  }
+  if (byMonth.size === 0) return 0;
+  const total = [...byMonth.values()].reduce((a, b) => a + b, 0);
+  return total / byMonth.size;
+}
+
+function GoalBar({ pct }: { pct: number }) {
+  return (
+    <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-neutral-100">
+      <div
+        className="h-full rounded-full transition-all"
+        style={{
+          width: `${Math.max(3, Math.min(100, pct))}%`,
+          // gold→red energy gradient per design/DESIGN.md progress bars
+          background: "linear-gradient(90deg, #ffd700 0%, #f0a341 60%, #db313f 100%)",
+        }}
+      />
+    </div>
+  );
+}
+
+type Draft = {
+  id?: string;
+  name: string;
+  kind: "savings" | "emergency";
+  target_amount: string;
+  saved_amount: string;
+  target_date: string;
+};
+
+const emptyDraft: Draft = {
+  name: "",
+  kind: "savings",
+  target_amount: "",
+  saved_amount: "",
+  target_date: "",
+};
+
+export default function FortuneGoals({
+  goals,
+  transactions,
+  isPro,
+}: {
+  goals: FortuneGoal[];
+  transactions: Transaction[];
+  isPro: boolean;
+}) {
+  const [items, setItems] = useState(goals);
+  const [modal, setModal] = useState<Draft | null>(null);
+  const [boostId, setBoostId] = useState<string | null>(null);
+  const [boostAmount, setBoostAmount] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const monthlyExpense = useMemo(() => avgMonthlyExpense(transactions), [transactions]);
+  const recommendedEmergency = Math.round(monthlyExpense * 6);
+
+  // Free users see a teaser only (consistent with the recurring radar).
+  if (!isPro) {
+    return (
+      <div className="rounded-2xl border-t-2 border-fortune-400 bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-medium text-neutral-500">🎯 Fortune Goals</h2>
+          <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+            PRO
+          </span>
+        </div>
+        <p className="mt-2 text-sm text-neutral-600">
+          Set a goal — a holiday, a home deposit, or an emergency fund — and watch it fill up as you
+          save. For an emergency fund, the cat sizes the target to your real spending
+          {monthlyExpense > 0 && (
+            <>
+              {" "}
+              (<b>~{formatCurrency(recommendedEmergency)}</b>, six months of your ~
+              {formatCurrency(monthlyExpense)}/mo)
+            </>
+          )}
+          .
+        </p>
+        <Link
+          href="/upgrade"
+          className="mt-3 inline-block rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+        >
+          Go Pro to set goals
+        </Link>
+      </div>
+    );
+  }
+
+  function openAdd(kind: "savings" | "emergency") {
+    setError(null);
+    if (kind === "emergency") {
+      setModal({
+        ...emptyDraft,
+        kind: "emergency",
+        name: "Emergency fund",
+        target_amount: recommendedEmergency > 0 ? String(recommendedEmergency) : "",
+      });
+    } else {
+      setModal({ ...emptyDraft });
+    }
+  }
+
+  function openEdit(g: FortuneGoal) {
+    setError(null);
+    setModal({
+      id: g.id,
+      name: g.name,
+      kind: g.kind,
+      target_amount: String(g.target_amount),
+      saved_amount: String(g.saved_amount),
+      target_date: g.target_date ?? "",
+    });
+  }
+
+  function submitModal() {
+    if (!modal) return;
+    const fd = new FormData();
+    fd.set("name", modal.name);
+    fd.set("kind", modal.kind);
+    fd.set("target_amount", modal.target_amount);
+    fd.set("saved_amount", modal.saved_amount || "0");
+    fd.set("target_date", modal.target_date);
+
+    startTransition(async () => {
+      const result = modal.id ? await updateGoal(modal.id, fd) : await createGoal(fd);
+      if (result.error || !result.data) {
+        setError(result.error ?? "Could not save.");
+        return;
+      }
+      const saved = result.data;
+      setItems((prev) =>
+        modal.id ? prev.map((g) => (g.id === saved.id ? saved : g)) : [...prev, saved],
+      );
+      setModal(null);
+    });
+  }
+
+  function submitBoost(id: string) {
+    const amount = Number(boostAmount);
+    if (!Number.isFinite(amount) || amount === 0) {
+      setError("Enter an amount to add.");
+      return;
+    }
+    startTransition(async () => {
+      const result = await contributeToGoal(id, amount);
+      if (result.error || !result.data) {
+        setError(result.error ?? "Could not update.");
+        return;
+      }
+      const saved = result.data;
+      setItems((prev) => prev.map((g) => (g.id === saved.id ? saved : g)));
+      setBoostId(null);
+      setBoostAmount("");
+    });
+  }
+
+  function handleDelete(id: string) {
+    startTransition(async () => {
+      const result = await deleteGoal(id);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setItems((prev) => prev.filter((g) => g.id !== id));
+    });
+  }
+
+  const hasEmergency = items.some((g) => g.kind === "emergency");
+
+  return (
+    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-medium text-neutral-500">🎯 Fortune Goals</h2>
+          <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+            PRO
+          </span>
+        </div>
+        <button
+          onClick={() => openAdd("savings")}
+          className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-800"
+        >
+          + New goal
+        </button>
+      </div>
+
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+
+      {items.length === 0 ? (
+        <div className="mt-4 rounded-xl bg-neutral-50 p-5 text-center">
+          <p className="text-sm text-neutral-600">
+            No goals yet. Start with an emergency fund — the cat will size it to your spending.
+          </p>
+          <button
+            onClick={() => openAdd("emergency")}
+            className="mt-3 rounded-lg bg-fortune-400 px-4 py-2 text-sm font-semibold text-fortune-700 hover:brightness-95"
+          >
+            Start an emergency fund
+            {recommendedEmergency > 0 && <> · {formatCurrency(recommendedEmergency)}</>}
+          </button>
+        </div>
+      ) : (
+        <ul className="mt-3 space-y-4">
+          {items.map((g) => {
+            const pct = g.target_amount > 0 ? (g.saved_amount / g.target_amount) * 100 : 0;
+            const done = g.saved_amount >= g.target_amount;
+            const remaining = Math.max(0, g.target_amount - g.saved_amount);
+            return (
+              <li key={g.id} className="rounded-xl ring-1 ring-neutral-100 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-1.5 text-sm font-semibold text-neutral-900">
+                      {g.kind === "emergency" ? "🛟" : "🎯"} {g.name}
+                      {done && (
+                        <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
+                          ✓ reached
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-0.5 text-xs text-neutral-500 [font-variant-numeric:tabular-nums]">
+                      {formatCurrency(g.saved_amount)} of {formatCurrency(g.target_amount)}
+                      {g.target_date && (
+                        <> · by {new Date(`${g.target_date}T00:00:00`).toLocaleDateString("en-SG", { month: "short", year: "numeric" })}</>
+                      )}
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-mono text-sm font-semibold text-fortune-700 [font-variant-numeric:tabular-nums]">
+                    {Math.round(pct)}%
+                  </span>
+                </div>
+
+                <GoalBar pct={pct} />
+
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <p className="text-[11px] text-neutral-400 [font-variant-numeric:tabular-nums]">
+                    {done ? "Fully funded — nice work." : `${formatCurrency(remaining)} to go`}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs">
+                    <button
+                      onClick={() => {
+                        setError(null);
+                        setBoostId(boostId === g.id ? null : g.id);
+                        setBoostAmount("");
+                      }}
+                      className="font-medium text-fortune-700 hover:underline"
+                    >
+                      Boost
+                    </button>
+                    <button
+                      onClick={() => openEdit(g)}
+                      className="font-medium text-neutral-500 hover:text-neutral-900"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(g.id)}
+                      disabled={pending}
+                      className="font-medium text-neutral-400 hover:text-red-600 disabled:opacity-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                {boostId === g.id && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-xs text-neutral-500">Add</span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      autoFocus
+                      value={boostAmount}
+                      onChange={(e) => setBoostAmount(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && submitBoost(g.id)}
+                      placeholder="100"
+                      className="w-24 rounded-lg border border-neutral-300 px-2 py-1 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                    />
+                    <button
+                      onClick={() => submitBoost(g.id)}
+                      disabled={pending}
+                      className="rounded-lg bg-fortune-400 px-3 py-1 text-xs font-semibold text-fortune-700 hover:brightness-95 disabled:opacity-50"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setBoostId(null)}
+                      className="text-xs text-neutral-400 hover:text-neutral-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {items.length > 0 && !hasEmergency && (
+        <button
+          onClick={() => openAdd("emergency")}
+          className="mt-3 text-xs font-medium text-fortune-700 hover:underline"
+        >
+          + Add an emergency fund{recommendedEmergency > 0 && <> ({formatCurrency(recommendedEmergency)} recommended)</>}
+        </button>
+      )}
+
+      {modal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4" onClick={() => setModal(null)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-neutral-900">
+              {modal.id ? "Edit goal" : modal.kind === "emergency" ? "Emergency fund" : "New Fortune Goal"}
+            </h3>
+
+            {modal.kind === "emergency" && !modal.id && (
+              <p className="mt-1 text-xs text-neutral-500">
+                {monthlyExpense > 0
+                  ? `Recommended: ${formatCurrency(recommendedEmergency)} — six months of your ~${formatCurrency(monthlyExpense)}/mo spending. Adjust to taste.`
+                  : "Aim for three to six months of expenses. Adjust as your spending history grows."}
+              </p>
+            )}
+
+            {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+
+            <div className="mt-4 space-y-3">
+              <label className="block">
+                <span className="text-xs font-medium text-neutral-600">Name</span>
+                <input
+                  value={modal.name}
+                  onChange={(e) => setModal({ ...modal, name: e.target.value })}
+                  placeholder="Orient cruise, home deposit…"
+                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-neutral-600">Target amount</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={modal.target_amount}
+                  onChange={(e) => setModal({ ...modal, target_amount: e.target.value })}
+                  placeholder="15000"
+                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                />
+              </label>
+              {!modal.id && (
+                <label className="block">
+                  <span className="text-xs font-medium text-neutral-600">Already saved (optional)</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={modal.saved_amount}
+                    onChange={(e) => setModal({ ...modal, saved_amount: e.target.value })}
+                    placeholder="0"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                  />
+                </label>
+              )}
+              <label className="block">
+                <span className="text-xs font-medium text-neutral-600">Target date (optional)</span>
+                <input
+                  type="date"
+                  value={modal.target_date}
+                  onChange={(e) => setModal({ ...modal, target_date: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+                />
+              </label>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => setModal(null)}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitModal}
+                disabled={pending}
+                className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+              >
+                {pending ? "Saving…" : modal.id ? "Save" : "Create goal"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
