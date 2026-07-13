@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import type { Category, Transaction, TransactionType } from "@/lib/types";
+import { suggestCategory } from "@/lib/tagger";
+import ReceiptScanButton from "./ReceiptScanButton";
+import type { ReceiptParse } from "@/lib/receipt/parseReceipt";
 
 export type TransactionFormValues = {
   type: TransactionType;
@@ -42,6 +45,7 @@ export default function TransactionForm({
   onSubmit,
   onCancel,
   pending,
+  showReceiptScan = false,
 }: {
   categories: Category[];
   initial: TransactionFormValues;
@@ -49,9 +53,27 @@ export default function TransactionForm({
   onSubmit: (formData: FormData) => void;
   onCancel: () => void;
   pending: boolean;
+  showReceiptScan?: boolean;
 }) {
   const [values, setValues] = useState(initial);
   const [error, setError] = useState<string | null>(null);
+
+  // Prefill from a scanned receipt: amount, note (merchant), date, and a best-
+  // guess category inferred from the merchant name.
+  function applyReceipt(p: ReceiptParse) {
+    setValues((v) => {
+      const next = { ...v, type: "expense" as TransactionType };
+      if (p.amount != null) next.amount = p.amount.toFixed(2);
+      if (p.merchant) next.note = p.merchant;
+      if (p.date) next.date = p.date;
+      const guess = p.merchant ? suggestCategory(p.merchant, "expense") : null;
+      if (guess) {
+        const match = categories.find((c) => c.name === guess.category);
+        if (match) next.category_id = match.id;
+      }
+      return next;
+    });
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,6 +103,8 @@ export default function TransactionForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {showReceiptScan && <ReceiptScanButton onParsed={applyReceipt} />}
+
       <div className="flex gap-2">
         {(["expense", "income"] as const).map((type) => (
           <button

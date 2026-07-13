@@ -230,6 +230,7 @@ export default function AppShell({
               initial={modal === "add" ? emptyFormValues(categories) : transactionToFormValues(modal)}
               submitLabel={modal === "add" ? "Add" : "Save"}
               pending={pending}
+              showReceiptScan={modal === "add"}
               onCancel={() => setModal(null)}
               onSubmit={(formData) =>
                 modal === "add" ? handleAdd(formData) : handleEdit(modal.id, formData)
