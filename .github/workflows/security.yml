@@ -23,9 +23,9 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -53,4 +53,14 @@ jobs:
           echo "::error::dev server did not become ready on :3000"; exit 1
 
       - name: Run security suite
-        run: npm run test:security
+        run: |
+          set +e
+          npm run test:security | tee suite-output.txt
+          code=${PIPESTATUS[0]}
+          {
+            echo '### Security suite output';
+            echo '```';
+            cat suite-output.txt;
+            echo '```';
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
