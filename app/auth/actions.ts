@@ -1,10 +1,15 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkAuthRateLimit, type AuthScope } from "@/lib/rateLimit";
 
 type AuthResult = { error: string };
+
+const THROTTLED_MESSAGE =
+  "Too many attempts. Please wait a few minutes and try again.";
 
 function validate(email: unknown, password: unknown): AuthResult | null {
   if (typeof email !== "string" || !email.includes("@")) {
@@ -16,11 +21,33 @@ function validate(email: unknown, password: unknown): AuthResult | null {
   return null;
 }
 
+/** Best-effort client IP from the proxy chain; "unknown" behind no proxy. */
+async function clientIp(): Promise<string> {
+  const h = await headers();
+  const fwd = h.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0]!.trim();
+  return h.get("x-real-ip")?.trim() || "unknown";
+}
+
+/** Returns the throttle error if any of the given buckets is over its limit. */
+async function throttle(
+  buckets: ReadonlyArray<readonly [AuthScope, string]>,
+): Promise<AuthResult | null> {
+  for (const [scope, identifier] of buckets) {
+    const { limited } = await checkAuthRateLimit(scope, identifier);
+    if (limited) return { error: THROTTLED_MESSAGE };
+  }
+  return null;
+}
+
 export async function signUpAction(formData: FormData): Promise<AuthResult> {
   const email = formData.get("email");
   const password = formData.get("password");
   const invalid = validate(email, password);
   if (invalid) return invalid;
+
+  const throttled = await throttle([["signup_ip", `ip:${await clientIp()}`]]);
+  if (throttled) return throttled;
 
   const admin = createAdminClient();
 
@@ -61,6 +88,14 @@ export async function loginAction(formData: FormData): Promise<AuthResult> {
   const invalid = validate(email, password);
   if (invalid) return invalid;
 
+  // Brute-force defence: throttle per-account (password guessing) and per-IP
+  // (credential spraying) before we ever check the password.
+  const throttled = await throttle([
+    ["login", email as string],
+    ["login_ip", `ip:${await clientIp()}`],
+  ]);
+  if (throttled) return throttled;
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: email as string,
@@ -89,6 +124,13 @@ export async function requestPasswordReset(
   if (typeof email !== "string" || !email.includes("@")) {
     return { error: "Enter a valid email address." };
   }
+
+  // Throttle reset emails per-account and per-IP to prevent inbox-bombing.
+  const throttled = await throttle([
+    ["reset", email],
+    ["signup_ip", `ip:${await clientIp()}`],
+  ]);
+  if (throttled) return throttled;
 
   const supabase = await createClient();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
