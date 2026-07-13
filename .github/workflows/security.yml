@@ -63,4 +63,10 @@ jobs:
             cat suite-output.txt;
             echo '```';
           } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$code" -ne 0 ]; then
+            # Surface failing/diagnostic lines as annotations (public, no sign-in needed).
+            grep -aE '✗|FATAL|FAIL|Error' suite-output.txt | head -20 | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+          fi
           exit $code
