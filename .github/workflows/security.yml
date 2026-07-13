@@ -1,0 +1,56 @@
+name: Security tests
+
+# Runs the DevSecOps suite (tests/security.mjs) on every push to main and on PRs.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   NEXT_PUBLIC_SUPABASE_URL
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY
+#   SUPABASE_SERVICE_ROLE_KEY
+#
+# The suite creates and deletes throwaway users, so pointing these secrets at a
+# dedicated staging Supabase project (rather than production) is recommended.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Preflight — required secrets present
+        run: |
+          missing=0
+          for v in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!v}" ]; then echo "::error::missing secret $v"; missing=1; fi
+          done
+          [ "$missing" -eq 0 ] || { echo "Add the secrets listed in .github/workflows/security.yml"; exit 1; }
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start dev server
+        run: npm run dev &
+
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3000/api/health >/dev/null; then echo "ready"; exit 0; fi
+            sleep 2
+          done
+          echo "::error::dev server did not become ready on :3000"; exit 1
+
+      - name: Run security suite
+        run: npm run test:security

@@ -34,17 +34,30 @@ function loginBucket(email) {
 }
 
 // ── env ──────────────────────────────────────────────────────────────────────
+// Reads .env.local when present (local runs) and lets process.env override /
+// supply the keys (CI, where secrets are injected as env vars).
 function loadEnv() {
-  const raw = readFileSync(join(ROOT, ".env.local"), "utf8");
   const env = {};
-  for (const line of raw.split(/\r?\n/)) {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-    if (!m) continue;
-    let v = m[2].trim();
-    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-      v = v.slice(1, -1);
+  try {
+    const raw = readFileSync(join(ROOT, ".env.local"), "utf8");
+    for (const line of raw.split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+      if (!m) continue;
+      let v = m[2].trim();
+      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+        v = v.slice(1, -1);
+      }
+      env[m[1]] = v;
     }
-    env[m[1]] = v;
+  } catch {
+    // no .env.local (e.g. CI) — fall through to process.env below
+  }
+  for (const k of [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+  ]) {
+    if (process.env[k]) env[k] = process.env[k];
   }
   return env;
 }
@@ -284,6 +297,16 @@ async function main() {
       check("/api/payments/status exposes only {isPro} to anon (no field leak)",
         keys.length === 1 && keys[0] === "isPro" && payBody.isPro === false,
         `body=${JSON.stringify(payBody)}`);
+
+      // admin_user_overview lists every user's email + Pro status. It must not
+      // be reachable through PostgREST (no grant to anon/authenticated). A leak
+      // here would dump the whole user base.
+      const anonView = await anon.from("admin_user_overview").select("*");
+      const bView = await clientB.from("admin_user_overview").select("*");
+      check("admin_user_overview is not exposed to anonymous callers", (anonView.data?.length ?? 0) === 0,
+        anonView.error ? `denied: ${anonView.error.code || anonView.error.message}` : `rows=${anonView.data?.length ?? 0}`);
+      check("admin_user_overview is not exposed to authenticated users", (bView.data?.length ?? 0) === 0,
+        bView.error ? `denied: ${bView.error.code || bView.error.message}` : `rows=${bView.data?.length ?? 0}`);
 
       // clean up the token we injected
       if (aToken) await service.from("sms_tokens").delete().eq("id", aToken.id);
