@@ -55,7 +55,7 @@ jobs:
       - name: Run security suite
         run: |
           set +e
-          npm run test:security | tee suite-output.txt
+          npm run test:security 2>&1 | tee suite-output.txt
           code=${PIPESTATUS[0]}
           {
             echo '### Security suite output';
