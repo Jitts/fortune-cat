@@ -57,7 +57,15 @@ function loadEnv() {
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
   ]) {
-    if (process.env[k]) env[k] = process.env[k];
+    const raw = process.env[k];
+    if (raw == null || raw === "") continue;
+    // Normalise like .env.local: trim whitespace/newlines and strip a wrapping
+    // pair of quotes, so a secret pasted as "https://..." still works.
+    let v = raw.trim();
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+      v = v.slice(1, -1);
+    }
+    env[k] = v;
   }
   return env;
 }
