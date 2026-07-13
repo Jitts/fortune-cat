@@ -4,20 +4,20 @@ import { createAdminClient } from "@/lib/supabase/admin";
 /**
  * Brute-force defence for the auth surface (login / signup / password reset).
  *
- * Attempts are recorded as append-only rows in `audit_logs`
- * (action = AUTH_ATTEMPT_ACTION, entity_type = a hashed bucket key) so no schema
- * change is required and the log doubles as an authentication audit trail. The
- * service-role client is used so the counter is not itself subject to RLS and
- * can never be read or forged by an anonymous caller.
+ * Attempts are counted in the `rate_limit_events` table via the
+ * `check_rate_limit()` Postgres function (migration 0013), called through the
+ * service-role client. The function records the hit and reports whether the
+ * bucket is now over its limit in one atomic call, and self-prunes old rows so
+ * the table stays bounded. The table has RLS enabled with no policies and the
+ * function is granted only to `service_role`, so neither can be read or forged
+ * by an anonymous/authenticated caller.
  *
  * The identifier is hashed (never stored in plaintext) so raw emails / IPs do
- * not leak into the audit log.
+ * not leak into the store.
  *
  * NOTE: the constants and bucket format below are the contract exercised by
  * `tests/security.mjs` (brute-force test). Keep them in sync.
  */
-
-export const AUTH_ATTEMPT_ACTION = "auth.attempt";
 
 export const AUTH_LIMITS = {
   // Per-account login throttle — the classic single-account password-guessing
@@ -48,8 +48,8 @@ export type RateLimitResult = { limited: boolean; retryAfterSeconds: number };
  * is now over the limit. Call this BEFORE the expensive/authenticating step and
  * reject when `limited` is true.
  *
- * Fails open on infrastructure errors (logs loudly) so a transient audit-log
- * hiccup can't lock every user out of a personal finance app.
+ * Fails open on infrastructure errors (logs loudly) so a transient DB hiccup
+ * can't lock every user out of a personal finance app.
  */
 export async function checkAuthRateLimit(
   scope: AuthScope,
@@ -58,34 +58,18 @@ export async function checkAuthRateLimit(
   const { max, windowSeconds } = AUTH_LIMITS[scope];
   const bucket = rateLimitBucket(scope, identifier);
   const admin = createAdminClient();
-  const since = new Date(Date.now() - windowSeconds * 1000).toISOString();
 
-  const { count, error } = await admin
-    .from("audit_logs")
-    .select("id", { count: "exact", head: true })
-    .eq("action", AUTH_ATTEMPT_ACTION)
-    .eq("entity_type", bucket)
-    .gte("created_at", since);
+  const { data, error } = await admin.rpc("check_rate_limit", {
+    p_bucket: bucket,
+    p_limit: max,
+    p_window_seconds: windowSeconds,
+  });
 
   if (error) {
-    console.error("[rateLimit] count failed — failing open", error);
+    console.error("[rateLimit] rpc failed — failing open", error);
     return { limited: false, retryAfterSeconds: 0 };
   }
 
-  if ((count ?? 0) >= max) {
-    return { limited: true, retryAfterSeconds: windowSeconds };
-  }
-
-  const { error: insertError } = await admin.from("audit_logs").insert({
-    action: AUTH_ATTEMPT_ACTION,
-    entity_type: bucket,
-    payload: { scope },
-    risk_level: "low",
-    user_id: null,
-  });
-  if (insertError) {
-    console.error("[rateLimit] insert failed — failing open", insertError);
-  }
-
-  return { limited: false, retryAfterSeconds: 0 };
+  const limited = !!(data as { limited?: boolean } | null)?.limited;
+  return { limited, retryAfterSeconds: limited ? windowSeconds : 0 };
 }

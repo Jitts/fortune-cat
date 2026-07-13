@@ -25,7 +25,6 @@ const ROOT = join(__dirname, "..");
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 // ── Contract shared with lib/rateLimit.ts (keep in sync) ─────────────────────
-const AUTH_ATTEMPT_ACTION = "auth.attempt";
 const LOGIN_MAX = 5; // AUTH_LIMITS.login.max
 const LOGIN_WINDOW_SECONDS = 900; // AUTH_LIMITS.login.windowSeconds
 function loginBucket(email) {
@@ -230,41 +229,31 @@ async function main() {
     // ══════════════════════════════════════════════════════════════════════════
     section("3. Brute-Force Defense");
     {
-      // Drives the SAME audit_logs-backed throttle that lib/rateLimit.ts applies
-      // inside loginAction: action="auth.attempt", entity_type=<login bucket>,
-      // block once >= LOGIN_MAX within the window. Simulates rapid attempts.
+      // Drives the SAME check_rate_limit() function that lib/rateLimit.ts calls
+      // inside loginAction: it records a hit for the login bucket and reports
+      // `limited` once >= LOGIN_MAX within the window. Simulates rapid attempts.
       const bucket = loginBucket(bruteEmail);
       createdBuckets.push(bucket);
       const allowed = [];
+      let rpcError = null;
       for (let i = 1; i <= LOGIN_MAX + 2; i++) {
-        const since = new Date(Date.now() - LOGIN_WINDOW_SECONDS * 1000).toISOString();
-        const { count } = await service
-          .from("audit_logs")
-          .select("id", { count: "exact", head: true })
-          .eq("action", AUTH_ATTEMPT_ACTION)
-          .eq("entity_type", bucket)
-          .gte("created_at", since);
-        const limited = (count ?? 0) >= LOGIN_MAX;
-        if (!limited) {
-          await service.from("audit_logs").insert({
-            action: AUTH_ATTEMPT_ACTION,
-            entity_type: bucket,
-            payload: { scope: "login" },
-            risk_level: "low",
-            user_id: null,
-          });
-        }
-        allowed.push(!limited);
+        const { data, error } = await service.rpc("check_rate_limit", {
+          p_bucket: bucket,
+          p_limit: LOGIN_MAX,
+          p_window_seconds: LOGIN_WINDOW_SECONDS,
+        });
+        if (error) rpcError = error;
+        allowed.push(!(data?.limited ?? true));
       }
       const allowedCount = allowed.filter(Boolean).length;
-      check(`First ${LOGIN_MAX} rapid attempts allowed`, allowedCount === LOGIN_MAX,
-        `allowed=${allowedCount}`);
+      check(`First ${LOGIN_MAX} rapid attempts allowed`, !rpcError && allowedCount === LOGIN_MAX,
+        rpcError ? `rpc error: ${rpcError.message}` : `allowed=${allowedCount}`);
       check("Attempts beyond the limit are throttled", allowed[LOGIN_MAX] === false && allowed[LOGIN_MAX + 1] === false,
         `attempt#${LOGIN_MAX + 1} limited=${!allowed[LOGIN_MAX]}`);
 
-      // the throttle rows are invisible to a normal (authenticated) user
-      const leak = await clientB.from("audit_logs").select("*").eq("entity_type", bucket);
-      check("Throttle audit rows are not readable by users (RLS)", (leak.data?.length ?? 0) === 0);
+      // the throttle store is invisible to a normal (authenticated) user
+      const leak = await clientB.from("rate_limit_events").select("*").eq("bucket", bucket);
+      check("Throttle rows are not readable by users (RLS)", (leak.data?.length ?? 0) === 0);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -329,7 +318,7 @@ async function main() {
         await service.from("sms_tokens").delete().in("user_id", ids);
       }
       for (const b of createdBuckets) {
-        await service.from("audit_logs").delete().eq("action", AUTH_ATTEMPT_ACTION).eq("entity_type", b);
+        await service.from("rate_limit_events").delete().eq("bucket", b);
       }
       if (userA) await service.auth.admin.deleteUser(userA.id);
       if (userB) await service.auth.admin.deleteUser(userB.id);

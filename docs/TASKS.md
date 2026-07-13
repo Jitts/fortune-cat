@@ -93,18 +93,18 @@
 ---
 
 ## DevSecOps — Security verification
-Automated suite (`tests/security.mjs`, `npm run test:security`) covering the CLAUDE.md mandate. **18/18 checks pass (2026-07-13).**
+Automated suite (`tests/security.mjs`, `npm run test:security`) covering the CLAUDE.md mandate. **20/20 checks pass (2026-07-13); runs in CI on every push.**
 - [x] Data isolation — User B gets 0 rows / 0 writes for User A's transactions, audit logs, SMS token
 - [x] SQL injection — payloads treated as literals; parameterized PostgREST; SMS-token injection rejected 401; WAF blocks obvious SQLi upstream (defense-in-depth)
-- [x] Brute-force — login throttled after 5 rapid attempts per account/IP (`lib/rateLimit.ts`, audit_logs-backed)
-- [x] Data exfiltration — no bulk/cross-user/unauthenticated reads; `/api/payments/status` leaks only `{isPro}`
+- [x] Brute-force — login throttled after 5 rapid attempts per account/IP (`lib/rateLimit.ts` → `check_rate_limit()`, `rate_limit_events` table, migration `0013`)
+- [x] Data exfiltration — no bulk/cross-user/unauthenticated reads; `/api/payments/status` leaks only `{isPro}`; `admin_user_overview` view denied to anon + authenticated
 
 ---
 
 ## Backlog / Next up
-- [ ] Reconcile RLS `admin_user_overview` view (`0004`) — confirm it's service-role-only, not user-exposed
-- [ ] Move brute-force throttle from `audit_logs` to a dedicated `rate_limit_events` table + migration once Supabase CLI/DB access is available (keeps the audit log purely semantic)
-- [ ] Add the security suite to CI so it runs on every push
+- [x] Reconcile RLS `admin_user_overview` view (`0004`) — confirmed service-role-only (revoked from anon/authenticated); regression test added
+- [x] Move brute-force throttle to a dedicated `rate_limit_events` table + `check_rate_limit()` function (migration `0013`) — audit log is now purely semantic
+- [x] Add the security suite to CI so it runs on every push (`.github/workflows/security.yml`)
 - [ ] Rotate/expire SMS webhook tokens; surface "regenerate token" in Account
 - [ ] Optional real-LLM tagging path behind a flag (current tagging is rule-based)
 
