@@ -170,7 +170,7 @@ export default function AppShell({
   }
 
   return (
-    <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
+    <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount} wide>
       <>
         <AutopilotChecklist {...setup} />
         <PulseCard
@@ -178,11 +178,16 @@ export default function AppShell({
           balance={balance}
           pendingReviewCount={pendingReviewCount}
         />
-        <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
-        <RecurringRadar transactions={transactions} isPro={isPro} />
         <InsightCard transactions={transactions} categories={categories} />
-        <CategoryBreakdown transactions={transactions} categories={categories} />
-        <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
+
+        {/* Mid-tier cards tile two-up on desktop, stack on narrower widths. */}
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+          <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
+          <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
+          <RecurringRadar transactions={transactions} isPro={isPro} />
+          <CategoryBreakdown transactions={transactions} categories={categories} />
+        </div>
+
         <MonthlyOverview transactions={transactions} />
 
         <div className="flex items-center justify-between">

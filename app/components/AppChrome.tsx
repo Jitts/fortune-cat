@@ -13,6 +13,7 @@ type NavItem = {
   match?: (pathname: string) => boolean;
 };
 
+// The four primary destinations — also the mobile bottom tab bar.
 const TABS: NavItem[] = [
   { href: "/app", label: "Pulse", glyph: "◉", match: (p) => p === "/app" },
   { href: "/review", label: "Review", glyph: "👀" },
@@ -20,166 +21,117 @@ const TABS: NavItem[] = [
   { href: "/settings", label: "Capture", glyph: "📡" },
 ];
 
+// The full desktop rail: the four tabs plus the "More" destinations, in one
+// persistent list.
+const SIDEBAR_NAV: NavItem[] = [
+  ...TABS,
+  { href: "/insights", label: "Analytics", glyph: "📈" },
+  { href: "/feedback", label: "Feature requests", glyph: "💡" },
+  { href: "/account", label: "Account & privacy", glyph: "👤" },
+];
+
 function isActive(item: NavItem, pathname: string) {
   return item.match ? item.match(pathname) : pathname.startsWith(item.href);
 }
 
 /**
- * Shared navigation chrome: a bottom tab bar on mobile (Pulse · Review · Add ·
- * Capture · More) and a hamburger + left drawer on desktop. Wraps every
- * signed-in screen so the app feels like one surface, not linked pages.
+ * Shared navigation chrome. On desktop a persistent, full-height left sidebar
+ * homes the whole nav plus the account footer (email + sign out); on mobile the
+ * same destinations split across a bottom tab bar (Pulse · Review · Add ·
+ * Capture · More) and a "More" sheet. Wraps every signed-in screen so the app
+ * feels like one surface, not linked pages.
+ *
+ * `wide` opts a page into the roomier content column (the dashboard); form-shaped
+ * pages like Account/Settings leave it off and keep the comfortable measure.
  */
 export default function AppChrome({
   userEmail,
   isPro,
   pendingReviewCount,
+  wide = false,
   children,
 }: {
   userEmail: string;
   isPro: boolean;
   pendingReviewCount: number;
+  wide?: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
   const badge =
     pendingReviewCount > 0 ? (
-      <span className="ml-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-amber-100 px-1 font-mono text-[10px] font-semibold text-amber-800">
+      <span className="ml-auto inline-flex min-w-[18px] items-center justify-center rounded-full bg-amber-100 px-1 font-mono text-[10px] font-semibold text-amber-800">
         {pendingReviewCount}
       </span>
     ) : null;
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* ===== Header ===== */}
-      <header className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-6 pt-6 sm:px-10 sm:pt-10">
-        <div className="flex items-center gap-3">
-          {/* Hamburger — desktop only; mobile navigates with the bottom bar */}
-          <button
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open navigation"
-            className="hidden h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-lg ring-1 ring-neutral-300 hover:bg-neutral-100 sm:flex"
-          >
-            <span className="h-0.5 w-4 rounded bg-neutral-700" />
-            <span className="h-0.5 w-4 rounded bg-neutral-700" />
-            <span className="h-0.5 w-4 rounded bg-neutral-700" />
-          </button>
-          <Link href="/app" className="text-2xl font-bold tracking-tight text-neutral-900">
+      {/* ===== Desktop sidebar (full height) ===== */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto border-r border-neutral-200 bg-white px-3 py-5 sm:flex">
+        <div className="mb-6 flex items-center gap-2 px-2">
+          <Link href="/app" className="text-lg font-bold tracking-tight text-neutral-900">
             🐱 Fortune Cat
           </Link>
           {isPro && <ProBadge />}
         </div>
-        <div className="flex items-center gap-3">
+
+        <nav className="flex flex-col gap-1">
+          {SIDEBAR_NAV.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${
+                isActive(item, pathname)
+                  ? "bg-emerald-50 text-emerald-800"
+                  : "text-neutral-700 hover:bg-neutral-100"
+              }`}
+            >
+              <span className="w-5 text-center">{item.glyph}</span>
+              {item.label === "Add" ? "Add transaction" : item.label}
+              {item.label === "Review" && badge}
+            </Link>
+          ))}
           {!isPro && (
             <Link
               href="/upgrade"
-              className="hidden rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 sm:inline"
+              className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-amber-700 hover:bg-amber-50"
             >
+              <span className="w-5 text-center">⭐</span>
               Go Pro
             </Link>
           )}
-          <span className="hidden text-sm text-neutral-500 lg:inline">{userEmail}</span>
-        </div>
-      </header>
+        </nav>
 
-      {/* ===== Page content ===== */}
-      <main className="mx-auto max-w-3xl space-y-6 p-6 pb-28 sm:p-10 sm:pt-6">{children}</main>
-
-      {/* ===== Desktop drawer ===== */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-30 hidden sm:block">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setDrawerOpen(false)} />
-          <nav className="absolute inset-y-0 left-0 flex w-72 flex-col bg-white p-5 shadow-xl">
-            <div className="mb-6 flex items-center justify-between">
-              <span className="text-lg font-bold tracking-tight text-neutral-900">🐱 Fortune Cat</span>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                aria-label="Close navigation"
-                className="rounded-lg px-2 py-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex flex-col gap-1">
-              {TABS.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setDrawerOpen(false)}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${
-                    isActive(item, pathname)
-                      ? "bg-emerald-50 text-emerald-800"
-                      : "text-neutral-700 hover:bg-neutral-100"
-                  }`}
-                >
-                  <span className="w-5 text-center">{item.glyph}</span>
-                  {item.label === "Add" ? "Add transaction" : item.label}
-                  {item.label === "Review" && badge}
-                </Link>
-              ))}
-              <Link
-                href="/insights"
-                onClick={() => setDrawerOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${
-                  pathname.startsWith("/insights")
-                    ? "bg-emerald-50 text-emerald-800"
-                    : "text-neutral-700 hover:bg-neutral-100"
-                }`}
-              >
-                <span className="w-5 text-center">📈</span>
-                Analytics
-              </Link>
-              <Link
-                href="/feedback"
-                onClick={() => setDrawerOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${
-                  pathname.startsWith("/feedback")
-                    ? "bg-emerald-50 text-emerald-800"
-                    : "text-neutral-700 hover:bg-neutral-100"
-                }`}
-              >
-                <span className="w-5 text-center">💡</span>
-                Feature requests
-              </Link>
-              <Link
-                href="/account"
-                onClick={() => setDrawerOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${
-                  pathname.startsWith("/account")
-                    ? "bg-emerald-50 text-emerald-800"
-                    : "text-neutral-700 hover:bg-neutral-100"
-                }`}
-              >
-                <span className="w-5 text-center">👤</span>
-                Account &amp; privacy
-              </Link>
-              {!isPro && (
-                <Link
-                  href="/upgrade"
-                  onClick={() => setDrawerOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-amber-700 hover:bg-amber-50"
-                >
-                  <span className="w-5 text-center">⭐</span>
-                  Go Pro
-                </Link>
-              )}
-            </div>
-            <div className="mt-auto border-t border-neutral-100 pt-4">
-              <p className="truncate px-3 pb-3 text-xs text-neutral-400">{userEmail}</p>
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-                >
-                  Sign out
-                </button>
-              </form>
-            </div>
-          </nav>
+        <div className="mt-auto border-t border-neutral-100 pt-4">
+          <p className="truncate px-3 pb-2 text-xs text-neutral-400">{userEmail}</p>
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+            >
+              Sign out
+            </button>
+          </form>
         </div>
-      )}
+      </aside>
+
+      {/* ===== Content column (offset past the sidebar on desktop) ===== */}
+      <div className="sm:pl-60">
+        {/* Mobile-only header — desktop shows the brand in the sidebar */}
+        <header className="flex items-center justify-between gap-3 px-6 pt-6 sm:hidden">
+          <Link href="/app" className="text-2xl font-bold tracking-tight text-neutral-900">
+            🐱 Fortune Cat
+          </Link>
+          {isPro && <ProBadge />}
+        </header>
+
+        <main className={`mx-auto ${wide ? "max-w-5xl" : "max-w-3xl"} space-y-6 p-6 pb-28 sm:p-10`}>
+          {children}
+        </main>
+      </div>
 
       {/* ===== Mobile "More" sheet ===== */}
       {moreOpen && (
