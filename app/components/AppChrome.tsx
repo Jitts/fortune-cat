@@ -143,6 +143,18 @@ export default function AppChrome({
                 <span className="w-5 text-center">💡</span>
                 Feature requests
               </Link>
+              <Link
+                href="/account"
+                onClick={() => setDrawerOpen(false)}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${
+                  pathname.startsWith("/account")
+                    ? "bg-emerald-50 text-emerald-800"
+                    : "text-neutral-700 hover:bg-neutral-100"
+                }`}
+              >
+                <span className="w-5 text-center">👤</span>
+                Account &amp; privacy
+              </Link>
               {!isPro && (
                 <Link
                   href="/upgrade"
@@ -190,6 +202,14 @@ export default function AppChrome({
             >
               <span className="w-5 text-center">💡</span>
               Feature requests
+            </Link>
+            <Link
+              href="/account"
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            >
+              <span className="w-5 text-center">👤</span>
+              Account &amp; privacy
             </Link>
             {!isPro && (
               <Link
