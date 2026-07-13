@@ -37,6 +37,13 @@ jobs:
             if [ -z "${!v}" ]; then echo "::error::missing secret $v"; missing=1; fi
           done
           [ "$missing" -eq 0 ] || { echo "Add the secrets listed in .github/workflows/security.yml"; exit 1; }
+          # Validate the URL shape (its length is safe to print — it isn't secret).
+          url="$NEXT_PUBLIC_SUPABASE_URL"
+          url="${url%\"}"; url="${url#\"}"   # tolerate a wrapping pair of quotes
+          case "$url" in
+            https://*.supabase.co*) echo "URL ok (len=${#NEXT_PUBLIC_SUPABASE_URL})" ;;
+            *) echo "::error::NEXT_PUBLIC_SUPABASE_URL is malformed (len=${#NEXT_PUBLIC_SUPABASE_URL}); set it to exactly https://<ref>.supabase.co with no quotes/prefix"; exit 1 ;;
+          esac
 
       - name: Install dependencies
         run: npm ci
