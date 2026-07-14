@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/format";
 import { resolveMerchant } from "@/lib/merchants";
 import type { Category, Transaction, TransactionProvenance } from "@/lib/types";
 import AiTagBadge from "./AiTagBadge";
+
+// Where collapsed-month state lives between visits.
+const COLLAPSED_KEY = "fc-tx-collapsed-months";
 
 // A signed value so income adds and expense subtracts — used for the per-day
 // and per-month net subtotals shown on the group headers.
@@ -198,9 +201,33 @@ export default function TransactionList({
   onRejectTag: (id: string) => void;
   tagPending: boolean;
 }) {
-  // Which months are collapsed. Presentational only — resets on reload; the
-  // header keeps showing the month's net so a collapsed month still informs.
+  // Which months the user has collapsed, persisted so they stay folded across
+  // reloads. The header still shows the month's net, so a collapsed month
+  // remains informative.
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [hydrated, setHydrated] = useState(false);
+
+  // Restore on mount — localStorage is client-only, so we start empty (matching
+  // the server render) and reconcile after hydration to avoid a mismatch.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(COLLAPSED_KEY);
+      if (raw) setCollapsed(new Set(JSON.parse(raw) as string[]));
+    } catch {
+      // ignore unavailable or malformed storage
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist after hydration, so the initial empty state never clobbers storage.
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsed]));
+    } catch {
+      // ignore quota or unavailable storage
+    }
+  }, [collapsed, hydrated]);
 
   // Fold the flat, date-desc list into months → days, carrying a running net
   // subtotal at each level. Insertion order stays reverse-chronological because
