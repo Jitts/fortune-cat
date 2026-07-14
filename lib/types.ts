@@ -59,15 +59,21 @@ export type FeatureRequest = {
   hasVoted?: boolean;
 };
 
-// Deliberately excludes encrypted_password — never sent to the client.
+// How an inbox authenticates: an IMAP app password, or Microsoft OAuth
+// (sign-in). OAuth inboxes have no imap_host / password.
+export type EmailAuthType = "imap" | "microsoft";
+
+// Deliberately excludes encrypted_password and the OAuth tokens — never sent to
+// the client.
 export type EmailConnection = {
   id: string;
   email: string;
-  imap_host: string;
+  imap_host: string | null;
   imap_port: number;
   last_scanned_at: string | null;
   created_at: string;
   oldest_scanned_seq: number | null;
+  auth_type: EmailAuthType;
 };
 
 export type EmailCandidateStatus = "pending" | "accepted" | "dismissed";

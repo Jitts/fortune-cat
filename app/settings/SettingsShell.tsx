@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { EmailConnection, SmsTokenInfo, TrustedSender } from "@/lib/types";
 import {
   connectEmailAccount,
@@ -21,6 +21,32 @@ import AppChrome from "@/app/components/AppChrome";
 import Toast from "@/app/app/components/Toast";
 import { PRO_INBOX_LIMIT, inboxLimit } from "@/lib/email/inboxLimits";
 
+// "Continue with Microsoft" — kicks off the OAuth flow. A plain link because it
+// redirects the browser to Microsoft's consent page and back.
+function MicrosoftConnectButton() {
+  return (
+    <div className="space-y-2">
+      <a
+        href="/api/oauth/microsoft/start"
+        className="flex items-center justify-center gap-2.5 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+      >
+        <svg viewBox="0 0 21 21" width="16" height="16" aria-hidden="true">
+          <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+          <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+          <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+          <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+        </svg>
+        Continue with Microsoft
+      </a>
+      <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-neutral-400">
+        <span className="h-px flex-1 bg-neutral-200" />
+        or use IMAP + app password
+        <span className="h-px flex-1 bg-neutral-200" />
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsShell({
   initialConnections,
   initialTrustedSenders,
@@ -28,6 +54,7 @@ export default function SettingsShell({
   pendingReviewCount,
   userEmail,
   isPro,
+  msOAuthAvailable,
 }: {
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
@@ -35,8 +62,10 @@ export default function SettingsShell({
   pendingReviewCount: number;
   userEmail: string;
   isPro: boolean;
+  msOAuthAvailable: boolean;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [connections, setConnections] = useState(initialConnections);
   const [trustedSenders, setTrustedSenders] = useState(initialTrustedSenders);
   const [smsToken, setSmsToken] = useState(initialSmsToken);
@@ -63,6 +92,29 @@ export default function SettingsShell({
   useEffect(() => setConnections(initialConnections), [initialConnections]);
   useEffect(() => setTrustedSenders(initialTrustedSenders), [initialTrustedSenders]);
   useEffect(() => setSmsToken(initialSmsToken), [initialSmsToken]);
+
+  // Surface the outcome of the Microsoft OAuth round-trip (the callback redirects
+  // back to /settings?connected=… or ?error=…), then clean the URL.
+  useEffect(() => {
+    const connected = searchParams.get("connected");
+    const error = searchParams.get("error");
+    if (!connected && !error) return;
+    const errorMessages: Record<string, string> = {
+      inbox_limit: "You've reached your inbox limit — go Pro to connect more.",
+      oauth_denied: "Microsoft sign-in was cancelled.",
+      oauth_state: "That sign-in expired — please try connecting again.",
+      oauth_unavailable: "Microsoft sign-in isn't set up yet.",
+      oauth_email: "Couldn't read your Microsoft email address — please try again.",
+      oauth_save: "Signed in, but saving the inbox failed — please try again.",
+      oauth_failed: "Microsoft sign-in failed — please try again.",
+    };
+    if (connected === "microsoft") {
+      setToast("Microsoft inbox connected — hit \"Scan now\" to look for transactions.");
+    } else if (error) {
+      setToast(errorMessages[error] ?? "Could not connect — please try again.");
+    }
+    router.replace("/settings", { scroll: false });
+  }, [searchParams, router]);
 
   function scanToast(result: { found: number; autoPosted: number; scanned: number }, older = false) {
     const where = older ? "older emails" : "emails";
@@ -308,7 +360,20 @@ export default function SettingsShell({
               const disconnecting = busy && busyRef?.id === conn.id && busyRef.kind === "disconnect";
               return (
                 <div key={conn.id} className="rounded-lg bg-emerald-50 px-4 py-3">
-                  <p className="text-sm font-medium text-emerald-800">✓ Connected as {conn.email}</p>
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-emerald-800">
+                    ✓ Connected as {conn.email}
+                    {conn.auth_type === "microsoft" && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 font-mono text-[10px] font-semibold text-neutral-600 ring-1 ring-emerald-200">
+                        <svg viewBox="0 0 21 21" width="10" height="10" aria-hidden="true">
+                          <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                          <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                          <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                          <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+                        </svg>
+                        via Microsoft
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-emerald-600">
                     {conn.last_scanned_at
                       ? `Last scanned ${new Date(conn.last_scanned_at).toLocaleString("en-SG")}`
@@ -354,8 +419,8 @@ export default function SettingsShell({
 
             {canAddInbox ? (
               addingInbox ? (
-                <div className="rounded-lg p-4 ring-1 ring-neutral-200">
-                  <div className="mb-3 flex items-center justify-between">
+                <div className="space-y-3 rounded-lg p-4 ring-1 ring-neutral-200">
+                  <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-neutral-700">Add another inbox</p>
                     <button
                       onClick={() => setAddingInbox(false)}
@@ -364,6 +429,7 @@ export default function SettingsShell({
                       Cancel
                     </button>
                   </div>
+                  {msOAuthAvailable && <MicrosoftConnectButton />}
                   <ConnectEmailForm onSubmit={handleConnect} pending={pending} />
                 </div>
               ) : (
@@ -394,7 +460,8 @@ export default function SettingsShell({
             )}
           </div>
         ) : (
-          <div className="mt-4">
+          <div className="mt-4 space-y-3">
+            {msOAuthAvailable && <MicrosoftConnectButton />}
             <ConnectEmailForm onSubmit={handleConnect} pending={pending} />
           </div>
         )}

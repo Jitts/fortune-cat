@@ -13,6 +13,7 @@ import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
 import { convertToSgd } from "@/lib/fx";
 import { suggestCategory } from "@/lib/tagger";
 import { inboxLimit } from "@/lib/email/inboxLimits";
+import { ensureGraphAccessToken, fetchRecentMessagesGraph } from "@/lib/email/graphClient";
 import type { EmailConnection, EmailTransactionCandidate, Transaction, TrustedSender } from "@/lib/types";
 
 type ConnectResult = { data: EmailConnection; error?: undefined } | { data?: undefined; error: string };
@@ -107,7 +108,7 @@ export async function connectEmailAccount(formData: FormData): Promise<ConnectRe
       },
       { onConflict: "user_id,email" },
     )
-    .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq")
+    .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq, auth_type")
     .single();
 
   if (error || !data) {
@@ -192,7 +193,9 @@ export async function scanEmailInbox(connectionId: string): Promise<ScanResult> 
 
   const { data: connection } = await supabase
     .from("email_connections")
-    .select("id, email, imap_host, imap_port, encrypted_password, oldest_scanned_seq")
+    .select(
+      "id, email, imap_host, imap_port, encrypted_password, oldest_scanned_seq, auth_type, oauth_access_token, oauth_refresh_token, oauth_token_expires_at",
+    )
     .eq("user_id", user.id)
     .eq("id", connectionId)
     .maybeSingle();
@@ -201,18 +204,33 @@ export async function scanEmailInbox(connectionId: string): Promise<ScanResult> 
 
   let batch;
   try {
-    batch = await fetchRecentEmails(
-      {
-        host: connection.imap_host,
-        port: connection.imap_port,
-        email: connection.email,
-        password: decryptSecret(connection.encrypted_password),
-      },
-      50,
-    );
+    batch =
+      connection.auth_type === "microsoft"
+        ? {
+            emails: await fetchRecentMessagesGraph(
+              await ensureGraphAccessToken(supabase, connection),
+              50,
+            ),
+            oldestSeq: null,
+            reachedStart: true,
+          }
+        : await fetchRecentEmails(
+            {
+              host: connection.imap_host,
+              port: connection.imap_port,
+              email: connection.email,
+              password: decryptSecret(connection.encrypted_password),
+            },
+            50,
+          );
   } catch (err) {
     console.error("[scanEmailInbox]", err);
-    return { error: "Could not read your inbox — please reconnect your email." };
+    return {
+      error:
+        connection.auth_type === "microsoft"
+          ? "Could not read your Microsoft mailbox — try reconnecting it."
+          : "Could not read your inbox — please reconnect your email.",
+    };
   }
 
   const outcome = await processFetchedEmails(
@@ -274,12 +292,15 @@ export async function scanOlderEmails(connectionId: string): Promise<ScanResult>
 
   const { data: connection } = await supabase
     .from("email_connections")
-    .select("id, email, imap_host, imap_port, encrypted_password, oldest_scanned_seq")
+    .select("id, email, imap_host, imap_port, encrypted_password, oldest_scanned_seq, auth_type")
     .eq("user_id", user.id)
     .eq("id", connectionId)
     .maybeSingle();
 
   if (!connection) return { error: "Connect your email first." };
+  if (connection.auth_type === "microsoft") {
+    return { error: "Older-email scan isn't available for Microsoft inboxes yet." };
+  }
   if (connection.oldest_scanned_seq == null) {
     return { error: "Run \"Scan inbox\" first before scanning further back." };
   }

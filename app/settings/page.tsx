@@ -20,7 +20,7 @@ export default async function SettingsPage() {
   ] = await Promise.all([
     supabase
       .from("email_connections")
-      .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq")
+      .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq, auth_type")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true }),
     supabase.from("trusted_senders").select().eq("user_id", user.id).order("pattern"),
@@ -44,6 +44,7 @@ export default async function SettingsPage() {
       pendingReviewCount={pendingReviewCount ?? 0}
       userEmail={user.email ?? ""}
       isPro={!!activePayment}
+      msOAuthAvailable={!!(process.env.MICROSOFT_OAUTH_CLIENT_ID && process.env.MICROSOFT_OAUTH_CLIENT_SECRET)}
     />
   );
 }

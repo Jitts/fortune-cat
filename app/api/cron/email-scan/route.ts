@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decryptSecret } from "@/lib/crypto";
 import { fetchRecentEmails } from "@/lib/email/imapClient";
+import { ensureGraphAccessToken, fetchRecentMessagesGraph } from "@/lib/email/graphClient";
 import { processFetchedEmails } from "@/lib/email/processScan";
 import { logAudit } from "@/lib/audit";
 
@@ -33,15 +34,25 @@ export async function GET(request: Request) {
   const results: Array<Record<string, unknown>> = [];
   for (const conn of connections ?? []) {
     try {
-      const batch = await fetchRecentEmails(
-        {
-          host: conn.imap_host,
-          port: conn.imap_port,
-          email: conn.email,
-          password: decryptSecret(conn.encrypted_password),
-        },
-        50,
-      );
+      const batch =
+        conn.auth_type === "microsoft"
+          ? {
+              emails: await fetchRecentMessagesGraph(
+                await ensureGraphAccessToken(supabase, conn),
+                50,
+              ),
+              oldestSeq: null as number | null,
+              reachedStart: true,
+            }
+          : await fetchRecentEmails(
+              {
+                host: conn.imap_host,
+                port: conn.imap_port,
+                email: conn.email,
+                password: decryptSecret(conn.encrypted_password),
+              },
+              50,
+            );
 
       const { data: trusted } = await supabase
         .from("trusted_senders")
