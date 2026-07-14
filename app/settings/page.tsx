@@ -12,7 +12,7 @@ export default async function SettingsPage() {
   if (!user) redirect("/");
 
   const [
-    { data: connection },
+    { data: connections },
     { data: trustedSenders },
     { count: pendingReviewCount },
     { data: activePayment },
@@ -22,7 +22,7 @@ export default async function SettingsPage() {
       .from("email_connections")
       .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq")
       .eq("user_id", user.id)
-      .maybeSingle(),
+      .order("created_at", { ascending: true }),
     supabase.from("trusted_senders").select().eq("user_id", user.id).order("pattern"),
     supabase
       .from("email_transaction_candidates")
@@ -38,7 +38,7 @@ export default async function SettingsPage() {
 
   return (
     <SettingsShell
-      initialConnection={connection ?? null}
+      initialConnections={connections ?? []}
       initialTrustedSenders={trustedSenders ?? []}
       initialSmsToken={smsToken ?? null}
       pendingReviewCount={pendingReviewCount ?? 0}

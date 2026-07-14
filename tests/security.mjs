@@ -168,6 +168,39 @@ async function main() {
       // unauthenticated caller sees nothing
       const anonRead = await anon.from("transactions").select("*").eq("id", aTx.id);
       check("Anonymous caller cannot read the transaction", (anonRead.data?.length ?? 0) === 0);
+
+      // Email connections hold inbox credentials and are now multi-per-user, so
+      // scan/disconnect act on a specific id — B must never reach A's row.
+      const { data: aConn } = await clientA
+        .from("email_connections")
+        .insert({
+          user_id: userA.id,
+          email: `inbox.a.${stamp}@example.com`,
+          imap_host: "imap.example.com",
+          imap_port: 993,
+          encrypted_password: `enc_${randomUUID()}`,
+        })
+        .select()
+        .single();
+      check("User A can create its own email connection", !!aConn);
+
+      const bReadConn = await clientB.from("email_connections").select("*").eq("id", aConn?.id ?? "");
+      check("User B cannot read User A's email connection", (bReadConn.data?.length ?? 0) === 0,
+        `rows returned=${bReadConn.data?.length ?? 0}`);
+
+      const bDelConn = await clientB
+        .from("email_connections")
+        .delete()
+        .eq("id", aConn?.id ?? "")
+        .select();
+      check("User B cannot disconnect User A's inbox", (bDelConn.data?.length ?? 0) === 0);
+
+      const connAfter = await service
+        .from("email_connections")
+        .select("id")
+        .eq("id", aConn?.id ?? "")
+        .maybeSingle();
+      check("User A's inbox survives B's delete attempt", !!connAfter.data);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -316,6 +349,7 @@ async function main() {
         await service.from("transactions").delete().in("user_id", ids);
         await service.from("audit_logs").delete().in("user_id", ids);
         await service.from("sms_tokens").delete().in("user_id", ids);
+        await service.from("email_connections").delete().in("user_id", ids);
       }
       for (const b of createdBuckets) {
         await service.from("rate_limit_events").delete().eq("bucket", b);

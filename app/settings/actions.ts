@@ -12,9 +12,22 @@ import { parseStatementText } from "@/lib/docs/parseStatementText";
 import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
 import { convertToSgd } from "@/lib/fx";
 import { suggestCategory } from "@/lib/tagger";
+import { inboxLimit } from "@/lib/email/inboxLimits";
 import type { EmailConnection, EmailTransactionCandidate, Transaction, TrustedSender } from "@/lib/types";
 
 type ConnectResult = { data: EmailConnection; error?: undefined } | { data?: undefined; error: string };
+
+// Whether the current user has an active plan — gates the inbox cap. Relies on
+// RLS to scope the payments read to this user.
+async function hasActivePlan(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+  const { data } = await supabase
+    .from("payments")
+    .select("id")
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+  return !!data;
+}
 
 export async function connectEmailAccount(formData: FormData): Promise<ConnectResult> {
   const email = formData.get("email");
@@ -47,19 +60,39 @@ export async function connectEmailAccount(formData: FormData): Promise<ConnectRe
     return { error: `Could not connect: ${test.error}` };
   }
 
+  // Enforce the per-tier inbox cap. Re-connecting an inbox already on file is a
+  // credential update (upsert on (user_id, email)), so it never counts toward
+  // the cap; only a genuinely new inbox does.
+  const normalized = email.trim().toLowerCase();
+  const { data: existing } = await supabase
+    .from("email_connections")
+    .select("id, email")
+    .eq("user_id", user.id);
+  const alreadyConnected = (existing ?? []).some((c) => c.email.trim().toLowerCase() === normalized);
+
+  if (!alreadyConnected) {
+    const limit = inboxLimit(await hasActivePlan(supabase));
+    if ((existing?.length ?? 0) >= limit) {
+      return {
+        error:
+          limit === 1
+            ? "Free accounts can auto-scan one inbox. Go Pro to connect up to 3."
+            : `You've reached the maximum of ${limit} connected inboxes.`,
+      };
+    }
+  }
+
   const { data, error } = await supabase
     .from("email_connections")
     .upsert(
       {
         user_id: user.id,
-        email,
+        email: normalized,
         imap_host: host.trim(),
         imap_port: port,
         encrypted_password: encryptSecret(password),
-        last_scanned_at: null,
-        oldest_scanned_seq: null,
       },
-      { onConflict: "user_id" },
+      { onConflict: "user_id,email" },
     )
     .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq")
     .single();
@@ -82,35 +115,43 @@ export async function connectEmailAccount(formData: FormData): Promise<ConnectRe
   return { data };
 }
 
-export async function disconnectEmailAccount(): Promise<{ error?: string }> {
+export async function disconnectEmailAccount(connectionId: string): Promise<{ error?: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
+  if (typeof connectionId !== "string" || !connectionId) return { error: "Missing inbox reference." };
 
+  // Scope to (user_id, id) so a user can only ever drop their own inbox — the
+  // id alone is never trusted. RLS enforces this too; the filter is belt-and-
+  // suspenders and lets us surface a clean "not found".
   const { data: existing } = await supabase
     .from("email_connections")
     .select("id, email")
     .eq("user_id", user.id)
+    .eq("id", connectionId)
     .maybeSingle();
+  if (!existing) return { error: "Could not find that inbox." };
 
-  const { error } = await supabase.from("email_connections").delete().eq("user_id", user.id);
+  const { error } = await supabase
+    .from("email_connections")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("id", connectionId);
   if (error) {
     console.error("[disconnectEmailAccount]", error);
     return { error: "Could not disconnect — please try again." };
   }
 
-  if (existing) {
-    await logAudit(supabase, {
-      action: "email_connection.disconnected",
-      entityType: "email_connection",
-      entityId: existing.id,
-      payload: { email: existing.email },
-      riskLevel: "medium",
-      userId: user.id,
-    });
-  }
+  await logAudit(supabase, {
+    action: "email_connection.disconnected",
+    entityType: "email_connection",
+    entityId: existing.id,
+    payload: { email: existing.email },
+    riskLevel: "medium",
+    userId: user.id,
+  });
 
   revalidatePath("/settings");
   return {};
@@ -128,17 +169,19 @@ async function loadTrustedPatterns(
   return (data ?? []).map((row) => row.pattern);
 }
 
-export async function scanEmailInbox(): Promise<ScanResult> {
+export async function scanEmailInbox(connectionId: string): Promise<ScanResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
+  if (typeof connectionId !== "string" || !connectionId) return { error: "Missing inbox reference." };
 
   const { data: connection } = await supabase
     .from("email_connections")
     .select("id, email, imap_host, imap_port, encrypted_password, oldest_scanned_seq")
     .eq("user_id", user.id)
+    .eq("id", connectionId)
     .maybeSingle();
 
   if (!connection) return { error: "Connect your email first." };
@@ -177,7 +220,7 @@ export async function scanEmailInbox(): Promise<ScanResult> {
   await supabase
     .from("email_connections")
     .update({ last_scanned_at: new Date().toISOString(), oldest_scanned_seq: oldestSeq })
-    .eq("user_id", user.id);
+    .eq("id", connection.id);
 
   await logAudit(supabase, {
     action: "email_scan.completed",
@@ -208,17 +251,19 @@ export async function scanEmailInbox(): Promise<ScanResult> {
  * the most recent 50 messages, so older transactions (a months-old hotel
  * receipt, an old subscription invoice) are otherwise never seen.
  */
-export async function scanOlderEmails(): Promise<ScanResult> {
+export async function scanOlderEmails(connectionId: string): Promise<ScanResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
+  if (typeof connectionId !== "string" || !connectionId) return { error: "Missing inbox reference." };
 
   const { data: connection } = await supabase
     .from("email_connections")
     .select("id, email, imap_host, imap_port, encrypted_password, oldest_scanned_seq")
     .eq("user_id", user.id)
+    .eq("id", connectionId)
     .maybeSingle();
 
   if (!connection) return { error: "Connect your email first." };
@@ -257,7 +302,7 @@ export async function scanOlderEmails(): Promise<ScanResult> {
   await supabase
     .from("email_connections")
     .update({ oldest_scanned_seq: batch.oldestSeq })
-    .eq("user_id", user.id);
+    .eq("id", connection.id);
 
   await logAudit(supabase, {
     action: "email_scan.completed",

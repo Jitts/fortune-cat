@@ -19,16 +19,17 @@ import {
 import ConnectEmailForm from "./components/ConnectEmailForm";
 import AppChrome from "@/app/components/AppChrome";
 import Toast from "@/app/app/components/Toast";
+import { PRO_INBOX_LIMIT, inboxLimit } from "@/lib/email/inboxLimits";
 
 export default function SettingsShell({
-  initialConnection,
+  initialConnections,
   initialTrustedSenders,
   initialSmsToken,
   pendingReviewCount,
   userEmail,
   isPro,
 }: {
-  initialConnection: EmailConnection | null;
+  initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
   initialSmsToken: SmsTokenInfo | null;
   pendingReviewCount: number;
@@ -36,25 +37,30 @@ export default function SettingsShell({
   isPro: boolean;
 }) {
   const router = useRouter();
-  const [connection, setConnection] = useState(initialConnection);
+  const [connections, setConnections] = useState(initialConnections);
   const [trustedSenders, setTrustedSenders] = useState(initialTrustedSenders);
   const [smsToken, setSmsToken] = useState(initialSmsToken);
   const [showSmsGuide, setShowSmsGuide] = useState(false);
   const [newPattern, setNewPattern] = useState("");
   const [csvAccountTag, setCsvAccountTag] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [addingInbox, setAddingInbox] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [scanning, startScan] = useTransition();
-  const [scanningOlder, startScanOlder] = useTransition();
+  // One inbox is acted on at a time; track which one and which action so only
+  // that row shows a busy label (all buttons disable to avoid concurrent scans).
+  const [busy, startBusy] = useTransition();
+  const [busyRef, setBusyRef] = useState<{ id: string; kind: "scan" | "older" | "disconnect" } | null>(
+    null,
+  );
   const [importing, startImport] = useTransition();
   const [importStage, setImportStage] = useState<string | null>(null);
-  const [reachedStart, setReachedStart] = useState(
-    initialConnection?.oldest_scanned_seq != null && initialConnection.oldest_scanned_seq <= 1,
-  );
+
+  const maxInboxes = inboxLimit(isPro);
+  const canAddInbox = connections.length < maxInboxes;
 
   // Sync local state when the server component re-fetches fresh data (e.g.
   // after router.refresh() post-scan) — useState only seeds from props once.
-  useEffect(() => setConnection(initialConnection), [initialConnection]);
+  useEffect(() => setConnections(initialConnections), [initialConnections]);
   useEffect(() => setTrustedSenders(initialTrustedSenders), [initialTrustedSenders]);
   useEffect(() => setSmsToken(initialSmsToken), [initialSmsToken]);
 
@@ -74,46 +80,60 @@ export default function SettingsShell({
         setToast(result.error ?? "Could not connect — please try again.");
         return;
       }
-      setConnection(result.data);
-      setReachedStart(false);
+      const saved = result.data;
+      setConnections((prev) =>
+        prev.some((c) => c.id === saved.id)
+          ? prev.map((c) => (c.id === saved.id ? saved : c))
+          : [...prev, saved],
+      );
+      setAddingInbox(false);
       setToast("Inbox connected — click \"Scan now\" to look for transactions.");
     });
   }
 
-  function handleDisconnect() {
-    startTransition(async () => {
-      const result = await disconnectEmailAccount();
+  function handleDisconnect(id: string) {
+    setBusyRef({ id, kind: "disconnect" });
+    startBusy(async () => {
+      const result = await disconnectEmailAccount(id);
       if (result.error) {
+        setBusyRef(null);
         setToast(result.error);
         return;
       }
-      setConnection(null);
+      setConnections((prev) => prev.filter((c) => c.id !== id));
+      setBusyRef(null);
       setToast("Inbox disconnected.");
     });
   }
 
-  function handleScan() {
-    startScan(async () => {
-      const result = await scanEmailInbox();
+  function handleScan(id: string) {
+    setBusyRef({ id, kind: "scan" });
+    startBusy(async () => {
+      const result = await scanEmailInbox(id);
       if ("error" in result) {
+        setBusyRef(null);
         setToast(result.error);
         return;
       }
-      setConnection((prev) => (prev ? { ...prev, last_scanned_at: new Date().toISOString() } : prev));
-      setReachedStart(result.reachedStart);
+      setConnections((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, last_scanned_at: new Date().toISOString() } : c)),
+      );
+      setBusyRef(null);
       setToast(scanToast(result));
       router.refresh();
     });
   }
 
-  function handleScanOlder() {
-    startScanOlder(async () => {
-      const result = await scanOlderEmails();
+  function handleScanOlder(id: string) {
+    setBusyRef({ id, kind: "older" });
+    startBusy(async () => {
+      const result = await scanOlderEmails(id);
       if ("error" in result) {
+        setBusyRef(null);
         setToast(result.error);
         return;
       }
-      setReachedStart(result.reachedStart);
+      setBusyRef(null);
       setToast(
         result.scanned === 0
           ? "Reached the oldest email in your inbox — nothing further back to scan."
@@ -272,54 +292,106 @@ export default function SettingsShell({
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-medium text-neutral-500">📧 Email auto-scan</h2>
-          {connection && (
+          {connections.length > 0 && (
             <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
               ON · DAILY 7AM SGT
             </span>
           )}
         </div>
 
-        {connection ? (
-          <div className="mt-4 space-y-4">
-            <div className="rounded-lg bg-emerald-50 px-4 py-3">
-              <p className="text-sm font-medium text-emerald-800">✓ Connected as {connection.email}</p>
-              <p className="text-xs text-emerald-600">
-                {connection.last_scanned_at
-                  ? `Last scanned ${new Date(connection.last_scanned_at).toLocaleString("en-SG")}`
-                  : "Never scanned yet"}
-                {" · "}scans run automatically every morning; the buttons below scan on demand.
+        {connections.length > 0 ? (
+          <div className="mt-4 space-y-3">
+            {connections.map((conn) => {
+              const reachedStart = conn.oldest_scanned_seq != null && conn.oldest_scanned_seq <= 1;
+              const scanning = busy && busyRef?.id === conn.id && busyRef.kind === "scan";
+              const scanningOlder = busy && busyRef?.id === conn.id && busyRef.kind === "older";
+              const disconnecting = busy && busyRef?.id === conn.id && busyRef.kind === "disconnect";
+              return (
+                <div key={conn.id} className="rounded-lg bg-emerald-50 px-4 py-3">
+                  <p className="text-sm font-medium text-emerald-800">✓ Connected as {conn.email}</p>
+                  <p className="text-xs text-emerald-600">
+                    {conn.last_scanned_at
+                      ? `Last scanned ${new Date(conn.last_scanned_at).toLocaleString("en-SG")}`
+                      : "Never scanned yet"}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleScan(conn.id)}
+                      disabled={busy}
+                      className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+                    >
+                      {scanning ? "Scanning…" : "Scan now"}
+                    </button>
+                    <button
+                      onClick={() => handleScanOlder(conn.id)}
+                      disabled={busy || reachedStart || conn.oldest_scanned_seq == null}
+                      title={
+                        conn.oldest_scanned_seq == null
+                          ? 'Run "Scan now" first'
+                          : reachedStart
+                            ? "Already reached the oldest email in this inbox"
+                            : "Look further back for older transactions (e.g. old receipts, hotel stays)"
+                      }
+                      className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                    >
+                      {scanningOlder ? "Scanning…" : "Scan older emails"}
+                    </button>
+                    <button
+                      onClick={() => handleDisconnect(conn.id)}
+                      disabled={busy}
+                      className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                    >
+                      {disconnecting ? "Disconnecting…" : "Disconnect"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            <p className="text-xs text-neutral-400">
+              Scans run automatically every morning; the buttons scan on demand.
+            </p>
+
+            {canAddInbox ? (
+              addingInbox ? (
+                <div className="rounded-lg p-4 ring-1 ring-neutral-200">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-medium text-neutral-700">Add another inbox</p>
+                    <button
+                      onClick={() => setAddingInbox(false)}
+                      className="text-xs text-neutral-400 hover:text-neutral-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <ConnectEmailForm onSubmit={handleConnect} pending={pending} />
+                </div>
+              ) : (
+                <button
+                  onClick={() => setAddingInbox(true)}
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-100"
+                >
+                  + Add another inbox{" "}
+                  <span className="font-mono text-xs text-neutral-400">
+                    {connections.length}/{maxInboxes}
+                  </span>
+                </button>
+              )
+            ) : (
+              <p className="text-xs text-neutral-400">
+                {isPro ? (
+                  <>You&apos;ve connected the maximum of {maxInboxes} inboxes.</>
+                ) : (
+                  <>
+                    Free accounts auto-scan one inbox.{" "}
+                    <Link href="/upgrade" className="underline hover:text-neutral-600">
+                      Go Pro
+                    </Link>{" "}
+                    to connect up to {PRO_INBOX_LIMIT}.
+                  </>
+                )}
               </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleScan}
-                disabled={scanning}
-                className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
-              >
-                {scanning ? "Scanning…" : "Scan now"}
-              </button>
-              <button
-                onClick={handleScanOlder}
-                disabled={scanningOlder || reachedStart || connection.oldest_scanned_seq == null}
-                title={
-                  connection.oldest_scanned_seq == null
-                    ? 'Run "Scan now" first'
-                    : reachedStart
-                      ? "Already reached the oldest email in your inbox"
-                      : "Look further back for older transactions (e.g. old receipts, hotel stays)"
-                }
-                className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
-              >
-                {scanningOlder ? "Scanning…" : "Scan older emails"}
-              </button>
-              <button
-                onClick={handleDisconnect}
-                disabled={pending}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
-              >
-                Disconnect
-              </button>
-            </div>
+            )}
           </div>
         ) : (
           <div className="mt-4">
@@ -328,7 +400,7 @@ export default function SettingsShell({
         )}
       </div>
 
-      {connection && (
+      {connections.length > 0 && (
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
           <h2 className="text-sm font-medium text-neutral-500">⚡ Trusted senders</h2>
           <p className="mt-1 text-xs text-neutral-400">
