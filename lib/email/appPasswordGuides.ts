@@ -23,13 +23,14 @@ const GMAIL_GUIDE: AppPasswordGuide = {
 const MICROSOFT_GUIDE: AppPasswordGuide = {
   provider: "Outlook/Hotmail",
   steps: [
-    "Go to your Microsoft account's Security settings",
-    "Turn on two-step verification if it isn't already on",
-    'Under "Advanced security options", find "App passwords" and create a new one',
-    'Copy the generated password and paste it into the "App password" field below instead of your regular password',
+    'Heads up: Microsoft has switched off app-password IMAP for personal Outlook/Hotmail/Live accounts — a "AUTHENTICATE failed" error means exactly that. Use "Continue with Microsoft" if it\'s offered, or connect a Gmail, Yahoo, or iCloud inbox instead.',
+    "If you still want to try: go to account.microsoft.com → Security → “Manage how I sign in” (Microsoft renamed the old “Advanced security options”)",
+    "Make sure two-step verification is ON — app passwords only appear once it is",
+    'Scroll to "App passwords" and choose "Create a new app password"',
+    'Copy it and paste it into the "App password" field below instead of your regular password',
   ],
-  url: "https://account.microsoft.com/security",
-  urlLabel: "account.microsoft.com/security",
+  url: "https://account.live.com/proofs/manage/additional",
+  urlLabel: "Microsoft security options",
 };
 
 const YAHOO_GUIDE: AppPasswordGuide = {

@@ -17,6 +17,19 @@ import type { EmailConnection, EmailTransactionCandidate, Transaction, TrustedSe
 
 type ConnectResult = { data: EmailConnection; error?: undefined } | { data?: undefined; error: string };
 
+// Personal Microsoft accounts (Outlook/Hotmail/Live/365) no longer accept
+// app-password IMAP — Microsoft requires OAuth now. When a connect attempt to
+// one of those hosts fails on authentication, say so plainly instead of
+// surfacing the raw "AUTHENTICATE failed" from the IMAP server.
+function friendlyConnectError(host: string, rawError: string): string {
+  const isMicrosoft = /office365|outlook|hotmail|live\.com/i.test(host);
+  const looksLikeAuth = /authenticate|auth|login|credential|password/i.test(rawError);
+  if (isMicrosoft && looksLikeAuth) {
+    return "Outlook/Hotmail no longer allow app-password IMAP — Microsoft requires sign-in. Use \"Continue with Microsoft\" if it's offered, or connect a Gmail, Yahoo, or iCloud inbox instead.";
+  }
+  return `Could not connect: ${rawError}`;
+}
+
 // Whether the current user has an active plan — gates the inbox cap. Relies on
 // RLS to scope the payments read to this user.
 async function hasActivePlan(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
@@ -57,7 +70,7 @@ export async function connectEmailAccount(formData: FormData): Promise<ConnectRe
 
   const test = await testImapConnection({ host: host.trim(), port, email, password });
   if (!test.ok) {
-    return { error: `Could not connect: ${test.error}` };
+    return { error: friendlyConnectError(host.trim(), test.error) };
   }
 
   // Enforce the per-tier inbox cap. Re-connecting an inbox already on file is a
