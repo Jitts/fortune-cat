@@ -29,8 +29,14 @@ export default async function UpgradePage() {
 
         <ul className="space-y-2 text-left text-sm text-ink-muted">
           <li>✓ Full transaction history (free tier shows last 10)</li>
+          <li>✓ 👛 Safe-to-spend — what&apos;s really yours after bills &amp; goals</li>
+          <li>✓ 🔭 Recurring radar — bills, subscriptions &amp; spend anomalies</li>
+          <li>✓ 🗡️ Subscription kill-chain — cancel playbooks + $ freed/year</li>
+          <li>✓ 🎯 Fortune Goals, incl. a self-sizing emergency fund</li>
+          <li>✓ 📊 Deep analytics — savings rate, trends, category ranking</li>
+          <li>✓ 🎴 Sharper daily fortune — a same-day spending recommendation</li>
+          <li>✓ 📥 3 email inboxes for auto-capture (free gets 1)</li>
           <li>✓ ✨ Pro badge</li>
-          <li>✓ Supports future features</li>
         </ul>
 
         {isPro ? (
