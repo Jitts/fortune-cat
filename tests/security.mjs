@@ -282,6 +282,38 @@ async function main() {
 
       const anonDec = await anon.from("subscription_decisions").select("*").eq("id", aDecision?.id ?? "");
       check("Anonymous caller cannot read a subscription decision", (anonDec.data?.length ?? 0) === 0);
+
+      // Manual recurring bills — user-entered, strictly private.
+      const { data: aBill } = await clientA
+        .from("manual_recurring_bills")
+        .insert({
+          user_id: userA.id,
+          name: `BILL_A_${stamp}`,
+          type: "expense",
+          amount: 88.5,
+          cadence: "monthly",
+          next_due_date: "2026-07-28",
+        })
+        .select()
+        .single();
+      check("User A can create its own manual recurring bill", !!aBill);
+
+      const bReadBill = await clientB.from("manual_recurring_bills").select("*").eq("id", aBill?.id ?? "");
+      check("User B cannot read User A's manual recurring bill", (bReadBill.data?.length ?? 0) === 0,
+        `rows returned=${bReadBill.data?.length ?? 0}`);
+
+      const bUpdBill = await clientB
+        .from("manual_recurring_bills")
+        .update({ amount: 0 })
+        .eq("id", aBill?.id ?? "")
+        .select();
+      check("User B cannot alter User A's manual recurring bill", (bUpdBill.data?.length ?? 0) === 0);
+
+      const bDelBill = await clientB.from("manual_recurring_bills").delete().eq("id", aBill?.id ?? "").select();
+      check("User B cannot delete User A's manual recurring bill", (bDelBill.data?.length ?? 0) === 0);
+
+      const anonBill = await anon.from("manual_recurring_bills").select("*").eq("id", aBill?.id ?? "");
+      check("Anonymous caller cannot read a manual recurring bill", (anonBill.data?.length ?? 0) === 0);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -434,6 +466,7 @@ async function main() {
         await service.from("fortune_slips").delete().in("user_id", ids);
         await service.from("balance_anchors").delete().in("user_id", ids);
         await service.from("subscription_decisions").delete().in("user_id", ids);
+        await service.from("manual_recurring_bills").delete().in("user_id", ids);
       }
       for (const b of createdBuckets) {
         await service.from("rate_limit_events").delete().eq("bucket", b);

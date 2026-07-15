@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { BalanceAnchor, Category, CategoryBudget, FortuneGoal, FortuneSlipRow, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
+import type { BalanceAnchor, Category, CategoryBudget, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
 import {
   acceptAiTag,
   addTransaction,
@@ -49,6 +49,7 @@ export default function AppShell({
   slipStreak,
   anchor,
   subscriptionDecisions,
+  manualBills,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
@@ -63,6 +64,7 @@ export default function AppShell({
   slipStreak: number;
   anchor: BalanceAnchor | null;
   subscriptionDecisions: SubscriptionDecision[];
+  manualBills: ManualRecurringBill[];
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -303,18 +305,18 @@ export default function AppShell({
             <>
               <InsightCard transactions={transactions} categories={categories} />
               <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
+              <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
             </>
           )}
 
           {active === "bills" && (
             <div className="space-y-6">
-              <RecurringRadar transactions={transactions} isPro={isPro} />
+              <RecurringRadar transactions={transactions} manualBills={manualBills} isPro={isPro} />
               <SubscriptionKillChain
                 transactions={transactions}
                 decisions={subscriptionDecisions}
                 isPro={isPro}
               />
-              <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
             </div>
           )}
         </div>
@@ -328,7 +330,7 @@ export default function AppShell({
             todaySlip={todaySlip}
             slipStreak={slipStreak}
           />
-          <BillsDue transactions={transactions} />
+          <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} />
         </div>
       </div>
 

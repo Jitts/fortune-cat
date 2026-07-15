@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { BalanceAnchor, CategoryBudget, FortuneGoal, FortuneSlipRow, SubscriptionDecision, TransactionProvenance } from "@/lib/types";
+import type { BalanceAnchor, CategoryBudget, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, TransactionProvenance } from "@/lib/types";
 import AppShell from "./AppShell";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +28,7 @@ export default async function AppPage() {
     { data: slips },
     { data: anchor },
     { data: subscriptionDecisions },
+    { data: manualBills },
   ] = await Promise.all([
     supabase.from("transactions").select().order("date", { ascending: false }).order("created_at", { ascending: false }),
     supabase.from("categories").select().order("name"),
@@ -58,6 +59,7 @@ export default async function AppPage() {
       .limit(1)
       .maybeSingle(),
     supabase.from("subscription_decisions").select(),
+    supabase.from("manual_recurring_bills").select().order("next_due_date", { ascending: true }),
   ]);
 
   // Daily fortune: today's drawn slip (if any) + the consecutive-day streak.
@@ -103,6 +105,7 @@ export default async function AppPage() {
         slipStreak={slipStreak}
         anchor={(anchor ?? null) as BalanceAnchor | null}
         subscriptionDecisions={(subscriptionDecisions ?? []) as SubscriptionDecision[]}
+        manualBills={(manualBills ?? []) as ManualRecurringBill[]}
       />
     </Suspense>
   );

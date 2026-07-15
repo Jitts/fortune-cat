@@ -191,3 +191,20 @@ export type CategoryBudget = {
   monthly_limit: number;
   created_at: string;
 };
+
+// A user-entered recurring bill/subscription — fills the gap before the radar
+// has captured enough history to detect it on its own, or for bills paid
+// outside the ledger entirely (e.g. a home loan via GIRO).
+export type BillCadence = "weekly" | "monthly";
+
+export type ManualRecurringBill = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  type: TransactionType;
+  amount: number;
+  cadence: BillCadence;
+  next_due_date: string; // yyyy-mm-dd
+  account_tag: string | null;
+  created_at: string;
+};
