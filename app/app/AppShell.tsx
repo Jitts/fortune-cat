@@ -49,7 +49,7 @@ export default function AppShell({
   slipStreak,
   anchor,
   subscriptionDecisions,
-  manualBills,
+  manualBills: initialManualBills,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
@@ -69,6 +69,7 @@ export default function AppShell({
   const searchParams = useSearchParams();
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions);
+  const [manualBills, setManualBills] = useState(initialManualBills);
   const [isPro, setIsPro] = useState(initialIsPro);
   const [modal, setModal] = useState<"add" | Transaction | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -151,6 +152,7 @@ export default function AppShell({
   // Auto-posted captures land server-side (cron/scans) — pick them up when
   // the server component re-renders with fresh data.
   useEffect(() => setTransactions(initialTransactions), [initialTransactions]);
+  useEffect(() => setManualBills(initialManualBills), [initialManualBills]);
 
   const visibleTransactions = isPro ? transactions : transactions.slice(0, FREE_TIER_LIMIT);
 
@@ -181,6 +183,10 @@ export default function AppShell({
       }
       const created = result.data;
       setTransactions((prev) => [created, ...prev]);
+      if (result.manualBill) {
+        setManualBills((prev) => [...prev, result.manualBill!]);
+        setToast(`Added — and tracking "${result.manualBill.name}" in Bills 📌`);
+      }
       setModal(null);
     });
   }

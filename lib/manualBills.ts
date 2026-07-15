@@ -14,7 +14,7 @@ function daysBetween(a: string, b: string): number {
   return Math.round((Date.parse(b) - Date.parse(a)) / DAY_MS);
 }
 
-function addCadence(dateStr: string, cadence: ManualRecurringBill["cadence"]): string {
+export function addCadence(dateStr: string, cadence: ManualRecurringBill["cadence"]): string {
   const d = new Date(`${dateStr}T00:00:00`);
   if (cadence === "weekly") d.setDate(d.getDate() + 7);
   else d.setMonth(d.getMonth() + 1);

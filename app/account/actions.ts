@@ -5,6 +5,50 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Requests a login-email change. Supabase emails a confirmation link to the
+ * new address before the change actually takes effect, so `user.email` won't
+ * reflect it until the user clicks that link — the caller shows a toast
+ * saying so rather than optimistically updating anything.
+ */
+export async function updateEmail(
+  formData: FormData,
+): Promise<{ error: string } | { success: true }> {
+  const email = formData.get("email");
+  if (typeof email !== "string" || !EMAIL_RE.test(email)) {
+    return { error: "Enter a valid email address." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  if (email.trim().toLowerCase() === (user.email ?? "").toLowerCase()) {
+    return { error: "That's already your email." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ email: email.trim() });
+  if (error) {
+    console.error("[updateEmail]", error);
+    return { error: "Could not update your email — please try again." };
+  }
+
+  await logAudit(supabase, {
+    action: "account.email_change_requested",
+    entityType: "user",
+    entityId: user.id,
+    payload: {},
+    riskLevel: "medium",
+    userId: user.id,
+  });
+
+  return { success: true };
+}
+
 export async function changePassword(
   formData: FormData,
 ): Promise<{ error: string } | { success: true }> {

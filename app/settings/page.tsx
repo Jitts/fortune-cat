@@ -17,6 +17,8 @@ export default async function SettingsPage() {
     { count: pendingReviewCount },
     { data: activePayment },
     { data: smsToken },
+    { data: transactions },
+    { data: categories },
   ] = await Promise.all([
     supabase
       .from("email_connections")
@@ -34,6 +36,8 @@ export default async function SettingsPage() {
       .select("token, created_at, last_received_at")
       .eq("user_id", user.id)
       .maybeSingle(),
+    supabase.from("transactions").select().order("date", { ascending: false }),
+    supabase.from("categories").select(),
   ]);
 
   return (
@@ -45,6 +49,8 @@ export default async function SettingsPage() {
       userEmail={user.email ?? ""}
       isPro={!!activePayment}
       msOAuthAvailable={!!(process.env.MICROSOFT_OAUTH_CLIENT_ID && process.env.MICROSOFT_OAUTH_CLIENT_SECRET)}
+      transactions={transactions ?? []}
+      categories={categories ?? []}
     />
   );
 }

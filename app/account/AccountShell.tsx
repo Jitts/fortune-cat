@@ -2,47 +2,29 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import AppChrome from "@/app/components/AppChrome";
 import ProBadge from "@/app/app/components/ProBadge";
 import Toast from "@/app/app/components/Toast";
+import ThemeToggle from "@/app/components/ThemeToggle";
 import { signOutAction } from "@/app/auth/actions";
 import type { Category, Transaction } from "@/lib/types";
-import { changePassword, deleteAccount } from "./actions";
-
-function toCsv(transactions: Transaction[], categories: Category[]): string {
-  const name = (id: string | null) => categories.find((c) => c.id === id)?.name ?? "Uncategorized";
-  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-  const header = ["Date", "Type", "Amount", "Category", "Note", "Account", "Source"];
-  const rows = transactions.map((t) =>
-    [
-      t.date,
-      t.type,
-      String(t.amount),
-      name(t.category_id),
-      t.note ?? "",
-      t.account_tag ?? "",
-      t.entry_source,
-    ]
-      .map((v) => esc(String(v)))
-      .join(","),
-  );
-  return [header.map(esc).join(","), ...rows].join("\n");
-}
+import { transactionsToCsv } from "@/lib/exportCsv";
+import { changePassword, deleteAccount, updateEmail } from "./actions";
 
 export default function AccountShell({
   userEmail,
   isPro,
-  pendingReviewCount,
   transactions,
   categories,
 }: {
   userEmail: string;
   isPro: boolean;
-  pendingReviewCount: number;
   transactions: Transaction[];
   categories: Category[];
 }) {
   const [toast, setToast] = useState<string | null>(null);
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [email, setEmail] = useState(userEmail);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [pwOpen, setPwOpen] = useState(false);
   const [pw, setPw] = useState("");
   const [pwConfirm, setPwConfirm] = useState("");
@@ -50,6 +32,21 @@ export default function AccountShell({
   const [confirmDelete, setConfirmDelete] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  function saveEmail() {
+    const fd = new FormData();
+    fd.set("email", email);
+    startTransition(async () => {
+      const result = await updateEmail(fd);
+      if ("error" in result) {
+        setEmailError(result.error);
+        return;
+      }
+      setEmailError(null);
+      setEmailOpen(false);
+      setToast("Confirmation link sent to your new address — your email updates once you confirm it.");
+    });
+  }
 
   function savePassword() {
     const fd = new FormData();
@@ -70,7 +67,7 @@ export default function AccountShell({
   }
 
   function exportCsv() {
-    const csv = toCsv(transactions, categories);
+    const csv = transactionsToCsv(transactions, categories);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -92,10 +89,21 @@ export default function AccountShell({
   }
 
   return (
-    <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
+    <>
       <div>
         <h1 className="text-lg font-semibold text-ink">Account &amp; privacy</h1>
         <p className="text-sm text-ink-subtle">Manage your sign-in, plan, and your data.</p>
+      </div>
+
+      {/* ===== Appearance ===== */}
+      <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+        <h2 className="text-sm font-medium text-ink-subtle">Appearance</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Auto follows the time of day (light 7am–7pm) — pick Light or Shrine to override it.
+        </p>
+        <div className="mt-3">
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* ===== Account ===== */}
@@ -104,7 +112,19 @@ export default function AccountShell({
         <dl className="mt-3 divide-y divide-line">
           <div className="flex items-center justify-between py-2.5">
             <dt className="text-sm text-ink-subtle">Email</dt>
-            <dd className="text-sm font-medium text-ink">{userEmail}</dd>
+            <dd className="flex items-center gap-3">
+              <span className="text-sm font-medium text-ink">{userEmail}</span>
+              <button
+                onClick={() => {
+                  setEmailError(null);
+                  setEmail(userEmail);
+                  setEmailOpen((v) => !v);
+                }}
+                className="text-sm font-medium text-ink-muted underline underline-offset-2 hover:text-ink"
+              >
+                {emailOpen ? "Cancel" : "Change email"}
+              </button>
+            </dd>
           </div>
           <div className="flex items-center justify-between py-2.5">
             <dt className="text-sm text-ink-subtle">Plan</dt>
@@ -138,6 +158,27 @@ export default function AccountShell({
             </dd>
           </div>
         </dl>
+
+        {emailOpen && (
+          <div className="mt-3 space-y-3 rounded-xl bg-surface-2 p-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              onKeyDown={(e) => e.key === "Enter" && saveEmail()}
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+            />
+            {emailError && <p className="text-xs text-red-600">{emailError}</p>}
+            <button
+              onClick={saveEmail}
+              disabled={pending}
+              className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
+            >
+              {pending ? "Sending…" : "Send confirmation link"}
+            </button>
+          </div>
+        )}
 
         {pwOpen && (
           <div className="mt-3 space-y-3 rounded-xl bg-surface-2 p-4">
@@ -239,6 +280,6 @@ export default function AccountShell({
       </div>
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
-    </AppChrome>
+    </>
   );
 }

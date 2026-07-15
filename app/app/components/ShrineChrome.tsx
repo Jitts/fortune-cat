@@ -100,10 +100,9 @@ export default function ShrineChrome({
           <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-surface p-4 pb-24 shadow-xl">
             <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
             {[
-              { href: "/settings", glyph: "📡", label: "Capture & settings" },
+              { href: "/settings", glyph: "⚙", label: "Settings" },
               { href: "/insights", glyph: "📈", label: "Analytics" },
               { href: "/feedback", glyph: "💡", label: "Feature requests" },
-              { href: "/account", glyph: "👤", label: "Account & privacy" },
             ].map((item) => (
               <Link
                 key={item.href}

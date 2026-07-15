@@ -62,6 +62,13 @@ export default function TransactionForm({
 }) {
   const [values, setValues] = useState(initial);
   const [error, setError] = useState<string | null>(null);
+  const [markRecurring, setMarkRecurring] = useState(false);
+  const [recurringCadence, setRecurringCadence] = useState<"monthly" | "weekly">("monthly");
+
+  // Only offered on the Add flow (not Edit) and only for expenses — a quick
+  // enrollment shortcut so a fresh subscription shows up in Bills Due right
+  // away instead of waiting for the radar to trust it over several cycles.
+  const showRecurringOption = submitLabel === "Add" && values.type === "expense";
 
   // Prefill from a scanned receipt: amount, note (merchant), date, and a best-
   // guess category inferred from the merchant name.
@@ -103,6 +110,10 @@ export default function TransactionForm({
     formData.set("category_id", values.category_id);
     formData.set("date", values.date);
     formData.set("note", values.note);
+    if (showRecurringOption && markRecurring) {
+      formData.set("mark_recurring", "1");
+      formData.set("recurring_cadence", recurringCadence);
+    }
     onSubmit(formData);
   }
 
@@ -177,6 +188,36 @@ export default function TransactionForm({
           className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
       </div>
+
+      {showRecurringOption && (
+        <div className="rounded-lg bg-surface-2 p-3">
+          <label className="flex items-center gap-2 text-sm text-ink-muted">
+            <input
+              type="checkbox"
+              checked={markRecurring}
+              onChange={(e) => setMarkRecurring(e.target.checked)}
+              className="h-4 w-4 rounded border-line text-action focus:ring-action"
+            />
+            This is a recurring bill (subscription, loan, telco…)
+          </label>
+          {markRecurring && (
+            <div className="mt-2 flex items-center gap-2 pl-6">
+              <span className="text-xs text-ink-subtle">Repeats</span>
+              <select
+                value={recurringCadence}
+                onChange={(e) => setRecurringCadence(e.target.value as "monthly" | "weekly")}
+                className="rounded-lg border border-line px-2 py-1 text-xs focus:border-fortune-400 focus:outline-none"
+              >
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+              </select>
+              <span className="text-xs text-ink-faint">
+                — shows up in Bills Due right away instead of waiting on the radar
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

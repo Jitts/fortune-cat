@@ -4,10 +4,16 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { suggestCategory, TAG_SOURCE } from "@/lib/tagger";
-import type { Transaction, TransactionType } from "@/lib/types";
+import { resolveMerchant } from "@/lib/merchants";
+import { addCadence } from "@/lib/manualBills";
+import type { BillCadence, ManualRecurringBill, Transaction, TransactionType } from "@/lib/types";
 
 type ActionResult =
   | { data: Transaction; error?: undefined }
+  | { data?: undefined; error: string };
+
+type AddTransactionResult =
+  | { data: Transaction; manualBill?: ManualRecurringBill; error?: undefined }
   | { data?: undefined; error: string };
 
 function parseTransactionForm(formData: FormData): { value: Partial<Transaction> } | { error: string } {
@@ -42,7 +48,7 @@ function parseTransactionForm(formData: FormData): { value: Partial<Transaction>
   };
 }
 
-export async function addTransaction(formData: FormData): Promise<ActionResult> {
+export async function addTransaction(formData: FormData): Promise<AddTransactionResult> {
   const parsed = parseTransactionForm(formData);
   if ("error" in parsed) return { error: parsed.error };
 
@@ -100,8 +106,45 @@ export async function addTransaction(formData: FormData): Promise<ActionResult> 
     });
   }
 
+  // "Mark as recurring" enrollment shortcut (TransactionForm): seed a manual
+  // recurring bill from this transaction so a fresh subscription shows up in
+  // Bills Due immediately, instead of waiting 3-4 billing cycles for the radar
+  // to trust it. Best-effort — a failure here must never fail the transaction
+  // the user actually asked to save.
+  let manualBill: ManualRecurringBill | undefined;
+  if (formData.get("mark_recurring") === "1" && tagged.type === "expense") {
+    const cadenceRaw = formData.get("recurring_cadence");
+    const cadence: BillCadence = cadenceRaw === "weekly" ? "weekly" : "monthly";
+    const name = resolveMerchant(tagged.note)?.name ?? tagged.note ?? "Recurring bill";
+    const { data: bill, error: billError } = await supabase
+      .from("manual_recurring_bills")
+      .insert({
+        user_id: user.id,
+        name: name.slice(0, 80),
+        type: "expense",
+        amount: tagged.amount,
+        cadence,
+        next_due_date: addCadence(tagged.date, cadence),
+      })
+      .select()
+      .single();
+    if (billError) {
+      console.error("[addTransaction:manualBill]", billError);
+    } else if (bill) {
+      manualBill = bill as ManualRecurringBill;
+      await logAudit(supabase, {
+        action: "manual_bill.created",
+        entityType: "manual_recurring_bill",
+        entityId: manualBill.id,
+        payload: { cadence, amount: tagged.amount, source: "transaction_checkbox" },
+        riskLevel: "low",
+        userId: user.id,
+      });
+    }
+  }
+
   revalidatePath("/app");
-  return { data: tagged };
+  return { data: tagged, manualBill };
 }
 
 export async function acceptAiTag(id: string): Promise<ActionResult> {
