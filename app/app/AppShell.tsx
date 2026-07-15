@@ -107,6 +107,44 @@ export default function AppShell({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
   const [pending, startTransition] = useTransition();
+  const [, startBackgroundRefresh] = useTransition();
+
+  // Auto-posted captures (email auto-scan, cron) land server-side, not through
+  // our own actions — router.refresh() re-runs the server component so the
+  // effect below picks up fresh data. Poll every 60s while the tab is visible
+  // so the ring/ledger/bills notice new captures without a manual reload;
+  // pause while hidden, and catch up immediately the moment it's focused again.
+  useEffect(() => {
+    let id: ReturnType<typeof setInterval> | null = null;
+
+    function refresh() {
+      startBackgroundRefresh(() => router.refresh());
+    }
+    function start() {
+      if (id == null) id = setInterval(refresh, 60_000);
+    }
+    function stop() {
+      if (id != null) {
+        clearInterval(id);
+        id = null;
+      }
+    }
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        refresh();
+        start();
+      } else {
+        stop();
+      }
+    }
+
+    if (document.visibilityState === "visible") start();
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [router]);
 
   // Auto-posted captures land server-side (cron/scans) — pick them up when
   // the server component re-renders with fresh data.
