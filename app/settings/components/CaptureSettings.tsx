@@ -371,7 +371,7 @@ export default function CaptureSettings({
                   </p>
                   <p className="text-xs text-emerald-600">
                     {conn.last_scanned_at
-                      ? `Last scanned ${new Date(conn.last_scanned_at).toLocaleString("en-SG")}`
+                      ? `Last scanned ${new Date(conn.last_scanned_at).toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}`
                       : "Never scanned yet"}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -595,7 +595,7 @@ export default function CaptureSettings({
                 <p className="break-all font-mono text-xs text-ink-muted">{smsToken.token}</p>
                 <p className="mt-2 font-mono text-[10px] text-ink-faint">
                   {smsToken.last_received_at
-                    ? `last SMS received ${new Date(smsToken.last_received_at).toLocaleString("en-SG")}`
+                    ? `last SMS received ${new Date(smsToken.last_received_at).toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}`
                     : "no SMS received yet"}
                 </p>
               </div>
