@@ -41,8 +41,8 @@ export default function InsightCard({
   const savingsRate = income > 0 ? Math.round(((income - expense) / income) * 100) : null;
 
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-white p-6 shadow-sm ring-1 ring-violet-100">
-      <h2 className="text-sm font-medium text-violet-700">✨ This month&apos;s insights</h2>
+    <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-white p-6 shadow-sm ring-1 ring-violet-100 dark:from-surface-2 dark:to-surface-2 dark:ring-line">
+      <h2 className="text-sm font-medium text-violet-700 dark:text-violet-300">✨ This month&apos;s insights</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
           <p className="text-xs text-ink-subtle">Top spend category</p>
