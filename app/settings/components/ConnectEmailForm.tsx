@@ -57,19 +57,19 @@ export default function ConnectEmailForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-neutral-700">Email address</label>
+        <label className="block text-sm font-medium text-ink-muted">Email address</label>
         <input
           type="email"
           value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
           placeholder="you@example.com"
-          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-neutral-700">IMAP host</label>
+          <label className="block text-sm font-medium text-ink-muted">IMAP host</label>
           <input
             type="text"
             value={host}
@@ -78,31 +78,31 @@ export default function ConnectEmailForm({
               setHostTouched(true);
             }}
             placeholder="imap.gmail.com"
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700">Port</label>
+          <label className="block text-sm font-medium text-ink-muted">Port</label>
           <input
             type="number"
             value={port}
             onChange={(e) => setPort(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700">App password</label>
+        <label className="block text-sm font-medium text-ink-muted">App password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••••••••••"
           autoComplete="off"
-          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
-        <p className="mt-1 text-xs text-neutral-400">
+        <p className="mt-1 text-xs text-ink-faint">
           Use an app-specific password, not your regular login password — most providers (Gmail,
           Outlook, Yahoo, iCloud) require one for IMAP access when 2FA is on. We only ever read
           your inbox, never send, delete, or modify anything.
@@ -110,13 +110,13 @@ export default function ConnectEmailForm({
         <button
           type="button"
           onClick={() => setShowGuide((v) => !v)}
-          className="mt-1.5 text-xs font-medium text-neutral-600 underline underline-offset-2 hover:text-neutral-900"
+          className="mt-1.5 text-xs font-medium text-ink-muted underline underline-offset-2 hover:text-ink"
         >
           {showGuide ? "Hide" : "How do I get an app password?"}
         </button>
         {showGuide && (
-          <div className="mt-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600">
-            <p className="mb-2 font-semibold text-neutral-800">
+          <div className="mt-2 rounded-lg border border-line bg-surface-2 p-3 text-xs text-ink-muted">
+            <p className="mb-2 font-semibold text-ink">
               Getting an app password for {guide.provider}
             </p>
             <ol className="list-decimal space-y-1 pl-4">
@@ -129,7 +129,7 @@ export default function ConnectEmailForm({
                 href={guide.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-block font-medium text-neutral-900 underline underline-offset-2"
+                className="mt-2 inline-block font-medium text-ink underline underline-offset-2"
               >
                 {guide.urlLabel} →
               </a>
@@ -143,7 +143,7 @@ export default function ConnectEmailForm({
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-50"
+        className="w-full rounded-lg bg-action px-4 py-2.5 text-sm font-semibold text-white hover:bg-action/90 disabled:opacity-50"
       >
         {pending ? "Connecting…" : "Connect inbox"}
       </button>

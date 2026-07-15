@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOutAction } from "@/app/auth/actions";
 import ProBadge from "@/app/app/components/ProBadge";
+import ThemeToggle from "@/app/components/ThemeToggle";
 
 type NavItem = {
   href: string;
@@ -68,11 +69,11 @@ export default function AppChrome({
     ) : null;
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-surface-2">
       {/* ===== Desktop sidebar (full height) ===== */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto border-r border-neutral-200 bg-white px-3 py-5 sm:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto border-r border-line bg-surface px-3 py-5 sm:flex">
         <div className="mb-6 flex items-center gap-2 px-2">
-          <Link href="/app" className="text-lg font-bold tracking-tight text-neutral-900">
+          <Link href="/app" className="text-lg font-bold tracking-tight text-ink">
             🐱 Fortune Cat
           </Link>
           {isPro && <ProBadge />}
@@ -86,7 +87,7 @@ export default function AppChrome({
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${
                 isActive(item, pathname)
                   ? "bg-emerald-50 text-emerald-800"
-                  : "text-neutral-700 hover:bg-neutral-100"
+                  : "text-ink-muted hover:bg-surface-3"
               }`}
             >
               <span className="w-5 text-center">{item.glyph}</span>
@@ -105,12 +106,15 @@ export default function AppChrome({
           )}
         </nav>
 
-        <div className="mt-auto border-t border-neutral-100 pt-4">
-          <p className="truncate px-3 pb-2 text-xs text-neutral-400">{userEmail}</p>
+        <div className="mt-auto border-t border-line pt-4">
+          <div className="mb-3 px-1">
+            <ThemeToggle />
+          </div>
+          <p className="truncate px-3 pb-2 text-xs text-ink-faint">{userEmail}</p>
           <form action={signOutAction}>
             <button
               type="submit"
-              className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+              className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-ink-muted hover:bg-surface-3"
             >
               Sign out
             </button>
@@ -122,10 +126,13 @@ export default function AppChrome({
       <div className="sm:pl-60">
         {/* Mobile-only header — desktop shows the brand in the sidebar */}
         <header className="flex items-center justify-between gap-3 px-6 pt-6 sm:hidden">
-          <Link href="/app" className="text-2xl font-bold tracking-tight text-neutral-900">
+          <Link href="/app" className="text-2xl font-bold tracking-tight text-ink">
             🐱 Fortune Cat
           </Link>
-          {isPro && <ProBadge />}
+          <div className="flex items-center gap-2">
+            {isPro && <ProBadge />}
+            <ThemeToggle variant="compact" />
+          </div>
         </header>
 
         <main className={`mx-auto ${wide ? "max-w-5xl" : "max-w-3xl"} space-y-6 p-6 pb-28 sm:p-10`}>
@@ -137,12 +144,12 @@ export default function AppChrome({
       {moreOpen && (
         <div className="fixed inset-0 z-30 sm:hidden">
           <div className="absolute inset-0 bg-black/30" onClick={() => setMoreOpen(false)} />
-          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-white p-4 pb-24 shadow-xl">
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-neutral-200" />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-surface p-4 pb-24 shadow-xl">
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-surface-3" />
             <Link
               href="/insights"
               onClick={() => setMoreOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-ink-muted hover:bg-surface-3"
             >
               <span className="w-5 text-center">📈</span>
               Analytics
@@ -150,7 +157,7 @@ export default function AppChrome({
             <Link
               href="/feedback"
               onClick={() => setMoreOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-ink-muted hover:bg-surface-3"
             >
               <span className="w-5 text-center">💡</span>
               Feature requests
@@ -158,7 +165,7 @@ export default function AppChrome({
             <Link
               href="/account"
               onClick={() => setMoreOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-ink-muted hover:bg-surface-3"
             >
               <span className="w-5 text-center">👤</span>
               Account &amp; privacy
@@ -173,12 +180,20 @@ export default function AppChrome({
                 Go Pro
               </Link>
             )}
-            <div className="mt-2 border-t border-neutral-100 pt-2">
-              <p className="truncate px-3 py-2 text-xs text-neutral-400">{userEmail}</p>
+            <div className="mt-2 border-t border-line pt-3">
+              <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
+                Appearance
+              </p>
+              <div className="px-3 pb-2">
+                <ThemeToggle />
+              </div>
+            </div>
+            <div className="mt-1 border-t border-line pt-2">
+              <p className="truncate px-3 py-2 text-xs text-ink-faint">{userEmail}</p>
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="w-full rounded-xl px-3 py-3 text-left text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+                  className="w-full rounded-xl px-3 py-3 text-left text-sm font-medium text-ink-muted hover:bg-surface-3"
                 >
                   Sign out
                 </button>
@@ -189,7 +204,7 @@ export default function AppChrome({
       )}
 
       {/* ===== Mobile bottom tab bar ===== */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-neutral-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden">
         {TABS.map((item) => {
           const active = isActive(item, pathname);
           return (
@@ -197,7 +212,7 @@ export default function AppChrome({
               key={item.label}
               href={item.href}
               className={`flex flex-1 flex-col items-center gap-0.5 pb-3 pt-2 font-mono text-[10px] uppercase tracking-wide ${
-                active ? "font-semibold text-emerald-700" : "text-neutral-400"
+                active ? "font-semibold text-emerald-700" : "text-ink-faint"
               }`}
             >
               <span className="relative text-base leading-none">
@@ -215,7 +230,7 @@ export default function AppChrome({
         <button
           onClick={() => setMoreOpen(true)}
           className={`flex flex-1 flex-col items-center gap-0.5 pb-3 pt-2 font-mono text-[10px] uppercase tracking-wide ${
-            moreOpen ? "font-semibold text-emerald-700" : "text-neutral-400"
+            moreOpen ? "font-semibold text-emerald-700" : "text-ink-faint"
           }`}
         >
           <span className="text-base leading-none">⚙</span>

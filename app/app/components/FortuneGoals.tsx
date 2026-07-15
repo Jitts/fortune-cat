@@ -21,7 +21,7 @@ function avgMonthlyExpense(transactions: Transaction[]): number {
 
 function GoalBar({ pct }: { pct: number }) {
   return (
-    <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-neutral-100">
+    <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-surface-3">
       <div
         className="h-full rounded-full transition-all"
         style={{
@@ -73,14 +73,14 @@ export default function FortuneGoals({
   // Free users see a teaser only (consistent with the recurring radar).
   if (!isPro) {
     return (
-      <div className="rounded-2xl border-t-2 border-fortune-400 bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-neutral-500">🎯 Fortune Goals</h2>
+          <h2 className="text-sm font-medium text-ink-subtle">🎯 Fortune Goals</h2>
           <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
             PRO
           </span>
         </div>
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="mt-2 text-sm text-ink-muted">
           Set a goal — a holiday, a home deposit, or an emergency fund — and watch it fill up as you
           save. For an emergency fund, the cat sizes the target to your real spending
           {monthlyExpense > 0 && (
@@ -94,7 +94,7 @@ export default function FortuneGoals({
         </p>
         <Link
           href="/upgrade"
-          className="mt-3 inline-block rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          className="mt-3 inline-block rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
         >
           Go Pro to set goals
         </Link>
@@ -184,17 +184,17 @@ export default function FortuneGoals({
   const hasEmergency = items.some((g) => g.kind === "emergency");
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+    <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-neutral-500">🎯 Fortune Goals</h2>
+          <h2 className="text-sm font-medium text-ink-subtle">🎯 Fortune Goals</h2>
           <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
             PRO
           </span>
         </div>
         <button
           onClick={() => openAdd("savings")}
-          className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-800"
+          className="rounded-lg bg-action px-3 py-1.5 text-xs font-medium text-white hover:bg-action/90"
         >
           + New goal
         </button>
@@ -203,8 +203,8 @@ export default function FortuneGoals({
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
 
       {items.length === 0 ? (
-        <div className="mt-4 rounded-xl bg-neutral-50 p-5 text-center">
-          <p className="text-sm text-neutral-600">
+        <div className="mt-4 rounded-xl bg-surface-2 p-5 text-center">
+          <p className="text-sm text-ink-muted">
             No goals yet. Start with an emergency fund — the cat will size it to your spending.
           </p>
           <button
@@ -222,10 +222,10 @@ export default function FortuneGoals({
             const done = g.saved_amount >= g.target_amount;
             const remaining = Math.max(0, g.target_amount - g.saved_amount);
             return (
-              <li key={g.id} className="rounded-xl ring-1 ring-neutral-100 p-4">
+              <li key={g.id} className="rounded-xl ring-1 ring-line p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="flex items-center gap-1.5 text-sm font-semibold text-neutral-900">
+                    <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
                       {g.kind === "emergency" ? "🛟" : "🎯"} {g.name}
                       {done && (
                         <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
@@ -233,7 +233,7 @@ export default function FortuneGoals({
                         </span>
                       )}
                     </p>
-                    <p className="mt-0.5 text-xs text-neutral-500 [font-variant-numeric:tabular-nums]">
+                    <p className="mt-0.5 text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
                       {formatCurrency(g.saved_amount)} of {formatCurrency(g.target_amount)}
                       {g.target_date && (
                         <> · by {new Date(`${g.target_date}T00:00:00`).toLocaleDateString("en-SG", { month: "short", year: "numeric" })}</>
@@ -248,7 +248,7 @@ export default function FortuneGoals({
                 <GoalBar pct={pct} />
 
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-neutral-400 [font-variant-numeric:tabular-nums]">
+                  <p className="text-[11px] text-ink-faint [font-variant-numeric:tabular-nums]">
                     {done ? "Fully funded — nice work." : `${formatCurrency(remaining)} to go`}
                   </p>
                   <div className="flex items-center gap-3 text-xs">
@@ -264,14 +264,14 @@ export default function FortuneGoals({
                     </button>
                     <button
                       onClick={() => openEdit(g)}
-                      className="font-medium text-neutral-500 hover:text-neutral-900"
+                      className="font-medium text-ink-subtle hover:text-ink"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(g.id)}
                       disabled={pending}
-                      className="font-medium text-neutral-400 hover:text-red-600 disabled:opacity-50"
+                      className="font-medium text-ink-faint hover:text-red-600 disabled:opacity-50"
                     >
                       Delete
                     </button>
@@ -280,7 +280,7 @@ export default function FortuneGoals({
 
                 {boostId === g.id && (
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-xs text-neutral-500">Add</span>
+                    <span className="text-xs text-ink-subtle">Add</span>
                     <input
                       type="number"
                       inputMode="decimal"
@@ -289,7 +289,7 @@ export default function FortuneGoals({
                       onChange={(e) => setBoostAmount(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && submitBoost(g.id)}
                       placeholder="100"
-                      className="w-24 rounded-lg border border-neutral-300 px-2 py-1 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                      className="w-24 rounded-lg border border-line px-2 py-1 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
                     />
                     <button
                       onClick={() => submitBoost(g.id)}
@@ -300,7 +300,7 @@ export default function FortuneGoals({
                     </button>
                     <button
                       onClick={() => setBoostId(null)}
-                      className="text-xs text-neutral-400 hover:text-neutral-600"
+                      className="text-xs text-ink-faint hover:text-ink-muted"
                     >
                       Cancel
                     </button>
@@ -323,13 +323,13 @@ export default function FortuneGoals({
 
       {modal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4" onClick={() => setModal(null)}>
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-neutral-900">
+          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-ink">
               {modal.id ? "Edit goal" : modal.kind === "emergency" ? "Emergency fund" : "New Fortune Goal"}
             </h3>
 
             {modal.kind === "emergency" && !modal.id && (
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-ink-subtle">
                 {monthlyExpense > 0
                   ? `Recommended: ${formatCurrency(recommendedEmergency)} — six months of your ~${formatCurrency(monthlyExpense)}/mo spending. Adjust to taste.`
                   : "Aim for three to six months of expenses. Adjust as your spending history grows."}
@@ -340,45 +340,45 @@ export default function FortuneGoals({
 
             <div className="mt-4 space-y-3">
               <label className="block">
-                <span className="text-xs font-medium text-neutral-600">Name</span>
+                <span className="text-xs font-medium text-ink-muted">Name</span>
                 <input
                   value={modal.name}
                   onChange={(e) => setModal({ ...modal, name: e.target.value })}
                   placeholder="Orient cruise, home deposit…"
-                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-medium text-neutral-600">Target amount</span>
+                <span className="text-xs font-medium text-ink-muted">Target amount</span>
                 <input
                   type="number"
                   inputMode="decimal"
                   value={modal.target_amount}
                   onChange={(e) => setModal({ ...modal, target_amount: e.target.value })}
                   placeholder="15000"
-                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
                 />
               </label>
               {!modal.id && (
                 <label className="block">
-                  <span className="text-xs font-medium text-neutral-600">Already saved (optional)</span>
+                  <span className="text-xs font-medium text-ink-muted">Already saved (optional)</span>
                   <input
                     type="number"
                     inputMode="decimal"
                     value={modal.saved_amount}
                     onChange={(e) => setModal({ ...modal, saved_amount: e.target.value })}
                     placeholder="0"
-                    className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
                   />
                 </label>
               )}
               <label className="block">
-                <span className="text-xs font-medium text-neutral-600">Target date (optional)</span>
+                <span className="text-xs font-medium text-ink-muted">Target date (optional)</span>
                 <input
                   type="date"
                   value={modal.target_date}
                   onChange={(e) => setModal({ ...modal, target_date: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
                 />
               </label>
             </div>
@@ -386,14 +386,14 @@ export default function FortuneGoals({
             <div className="mt-5 flex justify-end gap-3">
               <button
                 onClick={() => setModal(null)}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3"
               >
                 Cancel
               </button>
               <button
                 onClick={submitModal}
                 disabled={pending}
-                className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+                className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
               >
                 {pending ? "Saving…" : modal.id ? "Save" : "Create goal"}
               </button>

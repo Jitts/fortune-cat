@@ -51,11 +51,11 @@ export default function AutopilotChecklist({
   if (!visible || doneCount === steps.length) return null;
 
   return (
-    <div className="rounded-2xl border-t-2 border-fortune-400 bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+    <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold text-neutral-900">
+        <h2 className="text-sm font-semibold text-ink">
           🐱 Get to autopilot{" "}
-          <span className="font-mono text-xs font-normal text-neutral-400">
+          <span className="font-mono text-xs font-normal text-ink-faint">
             {doneCount} of {steps.length}
           </span>
         </h2>
@@ -64,12 +64,12 @@ export default function AutopilotChecklist({
             localStorage.setItem(HIDE_KEY, "1");
             setVisible(false);
           }}
-          className="text-xs text-neutral-400 hover:text-neutral-600"
+          className="text-xs text-ink-faint hover:text-ink-muted"
         >
           Hide
         </button>
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-100">
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-3">
         <div
           className="h-full rounded-full bg-fortune-400 transition-all"
           style={{ width: `${Math.max(8, (doneCount / steps.length) * 100)}%` }}
@@ -82,18 +82,18 @@ export default function AutopilotChecklist({
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-fortune-400 text-[11px] font-bold text-fortune-700">
                 ✓
               </span>
-              <span className="text-sm text-neutral-400 line-through">{step.title}</span>
+              <span className="text-sm text-ink-faint line-through">{step.title}</span>
             </li>
           ) : (
             <li key={step.title}>
               <Link
                 href={step.href}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-neutral-50"
+                className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-surface-2"
               >
-                <span className="h-5 w-5 shrink-0 rounded-full border-[1.5px] border-neutral-300" />
+                <span className="h-5 w-5 shrink-0 rounded-full border-[1.5px] border-line" />
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-neutral-900">{step.title}</span>
-                  <span className="block truncate text-xs text-neutral-500">{step.hint}</span>
+                  <span className="block text-sm font-medium text-ink">{step.title}</span>
+                  <span className="block truncate text-xs text-ink-subtle">{step.hint}</span>
                 </span>
                 <span className="ml-auto text-fortune-700">›</span>
               </Link>
@@ -101,7 +101,7 @@ export default function AutopilotChecklist({
           ),
         )}
       </ul>
-      <p className="mt-3 text-xs text-neutral-400">
+      <p className="mt-3 text-xs text-ink-faint">
         When the third box ticks, this card retires and the ledger runs itself.
       </p>
     </div>

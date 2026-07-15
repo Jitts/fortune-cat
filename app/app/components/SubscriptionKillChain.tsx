@@ -9,7 +9,7 @@ import { setSubscriptionDecision } from "../subscriptionActions";
 import type { SubscriptionDecision, SubscriptionStatus, Transaction } from "@/lib/types";
 
 const STATUS_META: Record<SubscriptionStatus, { label: string; pill: string }> = {
-  keep: { label: "Keeping", pill: "bg-neutral-100 text-neutral-600" },
+  keep: { label: "Keeping", pill: "bg-surface-3 text-ink-muted" },
   cancelling: { label: "Cancelling", pill: "bg-amber-50 text-amber-700" },
   cancelled: { label: "Cancelled", pill: "bg-emerald-50 text-emerald-700" },
 };
@@ -50,21 +50,21 @@ export default function SubscriptionKillChain({
   if (!isPro) {
     const annualTotal = subs.reduce((s, x) => s + x.annualAmount, 0);
     return (
-      <div className="rounded-2xl border-t-2 border-fortune-400 bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-neutral-500">🗡️ Subscription kill-chain</h2>
+          <h2 className="text-sm font-medium text-ink-subtle">🗡️ Subscription kill-chain</h2>
           <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
             PRO
           </span>
         </div>
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="mt-2 text-sm text-ink-muted">
           Found <b>{subs.length} subscription{subs.length === 1 ? "" : "s"}</b> costing about{" "}
           <b>{formatCurrency(annualTotal)}/year</b>. Go Pro for cancel playbooks and to track what
           you kill.
         </p>
         <Link
           href="/upgrade"
-          className="mt-3 inline-block rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          className="mt-3 inline-block rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
         >
           Go Pro to start cutting
         </Link>
@@ -110,10 +110,10 @@ export default function SubscriptionKillChain({
   }, 0);
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+    <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-neutral-500">🗡️ Subscription kill-chain</h2>
+          <h2 className="text-sm font-medium text-ink-subtle">🗡️ Subscription kill-chain</h2>
           <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
             PRO
           </span>
@@ -125,7 +125,7 @@ export default function SubscriptionKillChain({
         )}
       </div>
 
-      <ul className="mt-3 divide-y divide-neutral-100">
+      <ul className="mt-3 divide-y divide-line">
         {subs.map((sub) => {
           const decision = decisionMap[sub.key];
           const playbook = getPlaybook(sub.name);
@@ -137,12 +137,12 @@ export default function SubscriptionKillChain({
                 <div className="min-w-0 flex-1">
                   <p
                     className={`truncate text-sm font-medium ${
-                      cancelled ? "text-neutral-400 line-through" : "text-neutral-900"
+                      cancelled ? "text-ink-faint line-through" : "text-ink"
                     }`}
                   >
                     {sub.name}
                   </p>
-                  <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-neutral-500">
+                  <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-ink-subtle">
                     <span>{lastChargedLabel(sub.lastDate)}</span>
                     {decision && (
                       <span
@@ -154,11 +154,11 @@ export default function SubscriptionKillChain({
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-neutral-900 [font-variant-numeric:tabular-nums]">
+                  <p className="text-sm font-semibold text-ink [font-variant-numeric:tabular-nums]">
                     {formatCurrency(sub.monthlyAmount)}
-                    <span className="font-normal text-neutral-400">/mo</span>
+                    <span className="font-normal text-ink-faint">/mo</span>
                   </p>
-                  <p className="text-[11px] text-neutral-500 [font-variant-numeric:tabular-nums]">
+                  <p className="text-[11px] text-ink-subtle [font-variant-numeric:tabular-nums]">
                     {formatCurrency(sub.annualAmount)}/yr
                   </p>
                 </div>
@@ -167,11 +167,11 @@ export default function SubscriptionKillChain({
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <button
                   onClick={() => setOpenPlaybook(open ? null : sub.key)}
-                  className="rounded-md border border-neutral-300 px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+                  className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink-muted hover:bg-surface-2"
                 >
                   {open ? "Hide how" : "How to cancel"}
                 </button>
-                <span className="mx-1 h-4 w-px bg-neutral-200" />
+                <span className="mx-1 h-4 w-px bg-surface-3" />
                 {(["keep", "cancelling", "cancelled"] as SubscriptionStatus[]).map((s) => {
                   const active = decision?.status === s;
                   return (
@@ -180,8 +180,8 @@ export default function SubscriptionKillChain({
                       onClick={() => decide(sub.key, s, sub.monthlyAmount)}
                       className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
                         active
-                          ? "bg-neutral-900 text-white"
-                          : "border border-neutral-300 text-neutral-600 hover:bg-neutral-50"
+                          ? "bg-action text-white"
+                          : "border border-line text-ink-muted hover:bg-surface-2"
                       }`}
                     >
                       {s === "keep" ? "Keep" : s === "cancelling" ? "Cancelling" : "Cancelled"}
@@ -191,7 +191,7 @@ export default function SubscriptionKillChain({
               </div>
 
               {open && (
-                <div className="mt-2 rounded-lg bg-neutral-50 p-3 text-xs text-neutral-600">
+                <div className="mt-2 rounded-lg bg-surface-2 p-3 text-xs text-ink-muted">
                   <ol className="list-decimal space-y-1 pl-4">
                     {playbook.steps.map((step, i) => (
                       <li key={i}>{step}</li>
@@ -205,7 +205,7 @@ export default function SubscriptionKillChain({
                       href={playbook.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-block font-medium text-neutral-900 underline hover:text-neutral-700"
+                      className="mt-2 inline-block font-medium text-ink underline hover:text-ink-muted"
                     >
                       Open the cancel page →
                     </a>
@@ -217,7 +217,7 @@ export default function SubscriptionKillChain({
         })}
       </ul>
 
-      <p className="mt-3 text-[11px] text-neutral-400">
+      <p className="mt-3 text-[11px] text-ink-faint">
         Detected from your captured charges — rules only. Cancel steps are guidance; nothing is
         cancelled for you.
       </p>

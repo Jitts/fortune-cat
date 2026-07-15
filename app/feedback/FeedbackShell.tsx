@@ -62,18 +62,18 @@ export default function FeedbackShell({
   return (
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
       <>
-        <h1 className="text-lg font-semibold text-neutral-900">💡 Feature requests</h1>
+        <h1 className="text-lg font-semibold text-ink">💡 Feature requests</h1>
 
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-ink-subtle">
           Tell us what you&apos;d like to see next, and upvote the ideas you care about most — the
           top of the list is what we build next.
         </p>
 
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-neutral-900">Sorted by votes</h2>
+          <h2 className="text-lg font-semibold text-ink">Sorted by votes</h2>
           <button
             onClick={() => setModalOpen(true)}
-            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
           >
             + Suggest a feature
           </button>
@@ -84,8 +84,8 @@ export default function FeedbackShell({
 
       {modalOpen && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-semibold text-neutral-900">Suggest a feature</h3>
+          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-semibold text-ink">Suggest a feature</h3>
             <FeatureRequestForm
               onSubmit={handleSubmit}
               onCancel={() => setModalOpen(false)}

@@ -21,9 +21,9 @@ const TONE: Record<SlipSeverity, { ring: string; word: string; badge: string; la
     label: "Good fortune",
   },
   even: {
-    ring: "ring-neutral-200",
-    word: "text-neutral-600",
-    badge: "bg-neutral-100 text-neutral-600",
+    ring: "ring-line",
+    word: "text-ink-muted",
+    badge: "bg-surface-3 text-ink-muted",
     label: "Steady",
   },
   caution: {
@@ -68,11 +68,11 @@ export default function DailyFortuneSlip({
 
   if (!slip) {
     return (
-      <div className="rounded-2xl border-t-2 border-fortune-400 bg-white p-5 shadow-sm ring-1 ring-neutral-200">
+      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-5 shadow-sm ring-1 ring-line">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-neutral-500">Today&apos;s fortune</p>
-            <p className="mt-0.5 text-sm text-neutral-600">
+            <p className="text-sm font-medium text-ink-subtle">Today&apos;s fortune</p>
+            <p className="mt-0.5 text-sm text-ink-muted">
               Draw the cat&apos;s reading of your money today.
             </p>
           </div>
@@ -81,7 +81,7 @@ export default function DailyFortuneSlip({
             <button
               onClick={handleDraw}
               disabled={pending}
-              className="rounded-lg bg-fortune-400 px-4 py-2 text-sm font-semibold text-neutral-900 shadow-sm transition hover:bg-fortune-400/90 disabled:opacity-60"
+              className="rounded-lg bg-fortune-400 px-4 py-2 text-sm font-semibold text-fortune-700 shadow-sm transition hover:bg-fortune-400/90 disabled:opacity-60"
             >
               {pending ? "Drawing…" : "Draw today's fortune 🎴"}
             </button>
@@ -95,7 +95,7 @@ export default function DailyFortuneSlip({
   const tone = TONE[slip.severity];
 
   return (
-    <div className={`rounded-2xl bg-white p-5 shadow-sm ring-1 ${tone.ring}`}>
+    <div className={`rounded-2xl bg-surface p-5 shadow-sm ring-1 ${tone.ring}`}>
       <div className="flex items-start gap-4">
         <div
           className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-fortune-50 ring-1 ring-fortune-400 ${tone.word}`}
@@ -110,7 +110,7 @@ export default function DailyFortuneSlip({
             </span>
             {streakChip}
           </div>
-          <p className="mt-1.5 text-sm font-medium text-neutral-900">{slip.headline}</p>
+          <p className="mt-1.5 text-sm font-medium text-ink">{slip.headline}</p>
         </div>
       </div>
     </div>

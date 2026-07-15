@@ -39,20 +39,20 @@ export default function SafeToSpendCard({
 
   if (!isPro) {
     return (
-      <div className="rounded-2xl border-t-2 border-fortune-400 bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-neutral-500">🛟 Safe to spend</h2>
+          <h2 className="text-sm font-medium text-ink-subtle">🛟 Safe to spend</h2>
           <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
             PRO
           </span>
         </div>
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="mt-2 text-sm text-ink-muted">
           See exactly what&apos;s yours to spend this month — after bills still due and what
           you&apos;re setting aside for goals.
         </p>
         <Link
           href="/upgrade"
-          className="mt-3 inline-block rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          className="mt-3 inline-block rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
         >
           Go Pro to see your safe number
         </Link>
@@ -83,9 +83,9 @@ export default function SafeToSpendCard({
   }
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+    <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-medium text-neutral-500">🛟 Safe to spend</h2>
+        <h2 className="text-sm font-medium text-ink-subtle">🛟 Safe to spend</h2>
         <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
           PRO
         </span>
@@ -93,13 +93,13 @@ export default function SafeToSpendCard({
 
       <p
         className={`mt-1 text-4xl font-bold tracking-tight [font-variant-numeric:tabular-nums] ${
-          negative ? "text-red-600" : "text-neutral-900"
+          negative ? "text-red-600" : "text-ink"
         }`}
       >
         {negative ? "−" : ""}
         {formatCurrency(Math.abs(sts.safe))}
       </p>
-      <p className="mt-1 text-xs text-neutral-500">
+      <p className="mt-1 text-xs text-ink-subtle">
         {sts.coverageDays != null
           ? `covers ${sts.coverageDays} day${sts.coverageDays === 1 ? "" : "s"} at your pace`
           : "rest of the month"}
@@ -109,9 +109,9 @@ export default function SafeToSpendCard({
 
       {/* Pace bar: fill = pool used, tick = where the month is. */}
       <div className="mt-4">
-        <div className="relative h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+        <div className="relative h-2 w-full overflow-hidden rounded-full bg-surface-3">
           <div
-            className={`h-full rounded-full ${overPace ? "bg-red-500" : "bg-neutral-700"}`}
+            className={`h-full rounded-full ${overPace ? "bg-red-500" : "bg-out"}`}
             style={{ width: `${Math.min(100, Math.round(sts.spentProgress * 100))}%` }}
           />
           <div
@@ -120,27 +120,27 @@ export default function SafeToSpendCard({
             title="on-pace marker"
           />
         </div>
-        <p className="mt-1 text-[11px] text-neutral-400">
+        <p className="mt-1 text-[11px] text-ink-faint">
           {overPace ? "Spending ahead of the month's pace" : "On or under pace for the month"}
         </p>
       </div>
 
       <button
         onClick={() => setShowReceipt((v) => !v)}
-        className="mt-3 text-xs font-medium text-neutral-500 underline hover:text-neutral-700"
+        className="mt-3 text-xs font-medium text-ink-subtle underline hover:text-ink-muted"
       >
         {showReceipt ? "Hide the math" : "Show the math"}
       </button>
 
       {showReceipt && (
-        <ul className="mt-2 space-y-1 border-t border-neutral-100 pt-2 font-mono text-xs [font-variant-numeric:tabular-nums]">
+        <ul className="mt-2 space-y-1 border-t border-line pt-2 font-mono text-xs [font-variant-numeric:tabular-nums]">
           {sts.lines.map((line, i) => (
             <li
               key={i}
               className={`flex items-center justify-between ${
                 line.kind === "total"
-                  ? "mt-1 border-t border-neutral-100 pt-1 font-semibold text-neutral-900"
-                  : "text-neutral-600"
+                  ? "mt-1 border-t border-line pt-1 font-semibold text-ink"
+                  : "text-ink-muted"
               }`}
             >
               <span>
@@ -153,7 +153,7 @@ export default function SafeToSpendCard({
         </ul>
       )}
 
-      <div className="mt-4 border-t border-neutral-100 pt-3">
+      <div className="mt-4 border-t border-line pt-3">
         {editing ? (
           <div className="flex flex-wrap items-center gap-2">
             <input
@@ -163,12 +163,12 @@ export default function SafeToSpendCard({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="Current balance"
-              className="w-40 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm [font-variant-numeric:tabular-nums] focus:border-neutral-500 focus:outline-none"
+              className="w-40 rounded-lg border border-line px-3 py-1.5 text-sm [font-variant-numeric:tabular-nums] focus:border-line focus:outline-none"
             />
             <button
               onClick={handleSave}
               disabled={pending}
-              className="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+              className="rounded-lg bg-action px-3 py-1.5 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-60"
             >
               {pending ? "Saving…" : "Confirm"}
             </button>
@@ -177,7 +177,7 @@ export default function SafeToSpendCard({
                 setEditing(false);
                 setError(null);
               }}
-              className="text-sm text-neutral-500 hover:text-neutral-700"
+              className="text-sm text-ink-subtle hover:text-ink-muted"
             >
               Cancel
             </button>
@@ -186,7 +186,7 @@ export default function SafeToSpendCard({
         ) : (
           <button
             onClick={() => setEditing(true)}
-            className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
+            className="text-sm font-medium text-ink-muted hover:text-ink"
           >
             {sts.mode === "anchor"
               ? "Re-confirm your balance →"

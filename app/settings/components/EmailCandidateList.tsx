@@ -16,8 +16,8 @@ export default function EmailCandidateList({
 }) {
   if (candidates.length === 0) {
     return (
-      <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-neutral-200">
-        <p className="text-sm text-neutral-500">
+      <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-line">
+        <p className="text-sm text-ink-subtle">
           Review is clear — new captures from trusted senders post automatically; anything the
           scanner isn’t sure about will wait for you here.
         </p>
@@ -26,8 +26,8 @@ export default function EmailCandidateList({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200">
-      <ul className="divide-y divide-neutral-100">
+    <div className="overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line">
+      <ul className="divide-y divide-line">
         {candidates.map((c) => {
           const uncertain = c.review_reason?.includes("uncertain") || c.review_reason?.includes("failed");
           const unknownSender = c.review_reason === "unrecognised sender";
@@ -35,8 +35,8 @@ export default function EmailCandidateList({
             <li key={c.id} className="px-6 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-neutral-900">{c.subject}</p>
-                  <p className="truncate font-mono text-xs text-neutral-400">
+                  <p className="truncate text-sm font-medium text-ink">{c.subject}</p>
+                  <p className="truncate font-mono text-xs text-ink-faint">
                     {c.email_date ? formatDate(c.email_date.slice(0, 10)) : ""} · {c.from_address}
                   </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -45,17 +45,17 @@ export default function EmailCandidateList({
                       {c.amount !== null ? formatCurrency(c.amount) : "—"}
                     </span>
                     {c.suggested_category && (
-                      <span className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+                      <span className="inline-flex items-center rounded-full bg-surface-3 px-2 py-0.5 text-xs font-medium text-ink-muted">
                         {c.suggested_category}
                       </span>
                     )}
                     {c.account_tag && (
-                      <span className="inline-flex items-center rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] uppercase text-neutral-500">
+                      <span className="inline-flex items-center rounded bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] uppercase text-ink-subtle">
                         {c.account_tag}
                       </span>
                     )}
                     {c.source !== "email" && (
-                      <span className="inline-flex items-center rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500">
+                      <span className="inline-flex items-center rounded bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-ink-subtle">
                         {c.source === "image" ? "🖼" : c.source === "sms" ? "💬" : "📄"} {c.source}
                       </span>
                     )}
@@ -83,7 +83,7 @@ export default function EmailCandidateList({
                     <button
                       onClick={() => onDismiss(c.id)}
                       disabled={pendingId === c.id}
-                      className="text-xs font-medium text-neutral-400 hover:text-neutral-600 disabled:opacity-50"
+                      className="text-xs font-medium text-ink-faint hover:text-ink-muted disabled:opacity-50"
                     >
                       Dismiss
                     </button>

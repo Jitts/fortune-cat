@@ -16,18 +16,18 @@ export default async function UpgradePage() {
   const isPro = !!activePayment;
 
   return (
-    <main className="min-h-screen bg-neutral-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-neutral-200">
+    <main className="min-h-screen bg-surface-2 flex items-center justify-center p-6">
+      <div className="w-full max-w-md space-y-6 rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-line">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">🐱 Fortune Cat Pro</h1>
-          <p className="mt-2 text-neutral-500">Unlock your full transaction history.</p>
+          <h1 className="text-2xl font-bold text-ink">🐱 Fortune Cat Pro</h1>
+          <p className="mt-2 text-ink-subtle">Unlock your full transaction history.</p>
         </div>
 
-        <div className="text-4xl font-bold text-neutral-900">
-          $9.00 <span className="text-base font-normal text-neutral-400">one-time</span>
+        <div className="text-4xl font-bold text-ink">
+          $9.00 <span className="text-base font-normal text-ink-faint">one-time</span>
         </div>
 
-        <ul className="space-y-2 text-left text-sm text-neutral-600">
+        <ul className="space-y-2 text-left text-sm text-ink-muted">
           <li>✓ Full transaction history (free tier shows last 10)</li>
           <li>✓ ✨ Pro badge</li>
           <li>✓ Supports future features</li>
@@ -48,7 +48,7 @@ export default async function UpgradePage() {
           </Link>
         )}
 
-        <Link href={user ? "/app" : "/"} className="block text-sm text-neutral-400 hover:text-neutral-600">
+        <Link href={user ? "/app" : "/"} className="block text-sm text-ink-faint hover:text-ink-muted">
           {user ? "Back to app" : "Back home"}
         </Link>
       </div>

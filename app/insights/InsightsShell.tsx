@@ -17,7 +17,7 @@ const PRESETS: { key: PeriodPreset; label: string }[] = [
 
 function DeltaTag({ delta, invertGood }: { delta: Delta; invertGood?: boolean }) {
   if (!delta || delta.direction === "flat") {
-    return <span className="text-[11px] text-neutral-400">— vs last period</span>;
+    return <span className="text-[11px] text-ink-faint">— vs last period</span>;
   }
   // For expenses, "up" is bad; for savings rate, "up" is good.
   const good = invertGood ? delta.direction === "down" : delta.direction === "up";
@@ -36,12 +36,12 @@ function MonthlyChart({ monthly }: { monthly: { month: string; income: number; e
     new Date(`${key}-01T00:00:00`).toLocaleDateString("en-SG", { month: "short" });
   return (
     <div>
-      <div className="mb-3 flex items-center gap-4 font-mono text-[10px] uppercase tracking-wide text-neutral-500">
+      <div className="mb-3 flex items-center gap-4 font-mono text-[10px] uppercase tracking-wide text-ink-subtle">
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-emerald-600" /> In
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-neutral-700" /> Out
+          <span className="h-2 w-2 rounded-full bg-out" /> Out
         </span>
       </div>
       <div className="flex items-end gap-2 overflow-x-auto pb-1" style={{ minHeight: 128 }}>
@@ -54,12 +54,12 @@ function MonthlyChart({ monthly }: { monthly: { month: string; income: number; e
                 title={`${label(m.month)} · in ${formatCurrency(m.income)}`}
               />
               <div
-                className="w-1/2 max-w-[14px] rounded-t bg-neutral-700"
+                className="w-1/2 max-w-[14px] rounded-t bg-out"
                 style={{ height: `${(m.expense / max) * 100}%` }}
                 title={`${label(m.month)} · out ${formatCurrency(m.expense)}`}
               />
             </div>
-            <span className="font-mono text-[10px] text-neutral-400">{label(m.month)}</span>
+            <span className="font-mono text-[10px] text-ink-faint">{label(m.month)}</span>
           </div>
         ))}
       </div>
@@ -86,17 +86,17 @@ function CategoryBars({
       {rows.map((r) => (
         <li key={r.name}>
           <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-1.5 text-neutral-700">
+            <span className="flex items-center gap-1.5 text-ink-muted">
               <span>{r.icon ?? "•"}</span>
               {r.name}
             </span>
-            <span className="text-neutral-500 [font-variant-numeric:tabular-nums]">
+            <span className="text-ink-subtle [font-variant-numeric:tabular-nums]">
               {formatCurrency(r.total)}{" "}
-              <span className="text-xs text-neutral-400">{Math.round(r.pct)}%</span>
+              <span className="text-xs text-ink-faint">{Math.round(r.pct)}%</span>
             </span>
           </div>
-          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
-            <div className="h-full rounded-full bg-neutral-700" style={{ width: `${(r.total / max) * 100}%` }} />
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-surface-3">
+            <div className="h-full rounded-full bg-out" style={{ width: `${(r.total / max) * 100}%` }} />
           </div>
         </li>
       ))}
@@ -127,16 +127,16 @@ export default function InsightsShell({
   if (!isPro) {
     return (
       <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
-        <div className="rounded-2xl border-t-2 border-fortune-400 bg-white p-8 text-center shadow-sm ring-1 ring-neutral-200">
-          <h1 className="text-lg font-semibold text-neutral-900">📈 Analytics</h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-neutral-600">
+        <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-8 text-center shadow-sm ring-1 ring-line">
+          <h1 className="text-lg font-semibold text-ink">📈 Analytics</h1>
+          <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
             Deep-dive into your prosperity: savings rate and cash flow with period-over-period
             comparison, a category ranking, the months behind the trend, and the few expenses worth
             a second look. A Pro feature.
           </p>
           <Link
             href="/upgrade"
-            className="mt-4 inline-block rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
+            className="mt-4 inline-block rounded-lg bg-action px-5 py-2.5 text-sm font-medium text-white hover:bg-action/90"
           >
             Go Pro to unlock Analytics
           </Link>
@@ -149,16 +149,16 @@ export default function InsightsShell({
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">📈 Analytics</h1>
-          <p className="text-sm text-neutral-500">Deep dive into your prosperity and cash flow.</p>
+          <h1 className="text-lg font-semibold text-ink">📈 Analytics</h1>
+          <p className="text-sm text-ink-subtle">Deep dive into your prosperity and cash flow.</p>
         </div>
-        <div className="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
+        <div className="flex flex-wrap gap-1 rounded-xl bg-surface-3 p-1">
           {PRESETS.map((p) => (
             <button
               key={p.key}
               onClick={() => setPreset(p.key)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                preset === p.key ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                preset === p.key ? "bg-surface text-ink shadow-sm" : "text-ink-subtle hover:text-ink"
               }`}
             >
               {p.label}
@@ -168,38 +168,38 @@ export default function InsightsShell({
       </div>
 
       {!a.hasData ? (
-        <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-neutral-200">
-          <p className="text-sm text-neutral-500">No transactions in {range.label.toLowerCase()} yet.</p>
+        <div className="rounded-2xl bg-surface p-10 text-center shadow-sm ring-1 ring-line">
+          <p className="text-sm text-ink-subtle">No transactions in {range.label.toLowerCase()} yet.</p>
         </div>
       ) : (
         <>
           {/* Stat tiles */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-neutral-200">
-              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">Savings rate</p>
-              <p className="mt-1 text-2xl font-bold text-neutral-900 [font-variant-numeric:tabular-nums]">
+            <div className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Savings rate</p>
+              <p className="mt-1 text-2xl font-bold text-ink [font-variant-numeric:tabular-nums]">
                 {a.savingsRate != null ? `${Math.round(a.savingsRate * 100)}%` : "—"}
               </p>
               <DeltaTag delta={a.savingsRateDelta} />
             </div>
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-neutral-200">
-              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">Net cash flow</p>
+            <div className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Net cash flow</p>
               <p
                 className={`mt-1 text-2xl font-bold [font-variant-numeric:tabular-nums] ${
-                  a.net >= 0 ? "text-emerald-700" : "text-neutral-900"
+                  a.net >= 0 ? "text-emerald-700" : "text-ink"
                 }`}
               >
                 {a.net >= 0 ? "+" : "−"}
                 {formatCurrency(Math.abs(a.net))}
               </p>
-              <p className="text-[11px] text-neutral-400 [font-variant-numeric:tabular-nums]">
+              <p className="text-[11px] text-ink-faint [font-variant-numeric:tabular-nums]">
                 {a.avgMonthlyNet >= 0 ? "+" : "−"}
                 {formatCurrency(Math.abs(a.avgMonthlyNet))}/mo average
               </p>
             </div>
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-neutral-200">
-              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">Total expenses</p>
-              <p className="mt-1 text-2xl font-bold text-neutral-900 [font-variant-numeric:tabular-nums]">
+            <div className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Total expenses</p>
+              <p className="mt-1 text-2xl font-bold text-ink [font-variant-numeric:tabular-nums]">
                 {formatCurrency(a.expense)}
               </p>
               <DeltaTag delta={a.expenseDelta} invertGood />
@@ -208,12 +208,12 @@ export default function InsightsShell({
 
           {/* Standouts */}
           {a.standouts.length > 0 && (
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-              <h2 className="text-sm font-medium text-neutral-500">What stands out</h2>
+            <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+              <h2 className="text-sm font-medium text-ink-subtle">What stands out</h2>
               <ul className="mt-2 space-y-1.5">
                 {a.standouts.map((s, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-neutral-700">
-                    <span className={s.tone === "up" ? "text-emerald-700" : s.tone === "down" ? "text-red-600" : "text-neutral-400"}>
+                  <li key={i} className="flex items-start gap-2 text-sm text-ink-muted">
+                    <span className={s.tone === "up" ? "text-emerald-700" : s.tone === "down" ? "text-red-600" : "text-ink-faint"}>
                       {s.tone === "up" ? "▲" : s.tone === "down" ? "▼" : "•"}
                     </span>
                     {s.text}
@@ -225,17 +225,17 @@ export default function InsightsShell({
 
           {/* Income vs expenses */}
           {a.monthly.length > 1 && (
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-              <h2 className="mb-3 text-sm font-medium text-neutral-500">Income vs expenses</h2>
+            <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+              <h2 className="mb-3 text-sm font-medium text-ink-subtle">Income vs expenses</h2>
               <MonthlyChart monthly={a.monthly} />
             </div>
           )}
 
           {/* Category ranking */}
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-            <h2 className="mb-4 text-sm font-medium text-neutral-500">Spending by category</h2>
+          <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+            <h2 className="mb-4 text-sm font-medium text-ink-subtle">Spending by category</h2>
             {a.categories.length === 0 ? (
-              <p className="text-sm text-neutral-400">No spending in this period.</p>
+              <p className="text-sm text-ink-faint">No spending in this period.</p>
             ) : (
               <CategoryBars categories={a.categories} />
             )}
@@ -243,22 +243,22 @@ export default function InsightsShell({
 
           {/* Flagged */}
           {a.flagged.length > 0 && (
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-              <h2 className="text-sm font-medium text-neutral-500">Worth a second look</h2>
-              <ul className="mt-3 divide-y divide-neutral-100">
+            <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+              <h2 className="text-sm font-medium text-ink-subtle">Worth a second look</h2>
+              <ul className="mt-3 divide-y divide-line">
                 {a.flagged.map((f) => (
                   <li key={f.id} className="flex items-center justify-between gap-3 py-2.5">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-neutral-900">{f.name}</p>
-                      <p className="text-xs text-neutral-500">{f.reason}</p>
+                      <p className="truncate text-sm font-medium text-ink">{f.name}</p>
+                      <p className="text-xs text-ink-subtle">{f.reason}</p>
                     </div>
-                    <span className="shrink-0 text-sm font-semibold text-neutral-900 [font-variant-numeric:tabular-nums]">
+                    <span className="shrink-0 text-sm font-semibold text-ink [font-variant-numeric:tabular-nums]">
                       {formatCurrency(f.amount)}
                     </span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-[11px] text-neutral-400">
+              <p className="mt-3 text-[11px] text-ink-faint">
                 Flagged only because they&apos;re unusually large for their category — not necessarily a problem.
               </p>
             </div>

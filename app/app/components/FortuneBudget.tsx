@@ -10,7 +10,7 @@ import { setBudget, removeBudget } from "../budgetActions";
 function stateFor(pct: number) {
   if (pct >= 100) return { bar: "bg-red-600", chip: "Over", chipCls: "bg-red-50 text-red-700" };
   if (pct >= 80) return { bar: "bg-amber-500", chip: "Caution", chipCls: "bg-amber-50 text-amber-700" };
-  return { bar: "bg-neutral-700", chip: null, chipCls: "" };
+  return { bar: "bg-out", chip: null, chipCls: "" };
 }
 
 export default function FortuneBudget({
@@ -114,9 +114,9 @@ export default function FortuneBudget({
   }
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+    <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-medium text-neutral-500">📊 Fortune Budget · this month</h2>
+        <h2 className="text-sm font-medium text-ink-subtle">📊 Fortune Budget · this month</h2>
         {budgetable.length > 0 && !adding && (
           <button
             onClick={() => {
@@ -124,7 +124,7 @@ export default function FortuneBudget({
               setAdding(true);
               setAddCategory(budgetable[0].id);
             }}
-            className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-800"
+            className="rounded-lg bg-action px-3 py-1.5 text-xs font-medium text-white hover:bg-action/90"
           >
             + Set a budget
           </button>
@@ -135,17 +135,17 @@ export default function FortuneBudget({
 
       {items.length > 0 && (
         <div className="mt-3">
-          <div className="flex items-baseline justify-between text-xs text-neutral-500 [font-variant-numeric:tabular-nums]">
+          <div className="flex items-baseline justify-between text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
             <span>
               {formatCurrency(totalSpent)} of {formatCurrency(totalBudget)} budgeted
             </span>
-            <span className={remaining < 0 ? "font-semibold text-red-600" : "text-neutral-500"}>
+            <span className={remaining < 0 ? "font-semibold text-red-600" : "text-ink-subtle"}>
               {remaining < 0 ? `${formatCurrency(-remaining)} over` : `${formatCurrency(remaining)} left`}
             </span>
           </div>
-          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-surface-3">
             <div
-              className={`h-full rounded-full ${overallPct >= 100 ? "bg-red-600" : overallPct >= 80 ? "bg-amber-500" : "bg-neutral-700"}`}
+              className={`h-full rounded-full ${overallPct >= 100 ? "bg-red-600" : overallPct >= 80 ? "bg-amber-500" : "bg-out"}`}
               style={{ width: `${Math.min(100, overallPct)}%` }}
             />
           </div>
@@ -153,11 +153,11 @@ export default function FortuneBudget({
       )}
 
       {adding && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-neutral-50 p-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-surface-2 p-3">
           <select
             value={addCategory}
             onChange={(e) => setAddCategory(e.target.value)}
-            className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-fortune-400 focus:outline-none"
+            className="rounded-lg border border-line px-2 py-1.5 text-sm focus:border-fortune-400 focus:outline-none"
           >
             {budgetable.map((c) => (
               <option key={c.id} value={c.id}>
@@ -173,7 +173,7 @@ export default function FortuneBudget({
             onChange={(e) => setAddValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && saveAdd()}
             placeholder="Monthly limit"
-            className="w-32 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+            className="w-32 rounded-lg border border-line px-2 py-1.5 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
           />
           <button
             onClick={saveAdd}
@@ -182,15 +182,15 @@ export default function FortuneBudget({
           >
             Set
           </button>
-          <button onClick={() => setAdding(false)} className="text-xs text-neutral-400 hover:text-neutral-600">
+          <button onClick={() => setAdding(false)} className="text-xs text-ink-faint hover:text-ink-muted">
             Cancel
           </button>
         </div>
       )}
 
       {items.length === 0 && !adding ? (
-        <div className="mt-4 rounded-xl bg-neutral-50 p-5 text-center">
-          <p className="text-sm text-neutral-600">
+        <div className="mt-4 rounded-xl bg-surface-2 p-5 text-center">
+          <p className="text-sm text-ink-muted">
             No budgets yet. Set a monthly limit on a category and watch the bar fill as you spend.
           </p>
           <button
@@ -213,7 +213,7 @@ export default function FortuneBudget({
             return (
               <li key={budget.id}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 text-sm text-neutral-800">
+                  <span className="flex items-center gap-1.5 text-sm text-ink">
                     <span>{category?.icon ?? "•"}</span>
                     {category?.name ?? "Category"}
                     {st.chip && (
@@ -222,15 +222,15 @@ export default function FortuneBudget({
                       </span>
                     )}
                   </span>
-                  <span className="text-xs text-neutral-500 [font-variant-numeric:tabular-nums]">
+                  <span className="text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
                     {formatCurrency(spent)} / {formatCurrency(budget.monthly_limit)}
                   </span>
                 </div>
-                <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+                <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-surface-3">
                   <div className={`h-full rounded-full ${st.bar}`} style={{ width: `${Math.min(100, pct)}%` }} />
                 </div>
                 <div className="mt-1 flex items-center justify-between">
-                  <span className="text-[11px] text-neutral-400 [font-variant-numeric:tabular-nums]">
+                  <span className="text-[11px] text-ink-faint [font-variant-numeric:tabular-nums]">
                     {left >= 0 ? `${formatCurrency(left)} left` : `${formatCurrency(-left)} over`}
                   </span>
                   {editId === budget.category_id ? (
@@ -242,7 +242,7 @@ export default function FortuneBudget({
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && saveEdit(budget.category_id)}
-                        className="w-24 rounded border border-neutral-300 px-2 py-0.5 text-xs [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                        className="w-24 rounded border border-line px-2 py-0.5 text-xs [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
                       />
                       <button
                         onClick={() => saveEdit(budget.category_id)}
@@ -251,7 +251,7 @@ export default function FortuneBudget({
                       >
                         Save
                       </button>
-                      <button onClick={() => setEditId(null)} className="text-xs text-neutral-400 hover:text-neutral-600">
+                      <button onClick={() => setEditId(null)} className="text-xs text-ink-faint hover:text-ink-muted">
                         Cancel
                       </button>
                     </span>
@@ -263,14 +263,14 @@ export default function FortuneBudget({
                           setEditId(budget.category_id);
                           setEditValue(String(budget.monthly_limit));
                         }}
-                        className="font-medium text-neutral-500 hover:text-neutral-900"
+                        className="font-medium text-ink-subtle hover:text-ink"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleRemove(budget.category_id)}
                         disabled={pending}
-                        className="font-medium text-neutral-400 hover:text-red-600 disabled:opacity-50"
+                        className="font-medium text-ink-faint hover:text-red-600 disabled:opacity-50"
                       >
                         Remove
                       </button>

@@ -97,10 +97,10 @@ export default function PulseCard({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-baseline justify-between gap-3">
-          <p className="text-sm font-medium text-neutral-500">Cash flow · {monthLabel}</p>
-          <p className="text-xs text-neutral-400 [font-variant-numeric:tabular-nums]">
+          <p className="text-sm font-medium text-ink-subtle">Cash flow · {monthLabel}</p>
+          <p className="text-xs text-ink-faint [font-variant-numeric:tabular-nums]">
             All-time balance {formatCurrency(balance)}
           </p>
         </div>
@@ -110,17 +110,17 @@ export default function PulseCard({
           <div className="min-w-0">
             <p
               className={`text-3xl font-bold tracking-tight [font-variant-numeric:tabular-nums] ${
-                pulse.net >= 0 ? "text-emerald-700" : "text-neutral-900"
+                pulse.net >= 0 ? "text-emerald-700" : "text-ink"
               }`}
             >
               {pulse.net >= 0 ? "+" : "−"}
               {formatCurrency(Math.abs(pulse.net))}
             </p>
-            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-xs text-neutral-500 [font-variant-numeric:tabular-nums]">
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
               <span className="text-emerald-700">▲ in {formatCurrency(pulse.inTotal)}</span>
               <span>▼ out {formatCurrency(pulse.outTotal)}</span>
             </div>
-            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-neutral-500">
+            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-subtle">
               <span>{caption}</span>
               {streak >= 2 && (
                 <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
@@ -142,29 +142,29 @@ export default function PulseCard({
                       style={{ height: d.in > 0 ? `${Math.max(6, (d.in / pulse.maxBar) * 100)}%` : 0 }}
                     />
                   </div>
-                  <div className="w-full border-t-2 border-neutral-200" />
+                  <div className="w-full border-t-2 border-line" />
                   <div className="flex w-full max-w-[16px] flex-1 items-start justify-center">
                     <div
-                      className="w-full rounded-b-sm bg-neutral-700"
+                      className="w-full rounded-b-sm bg-out"
                       style={{ height: d.out > 0 ? `${Math.max(6, (d.out / pulse.maxBar) * 100)}%` : 0 }}
                     />
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-1 flex justify-between font-mono text-[10px] text-neutral-400">
+            <div className="mt-1 flex justify-between font-mono text-[10px] text-ink-faint">
               <span>1 {new Date().toLocaleDateString("en-SG", { month: "short" })}</span>
               <span>today</span>
             </div>
           </div>
         )}
 
-        <p className="mt-3 text-xs text-neutral-500 [font-variant-numeric:tabular-nums]">
+        <p className="mt-3 text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
           Burning {formatCurrency(pulse.burnPerDay)}/day
           {pulse.burnDelta != null && (
             <>
               {" · "}
-              <span className={pulse.burnDelta <= 0 ? "text-emerald-700" : "text-neutral-700"}>
+              <span className={pulse.burnDelta <= 0 ? "text-emerald-700" : "text-ink-muted"}>
                 {Math.abs(pulse.burnDelta)}% {pulse.burnDelta <= 0 ? "below" : "above"} last month’s pace
               </span>
             </>

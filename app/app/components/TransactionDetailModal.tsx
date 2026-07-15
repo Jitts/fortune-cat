@@ -15,8 +15,8 @@ const SOURCE_LABEL: Record<TransactionProvenance["source"], string> = {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 py-2">
-      <dt className="shrink-0 text-xs uppercase tracking-wide text-neutral-400">{label}</dt>
-      <dd className="min-w-0 text-right text-sm text-neutral-800">{children}</dd>
+      <dt className="shrink-0 text-xs uppercase tracking-wide text-ink-faint">{label}</dt>
+      <dd className="min-w-0 text-right text-sm text-ink">{children}</dd>
     </div>
   );
 }
@@ -48,31 +48,31 @@ export default function TransactionDetailModal({
       onClick={onClose}
     >
       <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="text-2xl">{category?.icon ?? "•"}</span>
             <div className="min-w-0">
-              <p className="truncate text-base font-semibold text-neutral-900">
+              <p className="truncate text-base font-semibold text-ink">
                 {merchant?.name ?? t.note ?? category?.name ?? "Transaction"}
               </p>
-              <p className="text-xs text-neutral-500">{formatDate(t.date)}</p>
+              <p className="text-xs text-ink-subtle">{formatDate(t.date)}</p>
             </div>
           </div>
           <span
-            className={`text-lg font-bold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700" : "text-neutral-900"}`}
+            className={`text-lg font-bold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700" : "text-ink"}`}
           >
             {isIncome ? "+" : "-"}
             {formatCurrency(t.amount)}
           </span>
         </div>
 
-        <dl className="mt-4 divide-y divide-neutral-100 border-t border-neutral-100">
+        <dl className="mt-4 divide-y divide-line border-t border-line">
           {rawDiffers && (
             <Row label="Raw description">
-              <span className="break-all font-mono text-xs text-neutral-500">{t.note}</span>
+              <span className="break-all font-mono text-xs text-ink-subtle">{t.note}</span>
             </Row>
           )}
           {merchant?.biller && <Row label="Biller">↻ recognised recurring biller</Row>}
@@ -81,7 +81,7 @@ export default function TransactionDetailModal({
           {t.original_currency && t.original_amount != null && (
             <Row label="Original amount">
               {t.original_currency} {t.original_amount.toLocaleString("en-SG")}{" "}
-              <span className="text-xs text-neutral-400">→ SGD at capture</span>
+              <span className="text-xs text-ink-faint">→ SGD at capture</span>
             </Row>
           )}
           <Row label="Entered via">
@@ -105,7 +105,7 @@ export default function TransactionDetailModal({
           )}
           {provenance && (
             <Row label="Reference">
-              <span className="break-all font-mono text-xs text-neutral-500">
+              <span className="break-all font-mono text-xs text-ink-subtle">
                 {provenance.message_id}
               </span>
             </Row>
@@ -115,8 +115,8 @@ export default function TransactionDetailModal({
 
         {provenance?.raw_snippet && (
           <div className="mt-3">
-            <p className="text-xs uppercase tracking-wide text-neutral-400">Source snippet</p>
-            <pre className="mt-1 max-h-36 overflow-y-auto whitespace-pre-wrap break-words rounded-lg bg-neutral-50 p-3 font-mono text-[11px] leading-relaxed text-neutral-500">
+            <p className="text-xs uppercase tracking-wide text-ink-faint">Source snippet</p>
+            <pre className="mt-1 max-h-36 overflow-y-auto whitespace-pre-wrap break-words rounded-lg bg-surface-2 p-3 font-mono text-[11px] leading-relaxed text-ink-subtle">
               {provenance.raw_snippet}
             </pre>
           </div>
@@ -125,13 +125,13 @@ export default function TransactionDetailModal({
         <div className="mt-5 flex justify-end gap-3">
           <button
             onClick={onEdit}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3"
           >
             Edit
           </button>
           <button
             onClick={onClose}
-            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
           >
             Close
           </button>

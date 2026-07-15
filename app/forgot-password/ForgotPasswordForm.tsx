@@ -15,13 +15,13 @@ export default function ForgotPasswordForm() {
   const sent = state !== null && "success" in state;
 
   return (
-    <main className="min-h-screen bg-neutral-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl bg-white p-8 shadow-sm ring-1 ring-neutral-200">
+    <main className="min-h-screen bg-surface-2 flex items-center justify-center p-6">
+      <div className="w-full max-w-sm space-y-6 rounded-2xl bg-surface p-8 shadow-sm ring-1 ring-line">
         <div className="text-center">
-          <Link href="/" className="text-2xl font-bold text-neutral-900">
+          <Link href="/" className="text-2xl font-bold text-ink">
             🐱 Fortune Cat
           </Link>
-          <p className="mt-2 text-sm text-neutral-500">Reset your password</p>
+          <p className="mt-2 text-sm text-ink-subtle">Reset your password</p>
         </div>
 
         {sent ? (
@@ -31,7 +31,7 @@ export default function ForgotPasswordForm() {
         ) : (
           <form action={formAction} className="space-y-4">
             <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium text-neutral-700">
+              <label htmlFor="email" className="mb-1 block text-sm font-medium text-ink-muted">
                 Email
               </label>
               <input
@@ -40,7 +40,7 @@ export default function ForgotPasswordForm() {
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
                 placeholder="you@example.com"
               />
             </div>
@@ -50,15 +50,15 @@ export default function ForgotPasswordForm() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-50"
+              className="w-full rounded-lg bg-action px-4 py-2.5 text-sm font-semibold text-white hover:bg-action/90 disabled:opacity-50"
             >
               {pending ? "Sending…" : "Send reset link"}
             </button>
           </form>
         )}
 
-        <p className="text-center text-sm text-neutral-500">
-          <Link href="/login" className="font-medium text-neutral-900 hover:underline">
+        <p className="text-center text-sm text-ink-subtle">
+          <Link href="/login" className="font-medium text-ink hover:underline">
             Back to login
           </Link>
         </p>

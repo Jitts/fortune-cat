@@ -38,12 +38,12 @@ export default function ReceiptScanButton({ onParsed }: { onParsed: (p: ReceiptP
   }
 
   return (
-    <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-3">
+    <div className="rounded-xl border border-dashed border-line bg-surface-2 p-3">
       <button
         type="button"
         disabled={busy}
         onClick={() => inputRef.current?.click()}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-surface px-4 py-2.5 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3 disabled:opacity-60"
       >
         📷 {busy ? (stage ?? "Reading…") : "Snap a receipt"}
       </button>
@@ -58,7 +58,7 @@ export default function ReceiptScanButton({ onParsed }: { onParsed: (p: ReceiptP
           e.target.value = "";
         }}
       />
-      {note && <p className="mt-2 text-xs text-neutral-500">{note}</p>}
+      {note && <p className="mt-2 text-xs text-ink-subtle">{note}</p>}
     </div>
   );
 }

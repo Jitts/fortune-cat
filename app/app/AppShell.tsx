@@ -214,19 +214,19 @@ export default function AppShell({
         <MonthlyOverview transactions={transactions} />
 
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-neutral-900">Transactions</h2>
+          <h2 className="text-lg font-semibold text-ink">Transactions</h2>
           <button
             onClick={() => setModal("add")}
-            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
           >
             + Add Transaction
           </button>
         </div>
 
         {!isPro && transactions.length > FREE_TIER_LIMIT && (
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-ink-faint">
             Showing your {FREE_TIER_LIMIT} most recent transactions.{" "}
-            <Link href="/upgrade" className="underline hover:text-neutral-600">
+            <Link href="/upgrade" className="underline hover:text-ink-muted">
               Go Pro
             </Link>{" "}
             to see full history.
@@ -249,8 +249,8 @@ export default function AppShell({
 
       {modal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-semibold text-neutral-900">
+          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-semibold text-ink">
               {modal === "add" ? "Add Transaction" : "Edit Transaction"}
             </h3>
             <TransactionForm

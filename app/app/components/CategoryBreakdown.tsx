@@ -22,19 +22,19 @@ export default function CategoryBreakdown({
     .sort((a, b) => b.total - a.total);
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-      <h2 className="text-sm font-medium text-neutral-500">Spending by category (this month)</h2>
+    <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+      <h2 className="text-sm font-medium text-ink-subtle">Spending by category (this month)</h2>
       {rows.length === 0 ? (
-        <p className="mt-4 text-sm text-neutral-400">No spending yet this month.</p>
+        <p className="mt-4 text-sm text-ink-faint">No spending yet this month.</p>
       ) : (
         <ul className="mt-4 space-y-3">
           {rows.map(({ category, total }) => (
             <li key={category?.id ?? "unknown"} className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm text-neutral-700">
+              <span className="flex items-center gap-2 text-sm text-ink-muted">
                 <span>{category?.icon ?? "•"}</span>
                 {category?.name ?? "Uncategorized"}
               </span>
-              <span className="text-sm font-semibold text-neutral-900">{formatCurrency(total)}</span>
+              <span className="text-sm font-semibold text-ink">{formatCurrency(total)}</span>
             </li>
           ))}
         </ul>

@@ -36,25 +36,25 @@ export default function FeatureRequestForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-neutral-700">What would you like to see?</label>
+        <label className="block text-sm font-medium text-ink-muted">What would you like to see?</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Recurring bill reminders"
           maxLength={120}
-          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700">Details (optional)</label>
+        <label className="block text-sm font-medium text-ink-muted">Details (optional)</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What problem would this solve for you?"
           rows={3}
-          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
       </div>
 
@@ -64,14 +64,14 @@ export default function FeatureRequestForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted hover:bg-surface-3"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+          className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
         >
           {pending ? "Submitting…" : "Submit idea"}
         </button>

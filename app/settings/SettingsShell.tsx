@@ -28,7 +28,7 @@ function MicrosoftConnectButton() {
     <div className="space-y-2">
       <a
         href="/api/oauth/microsoft/start"
-        className="flex items-center justify-center gap-2.5 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+        className="flex items-center justify-center gap-2.5 rounded-lg border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink hover:bg-surface-2"
       >
         <svg viewBox="0 0 21 21" width="16" height="16" aria-hidden="true">
           <rect x="1" y="1" width="9" height="9" fill="#f25022" />
@@ -38,10 +38,10 @@ function MicrosoftConnectButton() {
         </svg>
         Continue with Microsoft
       </a>
-      <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-neutral-400">
-        <span className="h-px flex-1 bg-neutral-200" />
+      <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-ink-faint">
+        <span className="h-px flex-1 bg-surface-3" />
         or use IMAP + app password
-        <span className="h-px flex-1 bg-neutral-200" />
+        <span className="h-px flex-1 bg-surface-3" />
       </div>
     </div>
   );
@@ -339,11 +339,11 @@ export default function SettingsShell({
 
   return (
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
-      <h1 className="text-lg font-semibold text-neutral-900">📡 Capture</h1>
+      <h1 className="text-lg font-semibold text-ink">📡 Capture</h1>
 
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-medium text-neutral-500">📧 Email auto-scan</h2>
+          <h2 className="text-sm font-medium text-ink-subtle">📧 Email auto-scan</h2>
           {connections.length > 0 && (
             <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
               ON · DAILY 7AM SGT
@@ -363,7 +363,7 @@ export default function SettingsShell({
                   <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-emerald-800">
                     ✓ Connected as {conn.email}
                     {conn.auth_type === "microsoft" && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 font-mono text-[10px] font-semibold text-neutral-600 ring-1 ring-emerald-200">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 font-mono text-[10px] font-semibold text-ink-muted ring-1 ring-emerald-200">
                         <svg viewBox="0 0 21 21" width="10" height="10" aria-hidden="true">
                           <rect x="1" y="1" width="9" height="9" fill="#f25022" />
                           <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
@@ -383,7 +383,7 @@ export default function SettingsShell({
                     <button
                       onClick={() => handleScan(conn.id)}
                       disabled={busy}
-                      className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+                      className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
                     >
                       {scanning ? "Scanning…" : "Scan now"}
                     </button>
@@ -397,14 +397,14 @@ export default function SettingsShell({
                             ? "Already reached the oldest email in this inbox"
                             : "Look further back for older transactions (e.g. old receipts, hotel stays)"
                       }
-                      className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                      className="rounded-lg bg-surface px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3 disabled:opacity-50"
                     >
                       {scanningOlder ? "Scanning…" : "Scan older emails"}
                     </button>
                     <button
                       onClick={() => handleDisconnect(conn.id)}
                       disabled={busy}
-                      className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                      className="rounded-lg bg-surface px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3 disabled:opacity-50"
                     >
                       {disconnecting ? "Disconnecting…" : "Disconnect"}
                     </button>
@@ -413,18 +413,18 @@ export default function SettingsShell({
               );
             })}
 
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-ink-faint">
               Scans run automatically every morning; the buttons scan on demand.
             </p>
 
             {canAddInbox ? (
               addingInbox ? (
-                <div className="space-y-3 rounded-lg p-4 ring-1 ring-neutral-200">
+                <div className="space-y-3 rounded-lg p-4 ring-1 ring-line">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-neutral-700">Add another inbox</p>
+                    <p className="text-sm font-medium text-ink-muted">Add another inbox</p>
                     <button
                       onClick={() => setAddingInbox(false)}
-                      className="text-xs text-neutral-400 hover:text-neutral-600"
+                      className="text-xs text-ink-faint hover:text-ink-muted"
                     >
                       Cancel
                     </button>
@@ -435,22 +435,22 @@ export default function SettingsShell({
               ) : (
                 <button
                   onClick={() => setAddingInbox(true)}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-100"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3"
                 >
                   + Add another inbox{" "}
-                  <span className="font-mono text-xs text-neutral-400">
+                  <span className="font-mono text-xs text-ink-faint">
                     {connections.length}/{maxInboxes}
                   </span>
                 </button>
               )
             ) : (
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-ink-faint">
                 {isPro ? (
                   <>You&apos;ve connected the maximum of {maxInboxes} inboxes.</>
                 ) : (
                   <>
                     Free accounts auto-scan one inbox.{" "}
-                    <Link href="/upgrade" className="underline hover:text-neutral-600">
+                    <Link href="/upgrade" className="underline hover:text-ink-muted">
                       Go Pro
                     </Link>{" "}
                     to connect up to {PRO_INBOX_LIMIT}.
@@ -468,19 +468,19 @@ export default function SettingsShell({
       </div>
 
       {connections.length > 0 && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-          <h2 className="text-sm font-medium text-neutral-500">⚡ Trusted senders</h2>
-          <p className="mt-1 text-xs text-neutral-400">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+          <h2 className="text-sm font-medium text-ink-subtle">⚡ Trusted senders</h2>
+          <p className="mt-1 text-xs text-ink-faint">
             SGD transactions from these senders post straight to your ledger (with one-tap undo).
             Everything else — including all foreign currency — waits in{" "}
-            <Link href="/review" className="underline hover:text-neutral-600">
+            <Link href="/review" className="underline hover:text-ink-muted">
               Review
             </Link>
             . Nothing auto-posts without a rule you set here.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {trustedSenders.length === 0 && (
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-ink-faint">
                 None yet — use “Trust sender” on a review item, or add a domain:
               </p>
             )}
@@ -507,12 +507,12 @@ export default function SettingsShell({
               value={newPattern}
               onChange={(e) => setNewPattern(e.target.value)}
               placeholder="dbs.com"
-              className="w-44 rounded-lg border border-neutral-300 px-3 py-1.5 font-mono text-xs focus:border-neutral-500 focus:outline-none"
+              className="w-44 rounded-lg border border-line px-3 py-1.5 font-mono text-xs focus:border-line focus:outline-none"
             />
             <button
               type="submit"
               disabled={pending || !newPattern.trim()}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3 disabled:opacity-50"
             >
               Trust domain
             </button>
@@ -521,18 +521,18 @@ export default function SettingsShell({
       )}
 
       <div className="space-y-3 pb-4">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-medium text-neutral-500">📄 Statements &amp; receipts</h2>
+            <h2 className="text-sm font-medium text-ink-subtle">📄 Statements &amp; receipts</h2>
             <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
               CSV · PDF · SCREENSHOT
             </span>
           </div>
-          <p className="mt-1 text-xs text-neutral-400">
+          <p className="mt-1 text-xs text-ink-faint">
             Upload a DBS / POSB / OCBC / UOB statement (CSV or PDF e-statement), a PDF receipt, or a
             screenshot of either — screenshots are read on your device and never uploaded. Every row
             lands in{" "}
-            <Link href="/review" className="underline hover:text-neutral-600">
+            <Link href="/review" className="underline hover:text-ink-muted">
               Review
             </Link>{" "}
             first; anything matching an amount already in your ledger gets flagged as a possible
@@ -544,10 +544,10 @@ export default function SettingsShell({
               value={csvAccountTag}
               onChange={(e) => setCsvAccountTag(e.target.value)}
               placeholder="account tag e.g. POSB"
-              className="w-44 rounded-lg border border-neutral-300 px-3 py-1.5 font-mono text-xs focus:border-neutral-500 focus:outline-none"
+              className="w-44 rounded-lg border border-line px-3 py-1.5 font-mono text-xs focus:border-line focus:outline-none"
             />
             <label
-              className={`cursor-pointer rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 ${
+              className={`cursor-pointer rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 ${
                 importing ? "pointer-events-none opacity-50" : ""
               }`}
             >
@@ -565,20 +565,20 @@ export default function SettingsShell({
             </label>
           </div>
         </div>
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-medium text-neutral-500">💬 SMS forwarding</h2>
+            <h2 className="text-sm font-medium text-ink-subtle">💬 SMS forwarding</h2>
             {smsToken ? (
               <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
                 ON
               </span>
             ) : (
-              <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-mono text-[10px] text-neutral-500">
+              <span className="rounded-full bg-surface-3 px-2.5 py-0.5 font-mono text-[10px] text-ink-subtle">
                 OFF
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs text-neutral-400">
+          <p className="mt-1 text-xs text-ink-faint">
             SG banks SMS every card transaction. A one-time phone shortcut forwards them here in
             real time — the widest net, catching swipes that never email you. OTPs and promos are
             recognised and dropped; captures follow the same rules as email (trusted senders
@@ -587,18 +587,18 @@ export default function SettingsShell({
 
           {smsToken ? (
             <div className="mt-3 space-y-3">
-              <div className="rounded-lg bg-neutral-50 p-3">
-                <p className="font-mono text-[10px] uppercase tracking-wide text-neutral-400">
+              <div className="rounded-lg bg-surface-2 p-3">
+                <p className="font-mono text-[10px] uppercase tracking-wide text-ink-faint">
                   Webhook · POST
                 </p>
-                <p className="break-all font-mono text-xs text-neutral-700">
+                <p className="break-all font-mono text-xs text-ink-muted">
                   {typeof window !== "undefined" ? window.location.origin : ""}/api/inbound/sms
                 </p>
-                <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-neutral-400">
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-ink-faint">
                   Your token
                 </p>
-                <p className="break-all font-mono text-xs text-neutral-700">{smsToken.token}</p>
-                <p className="mt-2 font-mono text-[10px] text-neutral-400">
+                <p className="break-all font-mono text-xs text-ink-muted">{smsToken.token}</p>
+                <p className="mt-2 font-mono text-[10px] text-ink-faint">
                   {smsToken.last_received_at
                     ? `last SMS received ${new Date(smsToken.last_received_at).toLocaleString("en-SG")}`
                     : "no SMS received yet"}
@@ -607,13 +607,13 @@ export default function SettingsShell({
               <button
                 type="button"
                 onClick={() => setShowSmsGuide((v) => !v)}
-                className="text-xs font-medium text-neutral-600 underline underline-offset-2 hover:text-neutral-900"
+                className="text-xs font-medium text-ink-muted underline underline-offset-2 hover:text-ink"
               >
                 {showSmsGuide ? "Hide setup guide" : "How do I set up my phone?"}
               </button>
               {showSmsGuide && (
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-600">
-                  <p className="font-semibold text-neutral-800">iPhone (Shortcuts app) — about 5 minutes</p>
+                <div className="rounded-lg border border-line bg-surface-2 p-3 text-xs text-ink-muted">
+                  <p className="font-semibold text-ink">iPhone (Shortcuts app) — about 5 minutes</p>
                   <ol className="mt-1 list-decimal space-y-1 pl-4">
                     <li>Open the <b>Shortcuts</b> app (pre-installed — swipe down on the home screen and search for it)</li>
                     <li>Tap <b>Automation</b> at the bottom, then <b>+</b> at the top right</li>
@@ -628,12 +628,12 @@ export default function SettingsShell({
                     <li>Tap <b>Add new field</b> → <b>Text</b> again. Type <span className="font-mono">body</span> as the key, then tap the value box and pick the blue <b>Shortcut Input</b> chip that appears above the keyboard</li>
                     <li>Tap <b>Done</b> — the next bank SMS will appear in Review within seconds</li>
                   </ol>
-                  <p className="mt-1 text-neutral-500">
+                  <p className="mt-1 text-ink-subtle">
                     If your bank writes amounts as <span className="font-mono">S$</span> instead of{" "}
                     <span className="font-mono">SGD</span>, repeat steps 2–12 once more with “Message
                     Contains” = <span className="font-mono">S$</span>.
                   </p>
-                  <p className="mt-2 font-semibold text-neutral-800">Android (MacroDroid / Tasker)</p>
+                  <p className="mt-2 font-semibold text-ink">Android (MacroDroid / Tasker)</p>
                   <ol className="mt-1 list-decimal space-y-1 pl-4">
                     <li>Trigger: SMS received (optionally filter sender to your banks)</li>
                     <li>
@@ -641,7 +641,7 @@ export default function SettingsShell({
                       <span className="font-mono">{`{"token":"…","from":"[sms_sender]","body":"[sms_message]"}`}</span>
                     </li>
                   </ol>
-                  <p className="mt-2 text-neutral-500">
+                  <p className="mt-2 text-ink-subtle">
                     It’s safe to forward everything — non-transaction SMS are ignored. Rotating the
                     token instantly cuts off the old one.
                   </p>
@@ -651,14 +651,14 @@ export default function SettingsShell({
                 <button
                   onClick={handleEnableSms}
                   disabled={pending}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3 disabled:opacity-50"
                 >
                   Rotate token
                 </button>
                 <button
                   onClick={handleDisableSms}
                   disabled={pending}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 ring-1 ring-neutral-300 hover:bg-neutral-100 disabled:opacity-50"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3 disabled:opacity-50"
                 >
                   Disable
                 </button>
@@ -668,7 +668,7 @@ export default function SettingsShell({
             <button
               onClick={handleEnableSms}
               disabled={pending}
-              className="mt-3 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+              className="mt-3 rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
             >
               Enable SMS forwarding
             </button>

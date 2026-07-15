@@ -40,7 +40,7 @@ export default function AiTagBadge({
       <button
         onClick={() => onReject(transaction.id)}
         disabled={pending}
-        className="text-xs font-medium text-neutral-400 hover:text-neutral-600 disabled:opacity-50"
+        className="text-xs font-medium text-ink-faint hover:text-ink-muted disabled:opacity-50"
       >
         Dismiss
       </button>

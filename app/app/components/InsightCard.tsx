@@ -45,36 +45,36 @@ export default function InsightCard({
       <h2 className="text-sm font-medium text-violet-700">✨ This month&apos;s insights</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
-          <p className="text-xs text-neutral-500">Top spend category</p>
+          <p className="text-xs text-ink-subtle">Top spend category</p>
           {topCat ? (
-            <p className="mt-1 text-base font-semibold text-neutral-900">
+            <p className="mt-1 text-base font-semibold text-ink">
               {topCat.icon} {topCat.name}
-              <span className="block text-xs font-normal text-neutral-500">
+              <span className="block text-xs font-normal text-ink-subtle">
                 {formatCurrency(topCat.total)}
               </span>
             </p>
           ) : (
-            <p className="mt-1 text-base font-semibold text-neutral-400">—</p>
+            <p className="mt-1 text-base font-semibold text-ink-faint">—</p>
           )}
         </div>
         <div>
-          <p className="text-xs text-neutral-500">Savings rate</p>
-          <p className="mt-1 text-base font-semibold text-neutral-900">
+          <p className="text-xs text-ink-subtle">Savings rate</p>
+          <p className="mt-1 text-base font-semibold text-ink">
             {savingsRate === null ? "—" : `${savingsRate}%`}
-            <span className="block text-xs font-normal text-neutral-500">of income kept</span>
+            <span className="block text-xs font-normal text-ink-subtle">of income kept</span>
           </p>
         </div>
         <div>
-          <p className="text-xs text-neutral-500">Biggest expense</p>
+          <p className="text-xs text-ink-subtle">Biggest expense</p>
           {biggest ? (
-            <p className="mt-1 text-base font-semibold text-neutral-900">
+            <p className="mt-1 text-base font-semibold text-ink">
               {formatCurrency(biggest.amount)}
-              <span className="block truncate text-xs font-normal text-neutral-500">
+              <span className="block truncate text-xs font-normal text-ink-subtle">
                 {biggest.note || "—"}
               </span>
             </p>
           ) : (
-            <p className="mt-1 text-base font-semibold text-neutral-400">—</p>
+            <p className="mt-1 text-base font-semibold text-ink-faint">—</p>
           )}
         </div>
       </div>

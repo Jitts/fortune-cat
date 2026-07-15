@@ -116,7 +116,7 @@ export default function TransactionForm({
                 ? type === "expense"
                   ? "border-red-500 bg-red-50 text-red-700"
                   : "border-emerald-500 bg-emerald-50 text-emerald-700"
-                : "border-neutral-200 text-neutral-500 hover:bg-neutral-50"
+                : "border-line text-ink-subtle hover:bg-surface-2"
             }`}
           >
             {type}
@@ -125,7 +125,7 @@ export default function TransactionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700">Amount</label>
+        <label className="block text-sm font-medium text-ink-muted">Amount</label>
         <input
           type="number"
           step="0.01"
@@ -133,16 +133,16 @@ export default function TransactionForm({
           value={values.amount}
           onChange={(e) => setValues((v) => ({ ...v, amount: e.target.value }))}
           placeholder="0.00"
-          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700">Category</label>
+        <label className="block text-sm font-medium text-ink-muted">Category</label>
         <select
           value={values.category_id}
           onChange={(e) => setValues((v) => ({ ...v, category_id: e.target.value }))}
-          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         >
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
@@ -153,23 +153,23 @@ export default function TransactionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700">Date</label>
+        <label className="block text-sm font-medium text-ink-muted">Date</label>
         <input
           type="date"
           value={values.date}
           onChange={(e) => setValues((v) => ({ ...v, date: e.target.value }))}
-          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700">Note (optional)</label>
+        <label className="block text-sm font-medium text-ink-muted">Note (optional)</label>
         <input
           type="text"
           value={values.note}
           onChange={(e) => setValues((v) => ({ ...v, note: e.target.value }))}
           placeholder="Lunch with Alex"
-          className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
       </div>
 
@@ -179,14 +179,14 @@ export default function TransactionForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted hover:bg-surface-3"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+          className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
         >
           {pending ? "Saving…" : submitLabel}
         </button>

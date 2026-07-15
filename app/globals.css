@@ -1,16 +1,79 @@
 @import "tailwindcss";
 
+/* Class-based dark ("Shrine") theme. The <html> element gets .dark from the
+   no-flash script in layout.tsx (time-of-day, or the user's saved pick). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Plus Jakarta Sans (design/DESIGN.md) is loaded via next/font in layout.tsx
-   and exposed as --font-jakarta; mapping it here makes it Tailwind's font-sans. */
+   and exposed as --font-jakarta; mapping it here makes it Tailwind's font-sans.
+   The semantic color tokens below are `inline` so they resolve to the CSS
+   variables at use-site — that's what lets the .dark override cascade flip the
+   whole app without touching class names. */
 @theme inline {
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-action: var(--action);
+  --color-out: var(--out);
+  --color-paper: var(--paper);
 }
 
 /* Fortune gold — the maneki-neko accent from design/DESIGN.md. Reserved for
    the cat, streaks, Pro and "lucky" states; never for money amounts
-   (jade = in, ink = out, red = attention only). */
+   (jade = in, ink = out, red = attention only). Static across themes. */
 @theme {
   --color-fortune-50: #fff8d6;
   --color-fortune-400: #ffd700;
   --color-fortune-700: #705d00;
+}
+
+/* ── Day (light) — values equal the previous hardcoded neutrals, so light mode
+   is unchanged after the token migration; only .dark introduces new values. ── */
+:root {
+  --surface: #ffffff; /* was bg-white */
+  --surface-2: #fafafa; /* neutral-50 */
+  --surface-3: #f5f5f5; /* neutral-100 */
+  --ink: #171717; /* neutral-900 */
+  --ink-muted: #525252; /* neutral-600/700 */
+  --ink-subtle: #737373; /* neutral-500 */
+  --ink-faint: #a3a3a3; /* neutral-400 */
+  --line: #e5e5e5; /* neutral-200 */
+  --action: #171717; /* neutral-900 primary buttons */
+  --out: #404040; /* neutral-700 — money-out bars */
+  --paper: #fff8dc; /* fortune-slip chit */
+}
+
+/* ── Evening (Shrine / dark) — warm near-black lacquer hall. Ink lightens,
+   surfaces darken, money-out bars lighten so they read on dark, and the
+   action token stays dark enough that white button text keeps its contrast. ── */
+.dark {
+  --surface: #14141a;
+  --surface-2: #1b1b23;
+  --surface-3: #24242e;
+  --ink: #f5f5f4;
+  --ink-muted: #b4aea8;
+  --ink-subtle: #8f8880;
+  --ink-faint: #6b645c;
+  --line: #2c2c37;
+  --action: #3a3a46;
+  --out: #8b8b98;
+  --paper: #f6eccf;
+
+  color-scheme: dark;
+}
+
+/* Smooth the flip between themes (respects reduced-motion). */
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    transition:
+      background-color 0.35s ease,
+      color 0.35s ease;
+  }
 }

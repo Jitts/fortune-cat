@@ -43,7 +43,7 @@ function NetAmount({ value, strong = false }: { value: number; strong?: boolean 
       : "text-emerald-600"
     : strong
       ? "text-red-600"
-      : "text-neutral-400";
+      : "text-ink-faint";
   return (
     <span className={`[font-variant-numeric:tabular-nums] ${cls}`}>
       {positive ? "+" : "−"}
@@ -91,8 +91,8 @@ function TransactionRow({
         >
           <span className="text-xl">{category?.icon ?? "•"}</span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-neutral-900">{title}</p>
-            <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-neutral-500">
+            <p className="truncate text-sm font-medium text-ink">{title}</p>
+            <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-ink-subtle">
               <span>{category?.name ?? "Uncategorized"}</span>
               {t.entry_source === "email_auto" && (
                 <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
@@ -100,38 +100,38 @@ function TransactionRow({
                 </span>
               )}
               {t.entry_source === "email_review" && (
-                <span className="rounded-full bg-neutral-100 px-1.5 py-px font-mono text-[10px] text-neutral-500">
+                <span className="rounded-full bg-surface-3 px-1.5 py-px font-mono text-[10px] text-ink-subtle">
                   ✉ reviewed
                 </span>
               )}
               {t.entry_source === "csv" && (
-                <span className="rounded-full bg-neutral-100 px-1.5 py-px font-mono text-[10px] text-neutral-500">
+                <span className="rounded-full bg-surface-3 px-1.5 py-px font-mono text-[10px] text-ink-subtle">
                   📄 import
                 </span>
               )}
               {t.entry_source === "sms" && (
-                <span className="rounded-full bg-neutral-100 px-1.5 py-px font-mono text-[10px] text-neutral-500">
+                <span className="rounded-full bg-surface-3 px-1.5 py-px font-mono text-[10px] text-ink-subtle">
                   💬 sms
                 </span>
               )}
               {t.account_tag && (
-                <span className="rounded bg-neutral-100 px-1.5 py-px font-mono text-[10px] uppercase text-neutral-500">
+                <span className="rounded bg-surface-3 px-1.5 py-px font-mono text-[10px] uppercase text-ink-subtle">
                   {t.account_tag}
                 </span>
               )}
               {t.original_currency && t.original_amount != null && (
-                <span className="font-mono text-[10px] text-neutral-400">
+                <span className="font-mono text-[10px] text-ink-faint">
                   {t.original_currency} {t.original_amount.toLocaleString("en-SG")}
                 </span>
               )}
               {merchant?.biller && (
-                <span className="rounded-full bg-neutral-100 px-1.5 py-px font-mono text-[10px] text-neutral-500">
+                <span className="rounded-full bg-surface-3 px-1.5 py-px font-mono text-[10px] text-ink-subtle">
                   ↻ biller
                 </span>
               )}
             </p>
             {(rawDiffers || prov) && (
-              <p className="truncate font-mono text-[10px] text-neutral-400">
+              <p className="truncate font-mono text-[10px] text-ink-faint">
                 {[
                   rawDiffers ? t.note : null,
                   prov ? (prov.from_address ?? prov.source) : null,
@@ -155,14 +155,14 @@ function TransactionRow({
       </div>
       <div className="flex items-center gap-4">
         <span
-          className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700" : "text-neutral-900"}`}
+          className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700" : "text-ink"}`}
         >
           {isIncome ? "+" : "-"}
           {formatCurrency(t.amount)}
         </span>
         <button
           onClick={() => onEdit(t)}
-          className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
+          className="text-xs font-medium text-ink-subtle hover:text-ink"
         >
           Edit
         </button>
@@ -264,8 +264,8 @@ export default function TransactionList({
 
   if (transactions.length === 0) {
     return (
-      <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-neutral-200">
-        <p className="text-sm text-neutral-500">No transactions yet — add your first one</p>
+      <div className="rounded-2xl bg-surface p-10 text-center shadow-sm ring-1 ring-line">
+        <p className="text-sm text-ink-subtle">No transactions yet — add your first one</p>
       </div>
     );
   }
@@ -280,18 +280,18 @@ export default function TransactionList({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200">
+    <div className="overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line">
       {months.map((month) => {
         const isCollapsed = collapsed.has(month.key);
         return (
-          <section key={month.key} className="border-b border-neutral-100 last:border-b-0">
+          <section key={month.key} className="border-b border-line last:border-b-0">
             <button
               type="button"
               onClick={() => toggleMonth(month.key)}
               aria-expanded={!isCollapsed}
-              className="flex w-full items-center justify-between gap-3 px-6 py-3 text-left hover:bg-neutral-50"
+              className="flex w-full items-center justify-between gap-3 px-6 py-3 text-left hover:bg-surface-2"
             >
-              <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+              <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 <span
                   className={`inline-block text-[10px] leading-none transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
                   aria-hidden
@@ -308,13 +308,13 @@ export default function TransactionList({
             {!isCollapsed &&
               month.days.map((day) => (
                 <div key={day.key}>
-                  <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 px-6 py-1.5">
-                    <span className="text-xs font-medium text-neutral-500">{dayLabel(day.key)}</span>
+                  <div className="flex items-center justify-between gap-3 border-t border-line bg-surface-2 px-6 py-1.5">
+                    <span className="text-xs font-medium text-ink-subtle">{dayLabel(day.key)}</span>
                     <span className="text-xs">
                       <NetAmount value={day.net} />
                     </span>
                   </div>
-                  <ul className="divide-y divide-neutral-100">
+                  <ul className="divide-y divide-line">
                     {day.items.map((t) => (
                       <TransactionRow
                         key={t.id}

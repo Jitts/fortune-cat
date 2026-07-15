@@ -117,7 +117,7 @@ export default function ReviewShell({
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={candidates.length}>
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-lg font-semibold text-neutral-900">
+          <h1 className="text-lg font-semibold text-ink">
             👀 Review{candidates.length > 0 ? ` · ${candidates.length}` : ""}
           </h1>
           {cleanCount >= 2 && (
@@ -140,8 +140,8 @@ export default function ReviewShell({
             pendingId={candidateActionId}
           />
         ) : (
-          <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-neutral-200">
-            <p className="text-sm text-neutral-500">
+          <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-line">
+            <p className="text-sm text-ink-subtle">
               Connect your inbox or upload a bank statement on the{" "}
               <Link href="/settings" className="font-medium text-emerald-700 underline">
                 Capture
@@ -154,22 +154,22 @@ export default function ReviewShell({
 
       {autoPosted.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-neutral-900">⚡ Auto-posted recently</h2>
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200">
-            <ul className="divide-y divide-neutral-100">
+          <h2 className="text-lg font-semibold text-ink">⚡ Auto-posted recently</h2>
+          <div className="overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line">
+            <ul className="divide-y divide-line">
               {autoPosted.map((c) => (
                 <li key={c.id} className="flex items-center gap-3 px-6 py-3">
                   <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
                     ⚡
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-neutral-900">{c.subject}</p>
-                    <p className="font-mono text-[10px] text-neutral-400">
+                    <p className="truncate text-sm text-ink">{c.subject}</p>
+                    <p className="font-mono text-[10px] text-ink-faint">
                       {c.email_date ? formatDate(c.email_date.slice(0, 10)) : ""}
                       {c.account_tag ? ` · ${c.account_tag}` : ""}
                     </p>
                   </div>
-                  <span className="text-sm font-semibold text-neutral-900 [font-variant-numeric:tabular-nums]">
+                  <span className="text-sm font-semibold text-ink [font-variant-numeric:tabular-nums]">
                     {c.suggested_type === "income" ? "+" : "−"}
                     {c.amount !== null ? formatCurrency(c.amount) : "—"}
                   </span>

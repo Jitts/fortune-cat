@@ -16,13 +16,13 @@ export default async function ResetPasswordPage() {
   if (!user) redirect("/forgot-password");
 
   return (
-    <main className="min-h-screen bg-neutral-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl bg-white p-8 shadow-sm ring-1 ring-neutral-200">
+    <main className="min-h-screen bg-surface-2 flex items-center justify-center p-6">
+      <div className="w-full max-w-sm space-y-6 rounded-2xl bg-surface p-8 shadow-sm ring-1 ring-line">
         <div className="text-center">
-          <Link href="/" className="text-2xl font-bold text-neutral-900">
+          <Link href="/" className="text-2xl font-bold text-ink">
             🐱 Fortune Cat
           </Link>
-          <p className="mt-2 text-sm text-neutral-500">Choose a new password</p>
+          <p className="mt-2 text-sm text-ink-subtle">Choose a new password</p>
         </div>
 
         <ResetPasswordForm />
