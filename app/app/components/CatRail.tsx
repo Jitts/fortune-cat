@@ -43,21 +43,21 @@ export default function CatRail({
         : "the ring is your savings pace";
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {pulse.streak >= 1 && (
-        <LanternStreak count={pulse.streak} label={`${pulse.streak}-night capture streak`} />
-      )}
+    <div className="rounded-2xl border border-line bg-surface p-5">
+      <div className="flex flex-col items-center gap-4">
+        {pulse.streak >= 1 && (
+          <LanternStreak count={pulse.streak} label={`${pulse.streak}-night capture streak`} />
+        )}
 
-      <LuckRing savingsRate={sr} state={state} size={150} />
+        <LuckRing savingsRate={sr} state={state} size={150} />
 
-      <div className="text-center">
-        <p className="text-base font-semibold text-ink">{caption}</p>
-        <p className="mx-auto mt-1 max-w-[15rem] text-xs text-ink-subtle">{ringNote}</p>
+        <div className="text-center">
+          <p className="text-base font-semibold text-ink">{caption}</p>
+          <p className="mx-auto mt-1 max-w-[15rem] text-xs text-ink-subtle">{ringNote}</p>
+        </div>
       </div>
 
-      <div className="w-full">
-        <PouchSummary transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
-      </div>
+      <PouchSummary transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
     </div>
   );
 }

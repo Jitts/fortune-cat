@@ -40,7 +40,7 @@ export default function AppChrome({
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
-  const widthCls = wide ? "sm:w-[85%] sm:max-w-[1700px]" : "sm:max-w-3xl";
+  const widthCls = wide ? "sm:max-w-[1200px] sm:px-5" : "sm:max-w-3xl";
 
   return (
     <div className="relative min-h-screen bg-surface-2">
@@ -48,7 +48,7 @@ export default function AppChrome({
 
       {/* ===== Desktop top bar ===== */}
       <header className="sticky top-0 z-30 hidden border-b border-line bg-surface-2/85 backdrop-blur sm:block">
-        <div className="mx-auto flex w-[85%] max-w-[1700px] items-center gap-4 py-3">
+        <div className="mx-auto flex w-full max-w-[1200px] items-center gap-4 px-5 py-3">
           <Link href="/app" className="flex items-center gap-2 text-lg font-bold tracking-tight text-ink">
             🏮 Fortune Cat
           </Link>

@@ -42,7 +42,7 @@ export default function PouchSummary({
 
   if (!isPro) {
     return (
-      <div className="rounded-2xl border border-line bg-surface-2 p-5 text-center">
+      <div className="mt-5 border-t border-line pt-5 text-center">
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
           In your pouch
         </p>
@@ -83,7 +83,7 @@ export default function PouchSummary({
   }
 
   return (
-    <div className="rounded-2xl border border-line bg-surface-2 p-5">
+    <div className="mt-5 border-t border-line pt-5">
       <div className="flex items-center justify-between">
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
           In your pouch <span className="text-ink-faint/70">· till {monthEnd}</span>

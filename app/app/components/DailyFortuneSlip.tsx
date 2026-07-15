@@ -92,10 +92,10 @@ export default function DailyFortuneSlip({
           )}
         </div>
 
-        {/* the seal / chop */}
+        {/* the seal / chop — solid vermilion stamp, like a real name seal */}
         <span
           aria-hidden
-          className="flex h-11 w-11 shrink-0 rotate-[-8deg] items-center justify-center rounded-md border-2 border-red-500 bg-red-500/10 text-xl font-bold text-red-600"
+          className="flex h-9 w-9 shrink-0 rotate-6 items-center justify-center rounded-md bg-red-600 text-lg font-bold text-white shadow-sm"
         >
           {omen.chop}
         </span>

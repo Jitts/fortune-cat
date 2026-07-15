@@ -47,7 +47,7 @@ export default function ShrineChrome({
 
       {/* ===== Desktop top bar ===== */}
       <header className="sticky top-0 z-30 hidden border-b border-line bg-surface-2/85 backdrop-blur sm:block">
-        <div className="mx-auto flex w-[85%] max-w-[1700px] items-center gap-4 py-3">
+        <div className="mx-auto flex w-full max-w-[1200px] items-center gap-4 px-5 py-3">
           <Link href="/app" className="flex items-center gap-2 text-lg font-bold tracking-tight text-ink">
             🏮 Fortune Cat
           </Link>
@@ -91,7 +91,7 @@ export default function ShrineChrome({
       </header>
 
       {/* ===== Content ===== */}
-      <main className="mx-auto w-full px-4 pb-28 pt-5 sm:w-[85%] sm:max-w-[1700px] sm:px-0 sm:pt-6">
+      <main className="mx-auto w-full px-4 pb-28 pt-5 sm:max-w-[1200px] sm:px-5 sm:pt-6">
         {children}
       </main>
 

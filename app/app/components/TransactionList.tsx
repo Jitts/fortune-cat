@@ -15,9 +15,11 @@ function signedAmount(t: Transaction) {
   return t.type === "income" ? t.amount : -t.amount;
 }
 
-function monthLabel(key: string) {
+// Inside a year section the year is already on the header, so months show just
+// their name ("July") to avoid repeating it on every bar.
+function monthNameLabel(key: string) {
   const [y, m] = key.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long" });
 }
 
 // "Today · Sat, 13 Jul" / "Yesterday · …" for the two most recent days, else the
@@ -195,8 +197,6 @@ export default function TransactionList({
   onAcceptTag,
   onRejectTag,
   tagPending,
-  maxDays,
-  hideMonthHeader = false,
 }: {
   transactions: Transaction[];
   categories: Category[];
@@ -208,30 +208,27 @@ export default function TransactionList({
   onAcceptTag: (id: string) => void;
   onRejectTag: (id: string) => void;
   tagPending: boolean;
-  // When set, render only the most recent N day-groups (the Home ledger); the
-  // spine + beads still show. Months stay expanded (no collapse UI needed).
-  maxDays?: number;
-  // Home shows a single "{Month} ledger" heading already, so the internal
-  // collapsible month header is suppressed there to avoid a duplicate.
-  hideMonthHeader?: boolean;
 }) {
-  let daysBudget = maxDays ?? Infinity;
-  // Which months the user has collapsed, persisted so they stay folded across
-  // reloads. The header still shows the month's net, so a collapsed month
-  // remains informative.
+  // Which years/months the user has collapsed, persisted so they stay folded
+  // across reloads. Year keys are "2026"; month keys are "2026-07" — different
+  // shapes, so they share one Set without colliding. Each header still shows its
+  // net, so a collapsed period stays informative.
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
 
   // Restore on mount — localStorage is client-only, so we start empty (matching
-  // the server render) and reconcile after hydration to avoid a mismatch.
+  // the server render) and reconcile after hydration to avoid a mismatch. With
+  // no stored pick, apply the "older folded" default instead of showing all.
   useEffect(() => {
     try {
       const raw = localStorage.getItem(COLLAPSED_KEY);
-      if (raw) setCollapsed(new Set(JSON.parse(raw) as string[]));
+      setCollapsed(raw ? new Set(JSON.parse(raw) as string[]) : defaultCollapsed);
     } catch {
-      // ignore unavailable or malformed storage
+      setCollapsed(defaultCollapsed);
     }
     setHydrated(true);
+    // Seed once on mount; later data changes shouldn't re-fold what the user opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist after hydration, so the initial empty state never clobbers storage.
@@ -244,25 +241,35 @@ export default function TransactionList({
     }
   }, [collapsed, hydrated]);
 
-  // Fold the flat, date-desc list into months → days, carrying a running net
-  // subtotal at each level. Insertion order stays reverse-chronological because
-  // we walk a defensively-sorted copy.
-  const months = useMemo(() => {
+  // Fold the flat, date-desc list into years → months → days, carrying a running
+  // net subtotal at each level. Insertion order stays reverse-chronological
+  // because we walk a defensively-sorted copy.
+  type Day = { key: string; net: number; items: Transaction[] };
+  type Month = { key: string; net: number; days: Day[] };
+  type Year = { key: string; net: number; months: Month[] };
+
+  const years = useMemo<Year[]>(() => {
     const sorted = [...transactions].sort((a, b) => {
       if (a.date !== b.date) return a.date < b.date ? 1 : -1;
       return (a.created_at ?? "") < (b.created_at ?? "") ? 1 : -1;
     });
-    const byMonth = new Map<
+    const byYear = new Map<
       string,
-      { key: string; net: number; days: Map<string, { key: string; net: number; items: Transaction[] }> }
+      { key: string; net: number; months: Map<string, { key: string; net: number; days: Map<string, Day> }> }
     >();
     for (const t of sorted) {
+      const yk = t.date.slice(0, 4);
       const mk = t.date.slice(0, 7);
       const dk = t.date.slice(0, 10);
-      let month = byMonth.get(mk);
+      let year = byYear.get(yk);
+      if (!year) {
+        year = { key: yk, net: 0, months: new Map() };
+        byYear.set(yk, year);
+      }
+      let month = year.months.get(mk);
       if (!month) {
         month = { key: mk, net: 0, days: new Map() };
-        byMonth.set(mk, month);
+        year.months.set(mk, month);
       }
       let day = month.days.get(dk);
       if (!day) {
@@ -270,12 +277,30 @@ export default function TransactionList({
         month.days.set(dk, day);
       }
       const s = signedAmount(t);
+      year.net += s;
       month.net += s;
       day.net += s;
       day.items.push(t);
     }
-    return [...byMonth.values()].map((m) => ({ ...m, days: [...m.days.values()] }));
+    return [...byYear.values()].map((y) => ({
+      ...y,
+      months: [...y.months.values()].map((m) => ({ ...m, days: [...m.days.values()] })),
+    }));
   }, [transactions]);
+
+  // First-visit default: fold every period except the newest year and, within
+  // it, the newest month — so the ledger opens on "now" and history stays tucked
+  // away (matching the mockup). A stored pick always wins over this.
+  const defaultCollapsed = useMemo(() => {
+    const set = new Set<string>();
+    years.forEach((y, yi) => {
+      if (yi > 0) set.add(y.key);
+      y.months.forEach((m, mi) => {
+        if (yi > 0 || mi > 0) set.add(m.key);
+      });
+    });
+    return set;
+  }, [years]);
 
   if (transactions.length === 0) {
     return (
@@ -285,7 +310,7 @@ export default function TransactionList({
     );
   }
 
-  function toggleMonth(key: string) {
+  function toggle(key: string) {
     setCollapsed((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
@@ -295,79 +320,106 @@ export default function TransactionList({
   }
 
   return (
-    <div className="space-y-2">
-      {months.map((month) => {
-        const isCollapsed = collapsed.has(month.key);
+    <div className="space-y-3">
+      {years.map((year) => {
+        const yearCollapsed = collapsed.has(year.key);
         return (
-          <section key={month.key}>
-            {!hideMonthHeader && (
-              <button
-                type="button"
-                onClick={() => toggleMonth(month.key)}
-                aria-expanded={!isCollapsed}
-                className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-left hover:bg-surface-3"
-              >
-                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
-                  <span
-                    className={`inline-block text-[10px] leading-none transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
-                    aria-hidden
-                  >
-                    ▾
-                  </span>
-                  {monthLabel(month.key)}
-                </span>
-                <span className="text-sm font-semibold">
-                  <NetAmount value={month.net} strong />
-                </span>
-              </button>
-            )}
-
-            {(!isCollapsed || maxDays != null) && (
-              <div className="relative">
-                {/* the spine — a thread the day beads hang on */}
-                <div
+          <section key={year.key} className="overflow-hidden rounded-2xl border border-line bg-surface">
+            {/* year bar */}
+            <button
+              type="button"
+              onClick={() => toggle(year.key)}
+              aria-expanded={!yearCollapsed}
+              className="flex w-full items-center justify-between gap-3 bg-surface-2 px-4 py-3 text-left hover:bg-surface-3"
+            >
+              <span className="flex items-center gap-2 text-sm font-bold text-ink">
+                <span
+                  className={`inline-block text-[11px] leading-none text-ink-faint transition-transform ${yearCollapsed ? "-rotate-90" : ""}`}
                   aria-hidden
-                  className="pointer-events-none absolute bottom-3 left-[19px] top-1 w-px bg-line"
-                />
-                {month.days.map((day) => {
-                  if (daysBudget <= 0) return null;
-                  daysBudget -= 1;
+                >
+                  ▾
+                </span>
+                {year.key}
+              </span>
+              <span className="text-sm font-semibold">
+                <NetAmount value={year.net} strong />
+              </span>
+            </button>
+
+            {!yearCollapsed && (
+              <div className="px-2 pb-2 pt-1">
+                {year.months.map((month) => {
+                  const monthCollapsed = collapsed.has(month.key);
                   return (
-                    <div key={day.key}>
-                      <div className="relative z-10 flex items-center justify-between gap-3 py-1.5 pl-4 pr-2">
-                        <span className="flex items-center gap-2 text-xs font-medium text-ink-subtle">
-                          {/* day bead on the spine — today glows gold, the rest stay quiet */}
+                    <section key={month.key}>
+                      {/* month bar */}
+                      <button
+                        type="button"
+                        onClick={() => toggle(month.key)}
+                        aria-expanded={!monthCollapsed}
+                        className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-left hover:bg-surface-3"
+                      >
+                        <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
                           <span
+                            className={`inline-block text-[10px] leading-none transition-transform ${monthCollapsed ? "-rotate-90" : ""}`}
                             aria-hidden
-                            className={`inline-block h-2 w-2 rounded-full ${
-                              isToday(day.key) ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line ring-2 ring-surface-2"
-                            }`}
-                            style={isToday(day.key) ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
-                          />
-                          {dayLabel(day.key)}
+                          >
+                            ▾
+                          </span>
+                          {monthNameLabel(month.key)}
                         </span>
-                        <span className="text-xs">
-                          <NetAmount value={day.net} />
+                        <span className="text-sm font-semibold">
+                          <NetAmount value={month.net} strong />
                         </span>
-                      </div>
-                      <ul className="space-y-2 pb-3 pl-8 pr-1">
-                        {day.items.map((t) => (
-                          <TransactionRow
-                            key={t.id}
-                            t={t}
-                            categories={categories}
-                            provenance={provenance}
-                            onDetails={onDetails}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                            deletingId={deletingId}
-                            onAcceptTag={onAcceptTag}
-                            onRejectTag={onRejectTag}
-                            tagPending={tagPending}
+                      </button>
+
+                      {!monthCollapsed && (
+                        <div className="relative">
+                          {/* the spine — a thread the day beads hang on */}
+                          <div
+                            aria-hidden
+                            className="pointer-events-none absolute bottom-3 left-[19px] top-1 w-px bg-line"
                           />
-                        ))}
-                      </ul>
-                    </div>
+                          {month.days.map((day) => (
+                            <div key={day.key}>
+                              <div className="relative z-10 flex items-center justify-between gap-3 py-1.5 pl-4 pr-2">
+                                <span className="flex items-center gap-2 text-xs font-medium text-ink-subtle">
+                                  {/* day bead on the spine — today glows gold, the rest stay quiet */}
+                                  <span
+                                    aria-hidden
+                                    className={`inline-block h-2 w-2 rounded-full ${
+                                      isToday(day.key) ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line ring-2 ring-surface-2"
+                                    }`}
+                                    style={isToday(day.key) ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
+                                  />
+                                  {dayLabel(day.key)}
+                                </span>
+                                <span className="text-xs">
+                                  <NetAmount value={day.net} />
+                                </span>
+                              </div>
+                              <ul className="space-y-2 pb-3 pl-8 pr-1">
+                                {day.items.map((t) => (
+                                  <TransactionRow
+                                    key={t.id}
+                                    t={t}
+                                    categories={categories}
+                                    provenance={provenance}
+                                    onDetails={onDetails}
+                                    onEdit={onEdit}
+                                    onDelete={onDelete}
+                                    deletingId={deletingId}
+                                    onAcceptTag={onAcceptTag}
+                                    onRejectTag={onRejectTag}
+                                    tagPending={tagPending}
+                                  />
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </section>
                   );
                 })}
               </div>

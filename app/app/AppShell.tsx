@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { BalanceAnchor, Category, CategoryBudget, FortuneGoal, FortuneSlipRow, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
@@ -11,8 +11,6 @@ import {
   rejectAiTag,
   updateTransaction,
 } from "./actions";
-import { formatCurrency } from "@/lib/format";
-import { monthPulse } from "@/lib/monthPulse";
 import ShrineChrome, { type ShrineTab } from "./components/ShrineChrome";
 import AutopilotChecklist from "./components/AutopilotChecklist";
 import CatRail from "./components/CatRail";
@@ -124,24 +122,7 @@ export default function AppShell({
   const setTab = (t: ShrineTab) =>
     router.replace(t === "home" ? "/app" : `/app?tab=${t}`, { scroll: false });
 
-  const monthName = new Date().toLocaleDateString("en-SG", { month: "long" });
-  const monthNet = useMemo(() => monthPulse(transactions).net, [transactions]);
-
-  const ledgerHeading = (
-    <div className="flex items-baseline justify-between gap-3">
-      <h2 className="text-lg font-semibold text-ink">{monthName} ledger</h2>
-      <span
-        className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${
-          monthNet >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
-        }`}
-      >
-        {monthNet >= 0 ? "+" : "−"}
-        {formatCurrency(Math.abs(monthNet))}
-      </span>
-    </div>
-  );
-
-  const renderLedger = (maxDays?: number, hideMonthHeader = false) => (
+  const ledger = (
     <TransactionList
       transactions={visibleTransactions}
       categories={categories}
@@ -153,8 +134,6 @@ export default function AppShell({
       onAcceptTag={handleAcceptTag}
       onRejectTag={handleRejectTag}
       tagPending={pending}
-      maxDays={maxDays}
-      hideMonthHeader={hideMonthHeader}
     />
   );
 
@@ -231,6 +210,13 @@ export default function AppShell({
     </p>
   );
 
+  const tabTitle: Record<ShrineTab, string> = {
+    home: "The numbers",
+    ledger: "Ledger",
+    fortunes: "Fortunes",
+    bills: "Bills & subscriptions",
+  };
+
   return (
     <ShrineChrome
       active={active}
@@ -240,65 +226,68 @@ export default function AppShell({
       isPro={isPro}
       pendingReviewCount={pendingReviewCount}
     >
-      {/* ===== HOME — the 3-column shrine ===== */}
-      {active === "home" && (
-        <div className="space-y-6">
-          <AutopilotChecklist {...setup} />
-          <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)_320px] lg:items-start">
-            <div className="order-1">
-              <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
-            </div>
-            <div className="order-3 space-y-3 lg:order-2">
-              {ledgerHeading}
-              {renderLedger(4, true)}
+      {/* Persistent 3-column shrine: the cat rail (left) and the slips + bills
+          rail (right) stay put on every tab; only the centre column swaps. */}
+      <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)_300px] lg:items-start">
+        {/* ===== LEFT RAIL — persistent ===== */}
+        <div className="order-1">
+          <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
+        </div>
+
+        {/* ===== CENTRE — swaps with the active tab ===== */}
+        <div className="order-3 min-w-0 space-y-6 lg:order-2">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-ink">{tabTitle[active]}</h2>
+            {active === "ledger" && (
               <button
-                onClick={() => setTab("ledger")}
-                className="text-xs font-medium text-ink-subtle underline hover:text-ink-muted"
+                onClick={() => setModal("add")}
+                className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
               >
-                View full ledger →
+                + Add
               </button>
-            </div>
-            <div className="order-2 lg:order-3">
-              <SlipsPanel
-                transactions={transactions}
-                categories={categories}
-                budgets={budgets}
-                todaySlip={todaySlip}
-                slipStreak={slipStreak}
-              />
-              <div className="mt-6">
-                <BillsDue transactions={transactions} />
+            )}
+          </div>
+
+          {active === "home" && (
+            <>
+              <AutopilotChecklist {...setup} />
+              <CashFlowBars transactions={transactions} />
+              <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+                <CategoryBreakdown transactions={transactions} categories={categories} />
+                <MonthlyOverview transactions={transactions} />
               </div>
+            </>
+          )}
+
+          {active === "ledger" && (
+            <>
+              {freeNote}
+              {ledger}
+            </>
+          )}
+
+          {active === "fortunes" && (
+            <>
+              <InsightCard transactions={transactions} categories={categories} />
+              <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
+            </>
+          )}
+
+          {active === "bills" && (
+            <div className="space-y-6">
+              <RecurringRadar transactions={transactions} isPro={isPro} />
+              <SubscriptionKillChain
+                transactions={transactions}
+                decisions={subscriptionDecisions}
+                isPro={isPro}
+              />
+              <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
             </div>
-          </div>
+          )}
         </div>
-      )}
 
-      {/* ===== LEDGER ===== */}
-      {active === "ledger" && (
-        <div className="space-y-6">
-          <CashFlowBars transactions={transactions} />
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-ink">All transactions</h2>
-            <button
-              onClick={() => setModal("add")}
-              className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
-            >
-              + Add
-            </button>
-          </div>
-          {freeNote}
-          {renderLedger()}
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-            <CategoryBreakdown transactions={transactions} categories={categories} />
-            <MonthlyOverview transactions={transactions} />
-          </div>
-        </div>
-      )}
-
-      {/* ===== FORTUNES ===== */}
-      {active === "fortunes" && (
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        {/* ===== RIGHT RAIL — persistent ===== */}
+        <div className="order-2 space-y-6 lg:order-3">
           <SlipsPanel
             transactions={transactions}
             categories={categories}
@@ -306,28 +295,9 @@ export default function AppShell({
             todaySlip={todaySlip}
             slipStreak={slipStreak}
           />
-          <div className="space-y-6">
-            <InsightCard transactions={transactions} categories={categories} />
-            <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
-          </div>
+          <BillsDue transactions={transactions} />
         </div>
-      )}
-
-      {/* ===== BILLS ===== */}
-      {active === "bills" && (
-        <div className="space-y-6">
-          <BillsDue transactions={transactions} limit={20} />
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-            <RecurringRadar transactions={transactions} isPro={isPro} />
-            <SubscriptionKillChain
-              transactions={transactions}
-              decisions={subscriptionDecisions}
-              isPro={isPro}
-            />
-            <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
-          </div>
-        </div>
-      )}
+      </div>
 
       {modal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
