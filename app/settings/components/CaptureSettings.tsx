@@ -78,6 +78,10 @@ export default function CaptureSettings({
   );
   const [importing, startImport] = useTransition();
   const [importStage, setImportStage] = useState<string | null>(null);
+  // window.location isn't available during SSR — start empty (matching the
+  // server render) and fill in after mount, same pattern as ThemeToggle.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
 
   const maxInboxes = inboxLimit(isPro);
   const canAddInbox = connections.length < maxInboxes;
@@ -587,7 +591,7 @@ export default function CaptureSettings({
                   Webhook · POST
                 </p>
                 <p className="break-all font-mono text-xs text-ink-muted">
-                  {typeof window !== "undefined" ? window.location.origin : ""}/api/inbound/sms
+                  {origin}/api/inbound/sms
                 </p>
                 <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-ink-faint">
                   Your token
