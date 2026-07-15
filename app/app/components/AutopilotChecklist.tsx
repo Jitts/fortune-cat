@@ -8,8 +8,9 @@ const HIDE_KEY = "fc-autopilot-hidden";
 /**
  * First-run guide: three steps that end with the app running itself. Replaces
  * the dead-air empty dashboard — each step deep-links to the screen that
- * completes it, and the card disappears for good once all three are done
- * (or the user hides it).
+ * completes it. The card retires for good once all three are done; hiding it
+ * only collapses it to a slim bar (still there, one click to reopen) since a
+ * user who hides it may still want the reminder later.
  */
 export default function AutopilotChecklist({
   captured,
@@ -20,10 +21,11 @@ export default function AutopilotChecklist({
   trusted: boolean;
   backfilled: boolean;
 }) {
-  // Render nothing until mounted so a locally-hidden card never flashes in.
-  const [visible, setVisible] = useState(false);
+  // Start expanded so server/client match on first paint; reconcile with the
+  // stored pick right after mount (same pattern as ThemeToggle).
+  const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
-    setVisible(localStorage.getItem(HIDE_KEY) !== "1");
+    setCollapsed(localStorage.getItem(HIDE_KEY) === "1");
   }, []);
 
   const steps = [
@@ -48,7 +50,27 @@ export default function AutopilotChecklist({
   ];
   const doneCount = steps.filter((s) => s.done).length;
 
-  if (!visible || doneCount === steps.length) return null;
+  if (doneCount === steps.length) return null;
+
+  if (collapsed) {
+    return (
+      <button
+        onClick={() => {
+          localStorage.removeItem(HIDE_KEY);
+          setCollapsed(false);
+        }}
+        className="flex w-full items-center justify-between gap-2 rounded-2xl border-t-2 border-fortune-400 bg-surface px-6 py-3 text-left shadow-sm ring-1 ring-line hover:bg-surface-2"
+      >
+        <span className="text-sm font-semibold text-ink">
+          🐱 Get to autopilot{" "}
+          <span className="font-mono text-xs font-normal text-ink-faint">
+            {doneCount} of {steps.length}
+          </span>
+        </span>
+        <span className="text-xs font-medium text-ink-subtle">Show</span>
+      </button>
+    );
+  }
 
   return (
     <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
@@ -62,7 +84,7 @@ export default function AutopilotChecklist({
         <button
           onClick={() => {
             localStorage.setItem(HIDE_KEY, "1");
-            setVisible(false);
+            setCollapsed(true);
           }}
           className="text-xs text-ink-faint hover:text-ink-muted"
         >

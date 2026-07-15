@@ -5,19 +5,12 @@ import type { FeatureRequest } from "@/lib/types";
 import { submitFeatureRequest, toggleVote } from "./actions";
 import FeatureRequestForm from "./components/FeatureRequestForm";
 import FeatureRequestList from "./components/FeatureRequestList";
-import AppChrome from "@/app/components/AppChrome";
 import Toast from "@/app/app/components/Toast";
 
 export default function FeedbackShell({
   initialRequests,
-  userEmail,
-  isPro,
-  pendingReviewCount,
 }: {
   initialRequests: FeatureRequest[];
-  userEmail: string;
-  isPro: boolean;
-  pendingReviewCount: number;
 }) {
   const [requests, setRequests] = useState(initialRequests);
   const [modalOpen, setModalOpen] = useState(false);
@@ -60,27 +53,25 @@ export default function FeedbackShell({
   }
 
   return (
-    <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
-      <>
-        <h1 className="text-lg font-semibold text-ink">💡 Feature requests</h1>
+    <>
+      <h1 className="text-lg font-semibold text-ink">💡 Feature requests</h1>
 
-        <p className="text-sm text-ink-subtle">
-          Tell us what you&apos;d like to see next, and upvote the ideas you care about most — the
-          top of the list is what we build next.
-        </p>
+      <p className="text-sm text-ink-subtle">
+        Tell us what you&apos;d like to see next, and upvote the ideas you care about most — the
+        top of the list is what we build next.
+      </p>
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-ink">Sorted by votes</h2>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
-          >
-            + Suggest a feature
-          </button>
-        </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-ink">Sorted by votes</h2>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
+        >
+          + Suggest a feature
+        </button>
+      </div>
 
-        <FeatureRequestList requests={sorted} onVote={handleVote} votingId={votingId} />
-      </>
+      <FeatureRequestList requests={sorted} onVote={handleVote} votingId={votingId} />
 
       {modalOpen && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
@@ -96,6 +87,6 @@ export default function FeedbackShell({
       )}
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
-    </AppChrome>
+    </>
   );
 }

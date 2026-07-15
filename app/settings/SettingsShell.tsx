@@ -3,21 +3,24 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import AppChrome from "@/app/components/AppChrome";
 import AccountShell from "@/app/account/AccountShell";
+import FeedbackShell from "@/app/feedback/FeedbackShell";
 import CaptureSettings from "./components/CaptureSettings";
-import type { Category, EmailConnection, SmsTokenInfo, Transaction, TrustedSender } from "@/lib/types";
+import type { Category, EmailConnection, FeatureRequest, SmsTokenInfo, Transaction, TrustedSender } from "@/lib/types";
 
-type SettingsTab = "capture" | "account";
+type SettingsTab = "capture" | "account" | "feedback";
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: "capture", label: "📡 Capture" },
   { id: "account", label: "👤 Account & Privacy" },
+  { id: "feedback", label: "💡 Feedback" },
 ];
 
 /**
- * /settings is one page with two tabs: Capture (email/SMS/statement intake)
- * and Account & Privacy (profile, appearance, export, delete) — kept as
- * separate components/actions under the hood, just presented as one place.
- * Tab is URL-driven (?tab=) so it deep-links, mirroring the dashboard's tabs.
+ * /settings is one page with three tabs: Capture (email/SMS/statement
+ * intake), Account & Privacy (profile, appearance, export, delete), and
+ * Feedback (feature requests) — kept as separate components/actions under
+ * the hood, just presented as one place. Tab is URL-driven (?tab=) so it
+ * deep-links, mirroring the dashboard's tabs.
  */
 export default function SettingsShell({
   initialConnections,
@@ -29,6 +32,7 @@ export default function SettingsShell({
   msOAuthAvailable,
   transactions,
   categories,
+  initialRequests,
 }: {
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
@@ -39,11 +43,13 @@ export default function SettingsShell({
   msOAuthAvailable: boolean;
   transactions: Transaction[];
   categories: Category[];
+  initialRequests: FeatureRequest[];
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = searchParams.get("tab");
-  const active: SettingsTab = tabParam === "account" ? "account" : "capture";
+  const active: SettingsTab =
+    tabParam === "account" ? "account" : tabParam === "feedback" ? "feedback" : "capture";
 
   function setTab(t: SettingsTab) {
     router.replace(t === "capture" ? "/settings" : `/settings?tab=${t}`, { scroll: false });
@@ -66,7 +72,7 @@ export default function SettingsShell({
       </div>
 
       <div className="space-y-6">
-        {active === "capture" ? (
+        {active === "capture" && (
           <CaptureSettings
             initialConnections={initialConnections}
             initialTrustedSenders={initialTrustedSenders}
@@ -74,9 +80,11 @@ export default function SettingsShell({
             isPro={isPro}
             msOAuthAvailable={msOAuthAvailable}
           />
-        ) : (
+        )}
+        {active === "account" && (
           <AccountShell userEmail={userEmail} isPro={isPro} transactions={transactions} categories={categories} />
         )}
+        {active === "feedback" && <FeedbackShell initialRequests={initialRequests} />}
       </div>
     </AppChrome>
   );

@@ -101,7 +101,6 @@ export default function AppChrome({
             {[
               { href: "/settings", glyph: "⚙", label: "Settings" },
               { href: "/insights", glyph: "📈", label: "Analytics" },
-              { href: "/feedback", glyph: "💡", label: "Feature requests" },
             ].map((item) => (
               <Link
                 key={item.href}

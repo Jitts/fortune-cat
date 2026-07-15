@@ -19,6 +19,8 @@ export default async function SettingsPage() {
     { data: smsToken },
     { data: transactions },
     { data: categories },
+    { data: featureRequests },
+    { data: myVotes },
   ] = await Promise.all([
     supabase
       .from("email_connections")
@@ -38,7 +40,12 @@ export default async function SettingsPage() {
       .maybeSingle(),
     supabase.from("transactions").select().order("date", { ascending: false }),
     supabase.from("categories").select(),
+    supabase.from("feature_requests").select().order("created_at"),
+    supabase.from("feature_votes").select("feature_request_id").eq("user_id", user.id),
   ]);
+
+  const votedIds = new Set((myVotes ?? []).map((v) => v.feature_request_id));
+  const requestsWithVoteState = (featureRequests ?? []).map((r) => ({ ...r, hasVoted: votedIds.has(r.id) }));
 
   return (
     <SettingsShell
@@ -51,6 +58,7 @@ export default async function SettingsPage() {
       msOAuthAvailable={!!(process.env.MICROSOFT_OAUTH_CLIENT_ID && process.env.MICROSOFT_OAUTH_CLIENT_SECRET)}
       transactions={transactions ?? []}
       categories={categories ?? []}
+      initialRequests={requestsWithVoteState}
     />
   );
 }
