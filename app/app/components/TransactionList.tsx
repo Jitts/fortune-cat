@@ -195,6 +195,7 @@ export default function TransactionList({
   onAcceptTag,
   onRejectTag,
   tagPending,
+  maxDays,
 }: {
   transactions: Transaction[];
   categories: Category[];
@@ -206,7 +207,11 @@ export default function TransactionList({
   onAcceptTag: (id: string) => void;
   onRejectTag: (id: string) => void;
   tagPending: boolean;
+  // When set, render only the most recent N day-groups (the Home ledger); the
+  // spine + beads still show. Months stay expanded (no collapse UI needed).
+  maxDays?: number;
 }) {
+  let daysBudget = maxDays ?? Infinity;
   // Which months the user has collapsed, persisted so they stay folded across
   // reloads. The header still shows the month's net, so a collapsed month
   // remains informative.
@@ -311,44 +316,56 @@ export default function TransactionList({
               </span>
             </button>
 
-            {!isCollapsed &&
-              month.days.map((day) => (
-                <div key={day.key}>
-                  <div className="flex items-center justify-between gap-3 border-t border-line bg-surface-2 px-6 py-1.5">
-                    <span className="flex items-center gap-2 text-xs font-medium text-ink-subtle">
-                      {/* day bead on the spine — today glows gold, the rest stay quiet */}
-                      <span
-                        aria-hidden
-                        className={`inline-block h-2 w-2 rounded-full ${
-                          isToday(day.key) ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line"
-                        }`}
-                        style={isToday(day.key) ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
-                      />
-                      {dayLabel(day.key)}
-                    </span>
-                    <span className="text-xs">
-                      <NetAmount value={day.net} />
-                    </span>
-                  </div>
-                  <ul className="divide-y divide-line">
-                    {day.items.map((t) => (
-                      <TransactionRow
-                        key={t.id}
-                        t={t}
-                        categories={categories}
-                        provenance={provenance}
-                        onDetails={onDetails}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        deletingId={deletingId}
-                        onAcceptTag={onAcceptTag}
-                        onRejectTag={onRejectTag}
-                        tagPending={tagPending}
-                      />
-                    ))}
-                  </ul>
-                </div>
-              ))}
+            {(!isCollapsed || maxDays != null) && (
+              <div className="relative">
+                {/* the spine — a thread the day beads hang on */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute bottom-3 left-[19px] top-1 w-px bg-line"
+                />
+                {month.days.map((day) => {
+                  if (daysBudget <= 0) return null;
+                  daysBudget -= 1;
+                  return (
+                    <div key={day.key}>
+                      <div className="relative z-10 flex items-center justify-between gap-3 border-t border-line py-1.5 pl-4 pr-6">
+                        <span className="flex items-center gap-2 text-xs font-medium text-ink-subtle">
+                          {/* day bead on the spine — today glows gold, the rest stay quiet */}
+                          <span
+                            aria-hidden
+                            className={`inline-block h-2 w-2 rounded-full ${
+                              isToday(day.key) ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line ring-2 ring-surface"
+                            }`}
+                            style={isToday(day.key) ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
+                          />
+                          {dayLabel(day.key)}
+                        </span>
+                        <span className="text-xs">
+                          <NetAmount value={day.net} />
+                        </span>
+                      </div>
+                      <ul className="divide-y divide-line">
+                        {day.items.map((t) => (
+                          <TransactionRow
+                            key={t.id}
+                            t={t}
+                            categories={categories}
+                            provenance={provenance}
+                            onDetails={onDetails}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            deletingId={deletingId}
+                            onAcceptTag={onAcceptTag}
+                            onRejectTag={onRejectTag}
+                            tagPending={tagPending}
+                          />
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
         );
       })}
