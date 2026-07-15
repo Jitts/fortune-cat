@@ -201,6 +201,37 @@ async function main() {
         .eq("id", aConn?.id ?? "")
         .maybeSingle();
       check("User A's inbox survives B's delete attempt", !!connAfter.data);
+
+      // Fortune slips are per-user daily readings — B must never reach A's.
+      const { data: aSlip } = await clientA
+        .from("fortune_slips")
+        .insert({
+          user_id: userA.id,
+          slip_date: "2026-07-13",
+          severity: "great",
+          fortune_word: "大吉",
+          headline: `SLIP_A_${stamp}`,
+        })
+        .select()
+        .single();
+      check("User A can draw its own fortune slip", !!aSlip);
+
+      const bReadSlip = await clientB.from("fortune_slips").select("*").eq("id", aSlip?.id ?? "");
+      check("User B cannot read User A's fortune slip", (bReadSlip.data?.length ?? 0) === 0,
+        `rows returned=${bReadSlip.data?.length ?? 0}`);
+
+      const bUpdSlip = await clientB
+        .from("fortune_slips")
+        .update({ headline: "HACKED" })
+        .eq("id", aSlip?.id ?? "")
+        .select();
+      check("User B cannot rewrite User A's fortune slip", (bUpdSlip.data?.length ?? 0) === 0);
+
+      const bDelSlip = await clientB.from("fortune_slips").delete().eq("id", aSlip?.id ?? "").select();
+      check("User B cannot delete User A's fortune slip", (bDelSlip.data?.length ?? 0) === 0);
+
+      const anonSlip = await anon.from("fortune_slips").select("*").eq("id", aSlip?.id ?? "");
+      check("Anonymous caller cannot read a fortune slip", (anonSlip.data?.length ?? 0) === 0);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -350,6 +381,7 @@ async function main() {
         await service.from("audit_logs").delete().in("user_id", ids);
         await service.from("sms_tokens").delete().in("user_id", ids);
         await service.from("email_connections").delete().in("user_id", ids);
+        await service.from("fortune_slips").delete().in("user_id", ids);
       }
       for (const b of createdBuckets) {
         await service.from("rate_limit_events").delete().eq("bucket", b);

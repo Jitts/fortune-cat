@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Category, CategoryBudget, FortuneGoal, Transaction, TransactionProvenance } from "@/lib/types";
+import type { Category, CategoryBudget, FortuneGoal, FortuneSlipRow, Transaction, TransactionProvenance } from "@/lib/types";
 import {
   acceptAiTag,
   addTransaction,
@@ -13,6 +13,7 @@ import {
 } from "./actions";
 import AppChrome from "@/app/components/AppChrome";
 import AutopilotChecklist from "./components/AutopilotChecklist";
+import DailyFortuneSlip from "./components/DailyFortuneSlip";
 import TransactionDetailModal from "./components/TransactionDetailModal";
 import PulseCard from "./components/PulseCard";
 import FortuneGoals from "./components/FortuneGoals";
@@ -40,6 +41,8 @@ export default function AppShell({
   setup,
   goals,
   budgets,
+  todaySlip,
+  slipStreak,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
@@ -50,6 +53,8 @@ export default function AppShell({
   setup: { captured: boolean; trusted: boolean; backfilled: boolean };
   goals: FortuneGoal[];
   budgets: CategoryBudget[];
+  todaySlip: FortuneSlipRow | null;
+  slipStreak: number;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -173,6 +178,7 @@ export default function AppShell({
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount} wide>
       <>
         <AutopilotChecklist {...setup} />
+        <DailyFortuneSlip todaySlip={todaySlip} slipStreak={slipStreak} />
         <PulseCard
           transactions={transactions}
           balance={balance}

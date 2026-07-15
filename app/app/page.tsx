@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryBudget, FortuneGoal, TransactionProvenance } from "@/lib/types";
+import type { CategoryBudget, FortuneGoal, FortuneSlipRow, TransactionProvenance } from "@/lib/types";
 import AppShell from "./AppShell";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,7 @@ export default async function AppPage() {
     { count: backfilledCount },
     { data: goals },
     { data: budgets },
+    { data: slips },
   ] = await Promise.all([
     supabase.from("transactions").select().order("date", { ascending: false }).order("created_at", { ascending: false }),
     supabase.from("categories").select().order("name"),
@@ -47,7 +48,23 @@ export default async function AppPage() {
       .in("source", ["csv", "pdf", "image"]),
     supabase.from("fortune_goals").select().order("created_at", { ascending: true }),
     supabase.from("category_budgets").select(),
+    supabase.from("fortune_slips").select().order("slip_date", { ascending: false }),
   ]);
+
+  // Daily fortune: today's drawn slip (if any) + the consecutive-day streak.
+  // All arithmetic in UTC-day units so the server's timezone can't shift it.
+  const sgToday = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Singapore" });
+  const slipDates = new Set((slips ?? []).map((s) => (s as FortuneSlipRow).slip_date));
+  const todaySlip = ((slips ?? []) as FortuneSlipRow[]).find((s) => s.slip_date === sgToday) ?? null;
+  const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  const [yy, mm, dd] = sgToday.split("-").map(Number);
+  let cursorMs = Date.UTC(yy, mm - 1, dd);
+  if (!slipDates.has(sgToday)) cursorMs -= 86_400_000; // allow a streak ending yesterday
+  let slipStreak = 0;
+  while (slipDates.has(isoDay(cursorMs))) {
+    slipStreak += 1;
+    cursorMs -= 86_400_000;
+  }
 
   const provenance: Record<string, TransactionProvenance> = {};
   for (const row of (provenanceRows ?? []) as TransactionProvenance[]) {
@@ -73,6 +90,8 @@ export default async function AppPage() {
         setup={setup}
         goals={(goals ?? []) as FortuneGoal[]}
         budgets={(budgets ?? []) as CategoryBudget[]}
+        todaySlip={todaySlip}
+        slipStreak={slipStreak}
       />
     </Suspense>
   );

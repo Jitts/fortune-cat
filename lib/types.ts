@@ -145,6 +145,20 @@ export type FortuneGoal = {
   created_at: string;
 };
 
+// A drawn daily fortune slip (one row per user per local date). The face is
+// computed deterministically by lib/fortune.ts and frozen here on draw.
+export type SlipSeverity = "great" | "good" | "even" | "caution";
+
+export type FortuneSlipRow = {
+  id: string;
+  user_id: string | null;
+  slip_date: string; // yyyy-mm-dd
+  severity: SlipSeverity;
+  fortune_word: string;
+  headline: string;
+  drawn_at: string;
+};
+
 // A monthly spending ceiling for one category. Spend is derived from the
 // current month's expense transactions — this row is just the limit.
 export type CategoryBudget = {
