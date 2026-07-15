@@ -98,20 +98,14 @@ export default function AppChrome({
           <div className="absolute inset-0 bg-black/40" onClick={() => setMoreOpen(false)} />
           <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-surface p-4 pb-24 shadow-xl">
             <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
-            {[
-              { href: "/settings", glyph: "⚙", label: "Settings" },
-              { href: "/insights", glyph: "📈", label: "Analytics" },
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-ink-muted hover:bg-surface-3"
-              >
-                <span className="w-5 text-center">{item.glyph}</span>
-                {item.label}
-              </Link>
-            ))}
+            <Link
+              href="/settings"
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-ink-muted hover:bg-surface-3"
+            >
+              <span className="w-5 text-center">⚙</span>
+              Settings
+            </Link>
             {!isPro && (
               <Link
                 href="/upgrade"
@@ -157,7 +151,7 @@ export default function AppChrome({
         <button
           onClick={() => setMoreOpen(true)}
           className={`flex flex-1 flex-col items-center gap-0.5 pb-3 pt-2 font-mono text-[10px] uppercase tracking-wide ${
-            moreOpen || pathname.startsWith("/settings") || pathname.startsWith("/account") || pathname.startsWith("/insights") || pathname.startsWith("/feedback")
+            moreOpen || pathname.startsWith("/settings")
               ? "font-semibold text-emerald-700 dark:text-emerald-400"
               : "text-ink-faint"
           }`}

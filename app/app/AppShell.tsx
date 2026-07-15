@@ -24,6 +24,7 @@ import MonthlyOverview from "./components/MonthlyOverview";
 import CategoryBreakdown from "./components/CategoryBreakdown";
 import FortuneBudget from "./components/FortuneBudget";
 import InsightCard from "./components/InsightCard";
+import AnalyticsPanel from "./components/AnalyticsPanel";
 import TransactionList from "./components/TransactionList";
 import TransactionForm, {
   emptyFormValues,
@@ -271,8 +272,9 @@ export default function AppShell({
           rail (right) stay put on every tab; only the centre column swaps. */}
       <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)_300px] lg:items-start">
         {/* ===== LEFT RAIL — persistent ===== */}
-        <div className="order-1">
+        <div className="order-1 space-y-6">
           <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
+          <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
         </div>
 
         {/* ===== CENTRE — swaps with the active tab ===== */}
@@ -310,8 +312,7 @@ export default function AppShell({
           {active === "fortunes" && (
             <>
               <InsightCard transactions={transactions} categories={categories} />
-              <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
-              <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
+              <AnalyticsPanel transactions={transactions} categories={categories} isPro={isPro} />
             </>
           )}
 
@@ -336,6 +337,7 @@ export default function AppShell({
             todaySlip={todaySlip}
             slipStreak={slipStreak}
           />
+          <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
           <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} />
         </div>
       </div>

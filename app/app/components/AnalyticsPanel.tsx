@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import AppChrome from "@/app/components/AppChrome";
 import { formatCurrency } from "@/lib/format";
 import { analyzePeriod, periodRange, type Delta, type PeriodPreset } from "@/lib/analytics";
 import type { Category, Transaction } from "@/lib/types";
@@ -104,18 +103,14 @@ function CategoryBars({
   );
 }
 
-export default function InsightsShell({
+export default function AnalyticsPanel({
   transactions,
   categories,
   isPro,
-  userEmail,
-  pendingReviewCount,
 }: {
   transactions: Transaction[];
   categories: Category[];
   isPro: boolean;
-  userEmail: string;
-  pendingReviewCount: number;
 }) {
   const [preset, setPreset] = useState<PeriodPreset>("3m");
   const analytics = useMemo(() => {
@@ -126,45 +121,36 @@ export default function InsightsShell({
 
   if (!isPro) {
     return (
-      <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
-        <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-8 text-center shadow-sm ring-1 ring-line">
-          <h1 className="text-lg font-semibold text-ink">📈 Analytics</h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
-            Deep-dive into your prosperity: savings rate and cash flow with period-over-period
-            comparison, a category ranking, the months behind the trend, and the few expenses worth
-            a second look. A Pro feature.
-          </p>
-          <Link
-            href="/upgrade"
-            className="mt-4 inline-block rounded-lg bg-action px-5 py-2.5 text-sm font-medium text-white hover:bg-action/90"
-          >
-            Go Pro to unlock Analytics
-          </Link>
-        </div>
-      </AppChrome>
+      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-8 text-center shadow-sm ring-1 ring-line">
+        <p className="mx-auto max-w-md text-sm text-ink-muted">
+          Deep-dive into your prosperity: savings rate and cash flow with period-over-period
+          comparison, a category ranking, the months behind the trend, and the few expenses worth
+          a second look. A Pro feature.
+        </p>
+        <Link
+          href="/upgrade"
+          className="mt-4 inline-block rounded-lg bg-action px-5 py-2.5 text-sm font-medium text-white hover:bg-action/90"
+        >
+          Go Pro to unlock Analytics
+        </Link>
+      </div>
     );
   }
 
   return (
-    <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={pendingReviewCount}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-semibold text-ink">📈 Analytics</h1>
-          <p className="text-sm text-ink-subtle">Deep dive into your prosperity and cash flow.</p>
-        </div>
-        <div className="flex flex-wrap gap-1 rounded-xl bg-surface-3 p-1">
-          {PRESETS.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setPreset(p.key)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                preset === p.key ? "bg-surface text-ink shadow-sm" : "text-ink-subtle hover:text-ink"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-1 rounded-xl bg-surface-3 p-1">
+        {PRESETS.map((p) => (
+          <button
+            key={p.key}
+            onClick={() => setPreset(p.key)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+              preset === p.key ? "bg-surface text-ink shadow-sm" : "text-ink-subtle hover:text-ink"
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
       </div>
 
       {!a.hasData ? (
@@ -265,6 +251,6 @@ export default function InsightsShell({
           )}
         </>
       )}
-    </AppChrome>
+    </div>
   );
 }
