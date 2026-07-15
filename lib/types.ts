@@ -159,6 +159,29 @@ export type FortuneSlipRow = {
   drawn_at: string;
 };
 
+// The user's verdict on a detected subscription (kill-chain). One per user per
+// merchant; monthly_amount is snapshotted so the "freed" tally is stable.
+export type SubscriptionStatus = "keep" | "cancelling" | "cancelled";
+
+export type SubscriptionDecision = {
+  id: string;
+  user_id: string | null;
+  merchant_key: string;
+  status: SubscriptionStatus;
+  monthly_amount: number | null;
+  decided_at: string;
+};
+
+// An optional confirmed account balance — the anchor for Safe-to-Spend's
+// higher-precision mode. Latest row per user wins; a reconcile inserts anew.
+export type BalanceAnchor = {
+  id: string;
+  user_id: string | null;
+  balance: number;
+  anchored_at: string;
+  created_at: string;
+};
+
 // A monthly spending ceiling for one category. Spend is derived from the
 // current month's expense transactions — this row is just the limit.
 export type CategoryBudget = {

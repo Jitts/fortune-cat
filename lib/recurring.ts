@@ -35,7 +35,7 @@ export type RadarResult = {
 
 const DAY_MS = 86_400_000;
 
-function median(values: number[]): number {
+export function median(values: number[]): number {
   const s = [...values].sort((a, b) => a - b);
   const mid = Math.floor(s.length / 2);
   return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
@@ -50,7 +50,7 @@ function addDays(date: string, days: number): string {
 }
 
 /** Grouping key: resolved merchant when known, else the exact trimmed note. */
-function flowKey(t: Transaction): string | null {
+export function flowKey(t: Transaction): string | null {
   const merchant = resolveMerchant(t.note);
   if (merchant) return `m:${merchant.name}:${t.type}`;
   const note = t.note?.trim();

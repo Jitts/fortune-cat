@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Category, CategoryBudget, FortuneGoal, FortuneSlipRow, Transaction, TransactionProvenance } from "@/lib/types";
+import type { BalanceAnchor, Category, CategoryBudget, FortuneGoal, FortuneSlipRow, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
 import {
   acceptAiTag,
   addTransaction,
@@ -14,6 +14,8 @@ import {
 import AppChrome from "@/app/components/AppChrome";
 import AutopilotChecklist from "./components/AutopilotChecklist";
 import DailyFortuneSlip from "./components/DailyFortuneSlip";
+import SafeToSpendCard from "./components/SafeToSpendCard";
+import SubscriptionKillChain from "./components/SubscriptionKillChain";
 import TransactionDetailModal from "./components/TransactionDetailModal";
 import PulseCard from "./components/PulseCard";
 import FortuneGoals from "./components/FortuneGoals";
@@ -43,6 +45,8 @@ export default function AppShell({
   budgets,
   todaySlip,
   slipStreak,
+  anchor,
+  subscriptionDecisions,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
@@ -55,6 +59,8 @@ export default function AppShell({
   budgets: CategoryBudget[];
   todaySlip: FortuneSlipRow | null;
   slipStreak: number;
+  anchor: BalanceAnchor | null;
+  subscriptionDecisions: SubscriptionDecision[];
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -179,6 +185,12 @@ export default function AppShell({
       <>
         <AutopilotChecklist {...setup} />
         <DailyFortuneSlip todaySlip={todaySlip} slipStreak={slipStreak} />
+        <SafeToSpendCard
+          transactions={transactions}
+          goals={goals}
+          anchor={anchor}
+          isPro={isPro}
+        />
         <PulseCard
           transactions={transactions}
           balance={balance}
@@ -191,6 +203,11 @@ export default function AppShell({
           <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
           <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
           <RecurringRadar transactions={transactions} isPro={isPro} />
+          <SubscriptionKillChain
+            transactions={transactions}
+            decisions={subscriptionDecisions}
+            isPro={isPro}
+          />
           <CategoryBreakdown transactions={transactions} categories={categories} />
         </div>
 

@@ -232,6 +232,56 @@ async function main() {
 
       const anonSlip = await anon.from("fortune_slips").select("*").eq("id", aSlip?.id ?? "");
       check("Anonymous caller cannot read a fortune slip", (anonSlip.data?.length ?? 0) === 0);
+
+      // Balance anchors hold a confirmed account balance — strictly private.
+      const { data: aAnchor } = await clientA
+        .from("balance_anchors")
+        .insert({ user_id: userA.id, balance: 4242.42 })
+        .select()
+        .single();
+      check("User A can set its own balance anchor", !!aAnchor);
+
+      const bReadAnchor = await clientB.from("balance_anchors").select("*").eq("id", aAnchor?.id ?? "");
+      check("User B cannot read User A's balance anchor", (bReadAnchor.data?.length ?? 0) === 0,
+        `rows returned=${bReadAnchor.data?.length ?? 0}`);
+
+      const bUpdAnchor = await clientB
+        .from("balance_anchors")
+        .update({ balance: 0 })
+        .eq("id", aAnchor?.id ?? "")
+        .select();
+      check("User B cannot alter User A's balance anchor", (bUpdAnchor.data?.length ?? 0) === 0);
+
+      const bDelAnchor = await clientB.from("balance_anchors").delete().eq("id", aAnchor?.id ?? "").select();
+      check("User B cannot delete User A's balance anchor", (bDelAnchor.data?.length ?? 0) === 0);
+
+      const anonAnchor = await anon.from("balance_anchors").select("*").eq("id", aAnchor?.id ?? "");
+      check("Anonymous caller cannot read a balance anchor", (anonAnchor.data?.length ?? 0) === 0);
+
+      // Subscription decisions — per-user verdicts on the kill-chain.
+      const { data: aDecision } = await clientA
+        .from("subscription_decisions")
+        .insert({ user_id: userA.id, merchant_key: `SUB_A_${stamp}`, status: "cancelled", monthly_amount: 19.99 })
+        .select()
+        .single();
+      check("User A can record its own subscription decision", !!aDecision);
+
+      const bReadDec = await clientB.from("subscription_decisions").select("*").eq("id", aDecision?.id ?? "");
+      check("User B cannot read User A's subscription decision", (bReadDec.data?.length ?? 0) === 0,
+        `rows returned=${bReadDec.data?.length ?? 0}`);
+
+      const bUpdDec = await clientB
+        .from("subscription_decisions")
+        .update({ status: "keep" })
+        .eq("id", aDecision?.id ?? "")
+        .select();
+      check("User B cannot alter User A's subscription decision", (bUpdDec.data?.length ?? 0) === 0);
+
+      const bDelDec = await clientB.from("subscription_decisions").delete().eq("id", aDecision?.id ?? "").select();
+      check("User B cannot delete User A's subscription decision", (bDelDec.data?.length ?? 0) === 0);
+
+      const anonDec = await anon.from("subscription_decisions").select("*").eq("id", aDecision?.id ?? "");
+      check("Anonymous caller cannot read a subscription decision", (anonDec.data?.length ?? 0) === 0);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -382,6 +432,8 @@ async function main() {
         await service.from("sms_tokens").delete().in("user_id", ids);
         await service.from("email_connections").delete().in("user_id", ids);
         await service.from("fortune_slips").delete().in("user_id", ids);
+        await service.from("balance_anchors").delete().in("user_id", ids);
+        await service.from("subscription_decisions").delete().in("user_id", ids);
       }
       for (const b of createdBuckets) {
         await service.from("rate_limit_events").delete().eq("bucket", b);
