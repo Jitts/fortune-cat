@@ -88,7 +88,7 @@ function TransactionRow({
   const title = merchant?.name ?? t.note ?? category?.name ?? "Transaction";
   const rawDiffers = !!merchant && !!t.note && merchant.name !== t.note;
   return (
-    <li className="flex items-center justify-between gap-4 px-6 py-4">
+    <li className="flex items-center justify-between gap-4 rounded-xl bg-surface px-4 py-3 ring-1 ring-line">
       <div className="min-w-0 flex-1">
         <button
           onClick={() => onDetails(t)}
@@ -196,6 +196,7 @@ export default function TransactionList({
   onRejectTag,
   tagPending,
   maxDays,
+  hideMonthHeader = false,
 }: {
   transactions: Transaction[];
   categories: Category[];
@@ -210,6 +211,9 @@ export default function TransactionList({
   // When set, render only the most recent N day-groups (the Home ledger); the
   // spine + beads still show. Months stay expanded (no collapse UI needed).
   maxDays?: number;
+  // Home shows a single "{Month} ledger" heading already, so the internal
+  // collapsible month header is suppressed there to avoid a duplicate.
+  hideMonthHeader?: boolean;
 }) {
   let daysBudget = maxDays ?? Infinity;
   // Which months the user has collapsed, persisted so they stay folded across
@@ -291,30 +295,32 @@ export default function TransactionList({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line">
+    <div className="space-y-2">
       {months.map((month) => {
         const isCollapsed = collapsed.has(month.key);
         return (
-          <section key={month.key} className="border-b border-line last:border-b-0">
-            <button
-              type="button"
-              onClick={() => toggleMonth(month.key)}
-              aria-expanded={!isCollapsed}
-              className="flex w-full items-center justify-between gap-3 px-6 py-3 text-left hover:bg-surface-2"
-            >
-              <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
-                <span
-                  className={`inline-block text-[10px] leading-none transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
-                  aria-hidden
-                >
-                  ▾
+          <section key={month.key}>
+            {!hideMonthHeader && (
+              <button
+                type="button"
+                onClick={() => toggleMonth(month.key)}
+                aria-expanded={!isCollapsed}
+                className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-left hover:bg-surface-3"
+              >
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                  <span
+                    className={`inline-block text-[10px] leading-none transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
+                    aria-hidden
+                  >
+                    ▾
+                  </span>
+                  {monthLabel(month.key)}
                 </span>
-                {monthLabel(month.key)}
-              </span>
-              <span className="text-sm font-semibold">
-                <NetAmount value={month.net} strong />
-              </span>
-            </button>
+                <span className="text-sm font-semibold">
+                  <NetAmount value={month.net} strong />
+                </span>
+              </button>
+            )}
 
             {(!isCollapsed || maxDays != null) && (
               <div className="relative">
@@ -328,13 +334,13 @@ export default function TransactionList({
                   daysBudget -= 1;
                   return (
                     <div key={day.key}>
-                      <div className="relative z-10 flex items-center justify-between gap-3 border-t border-line py-1.5 pl-4 pr-6">
+                      <div className="relative z-10 flex items-center justify-between gap-3 py-1.5 pl-4 pr-2">
                         <span className="flex items-center gap-2 text-xs font-medium text-ink-subtle">
                           {/* day bead on the spine — today glows gold, the rest stay quiet */}
                           <span
                             aria-hidden
                             className={`inline-block h-2 w-2 rounded-full ${
-                              isToday(day.key) ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line ring-2 ring-surface"
+                              isToday(day.key) ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line ring-2 ring-surface-2"
                             }`}
                             style={isToday(day.key) ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
                           />
@@ -344,7 +350,7 @@ export default function TransactionList({
                           <NetAmount value={day.net} />
                         </span>
                       </div>
-                      <ul className="divide-y divide-line">
+                      <ul className="space-y-2 pb-3 pl-8 pr-1">
                         {day.items.map((t) => (
                           <TransactionRow
                             key={t.id}

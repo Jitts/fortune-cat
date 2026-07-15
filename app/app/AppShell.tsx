@@ -141,7 +141,7 @@ export default function AppShell({
     </div>
   );
 
-  const renderLedger = (maxDays?: number) => (
+  const renderLedger = (maxDays?: number, hideMonthHeader = false) => (
     <TransactionList
       transactions={visibleTransactions}
       categories={categories}
@@ -154,6 +154,7 @@ export default function AppShell({
       onRejectTag={handleRejectTag}
       tagPending={pending}
       maxDays={maxDays}
+      hideMonthHeader={hideMonthHeader}
     />
   );
 
@@ -249,7 +250,7 @@ export default function AppShell({
             </div>
             <div className="order-3 space-y-3 lg:order-2">
               {ledgerHeading}
-              {renderLedger(4)}
+              {renderLedger(4, true)}
               <button
                 onClick={() => setTab("ledger")}
                 className="text-xs font-medium text-ink-subtle underline hover:text-ink-muted"
@@ -278,7 +279,7 @@ export default function AppShell({
         <div className="space-y-6">
           <CashFlowBars transactions={transactions} />
           <div className="flex items-center justify-between">
-            {ledgerHeading}
+            <h2 className="text-lg font-semibold text-ink">All transactions</h2>
             <button
               onClick={() => setModal("add")}
               className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
