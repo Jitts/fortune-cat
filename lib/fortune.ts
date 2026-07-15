@@ -1,7 +1,8 @@
 import { analyzeRecurring } from "@/lib/recurring";
+import { computeSafeToSpend } from "@/lib/safeToSpend";
 import { catState, type CatState } from "@/app/app/components/FortuneCat";
 import { formatCurrency } from "@/lib/format";
-import type { SlipSeverity, Transaction } from "@/lib/types";
+import type { BalanceAnchor, Category, FortuneGoal, SlipSeverity, Transaction } from "@/lib/types";
 
 /**
  * The daily fortune slip (rules, no LLM, no randomness): a once-a-day reading
@@ -16,7 +17,8 @@ export type FortuneSlip = {
   severity: SlipSeverity;
   fortuneWord: string; // 大吉 / 吉 / 平 / 小凶
   headline: string; // English-first
-  detail: string; // one concrete money observation
+  detail: string; // one concrete observation — nearest bill, or a category-pace read
+  recommendation: string | null; // Pro-only actionable daily cap; null on free or no safe signal
 };
 
 const FORTUNE_WORD: Record<SlipSeverity, string> = {
@@ -90,24 +92,138 @@ function severityFor(state: CatState, savingsRate: number | null): SlipSeverity 
   return savingsRate != null && savingsRate >= 20 ? "great" : "good";
 }
 
-/** The concrete second line: the nearest upcoming bill, else the burn pace. */
-function detailLine(transactions: Transaction[], s: MonthSignals, today: Date): string {
+/**
+ * The top expense category's daily pace this month vs. its own trailing
+ * average (up to the last 3 complete months) — "Food sits 12% below its
+ * usual path." Returns null when there's no category to lead with or no
+ * history yet to compare against (a brand-new category isn't "off pace",
+ * it just has no pace on record).
+ */
+function categoryPaceSignal(
+  transactions: Transaction[],
+  categories: Category[],
+  today: Date,
+): { categoryName: string; pctDiff: number; direction: "above" | "below" } | null {
+  const thisMonth = monthKey(today);
+  const dayOfMonth = today.getDate();
+
+  const thisMonthByCategory = new Map<string, number>();
+  for (const t of transactions) {
+    if (t.type !== "expense" || !t.category_id) continue;
+    if (monthKey(new Date(`${t.date}T00:00:00`)) !== thisMonth) continue;
+    thisMonthByCategory.set(t.category_id, (thisMonthByCategory.get(t.category_id) ?? 0) + t.amount);
+  }
+
+  let topId: string | null = null;
+  let topTotal = 0;
+  for (const [id, total] of thisMonthByCategory) {
+    if (total > topTotal) {
+      topId = id;
+      topTotal = total;
+    }
+  }
+  if (!topId) return null;
+
+  const thisMonthPace = topTotal / Math.max(1, dayOfMonth);
+
+  const baselinePaces: number[] = [];
+  for (let i = 1; i <= 3; i++) {
+    const monthStart = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const key = monthKey(monthStart);
+    const daysInThatMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
+    let total = 0;
+    let hasAny = false;
+    for (const t of transactions) {
+      if (t.type !== "expense" || t.category_id !== topId) continue;
+      if (monthKey(new Date(`${t.date}T00:00:00`)) !== key) continue;
+      total += t.amount;
+      hasAny = true;
+    }
+    if (hasAny) baselinePaces.push(total / daysInThatMonth);
+  }
+  if (baselinePaces.length === 0) return null;
+
+  const baseline = baselinePaces.reduce((s, v) => s + v, 0) / baselinePaces.length;
+  if (baseline <= 0) return null;
+
+  const pctDiff = Math.round(((thisMonthPace - baseline) / baseline) * 100);
+  if (pctDiff === 0) return null;
+
+  return {
+    categoryName: categories.find((c) => c.id === topId)?.name ?? "Spending",
+    pctDiff: Math.abs(pctDiff),
+    direction: pctDiff < 0 ? "below" : "above",
+  };
+}
+
+/**
+ * The concrete second line. Priority: a bill due very soon (most urgent) →
+ * the category-pace read (most specific) → the original generic fallback
+ * (any upcoming bill, else burn pace, else "quiet ledger") for brand-new
+ * accounts with no category history yet.
+ */
+function detailLine(
+  transactions: Transaction[],
+  categories: Category[],
+  s: MonthSignals,
+  today: Date,
+): string {
   const { upcoming } = analyzeRecurring(transactions, today);
-  const nextBill = upcoming.find((f) => f.type === "expense");
-  if (nextBill) {
+
+  const urgentBill = upcoming.find((f) => f.type === "expense" && f.daysUntil <= 2);
+  if (urgentBill) {
     const when =
-      nextBill.daysUntil <= 0
-        ? "due now"
-        : nextBill.daysUntil === 1
-          ? "due tomorrow"
-          : `due in ${nextBill.daysUntil} days`;
-    return `${nextBill.name} (~${formatCurrency(nextBill.expectedAmount)}) is ${when}.`;
+      urgentBill.daysUntil <= 0 ? "due now" : urgentBill.daysUntil === 1 ? "due tomorrow" : `due in ${urgentBill.daysUntil} days`;
+    return `${urgentBill.name} (~${formatCurrency(urgentBill.expectedAmount)}) is ${when}.`;
+  }
+
+  const pace = categoryPaceSignal(transactions, categories, today);
+  if (pace) {
+    return `${pace.categoryName} sits ${pace.pctDiff}% ${pace.direction} its usual path.`;
+  }
+
+  const anyBill = upcoming.find((f) => f.type === "expense");
+  if (anyBill) {
+    const when =
+      anyBill.daysUntil <= 0 ? "due now" : anyBill.daysUntil === 1 ? "due tomorrow" : `due in ${anyBill.daysUntil} days`;
+    return `${anyBill.name} (~${formatCurrency(anyBill.expectedAmount)}) is ${when}.`;
   }
   if (s.outTotal > 0) return `You're burning ${formatCurrency(s.burnPerDay)} a day this month.`;
   return "Nothing captured yet this month — the ledger is quiet.";
 }
 
-export function computeSlip(transactions: Transaction[], today = new Date()): FortuneSlip {
+/**
+ * The green, actionable line — Pro only, since it leans on the Safe-to-Spend
+ * engine. Reuses that engine's own "rest of the month" figure spread evenly
+ * over the days left, so it's the same honest number as the pouch, just
+ * framed against the nearer weekly checkpoint rather than month-end. Null
+ * when there's no Pro signal or nothing safe left to recommend spending.
+ */
+function weeklyRecommendation(
+  transactions: Transaction[],
+  goals: FortuneGoal[],
+  anchor: BalanceAnchor | null,
+  today: Date,
+): string | null {
+  const sts = computeSafeToSpend({ transactions, goals, anchor, today });
+  if (sts.safe <= 0) return null;
+
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const daysLeftInMonth = daysInMonth - today.getDate() + 1;
+  const dailyCap = sts.safe / Math.max(1, daysLeftInMonth);
+  if (dailyCap <= 0) return null;
+
+  return `Keep today under ${formatCurrency(dailyCap)} and the week closes ahead.`;
+}
+
+export function computeSlip(
+  transactions: Transaction[],
+  categories: Category[],
+  isPro: boolean,
+  goals: FortuneGoal[],
+  anchor: BalanceAnchor | null,
+  today = new Date(),
+): FortuneSlip {
   const s = monthSignals(transactions, today);
   const state = catState(s.net, s.burnDelta);
   const severity = severityFor(state, s.savingsRate);
@@ -172,6 +288,7 @@ export function computeSlip(transactions: Transaction[], today = new Date()): Fo
     severity,
     fortuneWord: FORTUNE_WORD[severity],
     headline,
-    detail: detailLine(transactions, s, today),
+    detail: detailLine(transactions, categories, s, today),
+    recommendation: isPro ? weeklyRecommendation(transactions, goals, anchor, today) : null,
   };
 }

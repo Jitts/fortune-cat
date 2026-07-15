@@ -156,6 +156,8 @@ export type FortuneSlipRow = {
   severity: SlipSeverity;
   fortune_word: string;
   headline: string;
+  detail: string | null; // concrete observation — nearest bill, or a category-pace read
+  recommendation: string | null; // Pro-only actionable daily cap, null on free/no-signal
   drawn_at: string;
 };
 

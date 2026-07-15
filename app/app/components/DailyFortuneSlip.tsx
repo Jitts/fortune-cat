@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { drawDailySlip } from "../slipActions";
-import LanternStreak from "./LanternStreak";
 import type { FortuneSlipRow, SlipSeverity } from "@/lib/types";
 
 // Severity → the chit's omen label and red seal (chop) character. Red is the
@@ -51,7 +50,11 @@ export default function DailyFortuneSlip({
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {streak >= 1 && <LanternStreak count={streak} label={`${streak}-day streak`} />}
+            {streak >= 1 && (
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-wide text-ink-subtle">
+                🎴 {streak}-day streak
+              </span>
+            )}
             <button
               onClick={handleDraw}
               disabled={pending}
@@ -85,10 +88,18 @@ export default function DailyFortuneSlip({
             Today&apos;s fortune — {omen.label} · {slip.fortune_word}
           </p>
           <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-800">{slip.headline}</p>
+          {slip.detail && (
+            <p className="mt-1 text-sm leading-relaxed text-neutral-700">{slip.detail}</p>
+          )}
+          {slip.recommendation && (
+            <p className="mt-2 text-sm font-medium leading-relaxed text-emerald-700">
+              → {slip.recommendation}
+            </p>
+          )}
           {streak >= 2 && (
-            <div className="mt-3">
-              <LanternStreak count={streak} label={`${streak}-day fortune streak`} />
-            </div>
+            <p className="mt-3 font-mono text-[10px] font-semibold uppercase tracking-wide text-red-700/70">
+              🎴 {streak}-day fortune streak
+            </p>
           )}
         </div>
 

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { computeSlip } from "@/lib/fortune";
-import type { Transaction, FortuneSlipRow } from "@/lib/types";
+import type { BalanceAnchor, Category, FortuneGoal, Transaction, FortuneSlipRow } from "@/lib/types";
 
 type SlipResult =
   | { data: FortuneSlipRow; error?: undefined }
@@ -27,12 +27,27 @@ export async function drawDailySlip(): Promise<SlipResult> {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
 
-  const { data: transactions } = await supabase
-    .from("transactions")
-    .select()
-    .order("date", { ascending: false });
+  const [
+    { data: transactions },
+    { data: categories },
+    { data: activePayment },
+    { data: goals },
+    { data: anchor },
+  ] = await Promise.all([
+    supabase.from("transactions").select().order("date", { ascending: false }),
+    supabase.from("categories").select(),
+    supabase.from("payments").select("id").eq("status", "active").limit(1).maybeSingle(),
+    supabase.from("fortune_goals").select(),
+    supabase.from("balance_anchors").select().order("anchored_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
 
-  const slip = computeSlip((transactions ?? []) as Transaction[]);
+  const slip = computeSlip(
+    (transactions ?? []) as Transaction[],
+    (categories ?? []) as Category[],
+    !!activePayment,
+    (goals ?? []) as FortuneGoal[],
+    (anchor ?? null) as BalanceAnchor | null,
+  );
   const slipDate = todayIso();
 
   const { data, error } = await supabase
@@ -44,6 +59,8 @@ export async function drawDailySlip(): Promise<SlipResult> {
         severity: slip.severity,
         fortune_word: slip.fortuneWord,
         headline: slip.headline,
+        detail: slip.detail,
+        recommendation: slip.recommendation,
       },
       { onConflict: "user_id,slip_date" },
     )
