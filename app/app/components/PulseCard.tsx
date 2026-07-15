@@ -2,7 +2,9 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { formatCurrency } from "@/lib/format";
 import type { Transaction } from "@/lib/types";
-import FortuneCat, { catState } from "./FortuneCat";
+import { catState } from "./FortuneCat";
+import LuckRing from "./LuckRing";
+import LanternStreak from "./LanternStreak";
 
 function monthKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}`;
@@ -88,10 +90,16 @@ export default function PulseCard({
   const savingsRate = pulse.inTotal > 0 ? Math.round((pulse.net / pulse.inTotal) * 100) : null;
   const caption =
     state === "saving"
-      ? `The cat is well fed${savingsRate != null && savingsRate > 0 ? ` · saving ${savingsRate}%` : ""}`
+      ? "Well fed · luck is rising"
       : state === "even"
-        ? "The cat is watching · breaking even"
-        : "Ears back · out is beating in";
+        ? "Watchful · luck holds steady"
+        : "Ears back · luck is thin";
+  const ringNote =
+    savingsRate != null && savingsRate > 0
+      ? `the ring is your savings pace — saving ${savingsRate}% of this month's income`
+      : savingsRate != null && savingsRate < 0
+        ? "the ring is your savings pace — you're in the red this month"
+        : "the ring is your savings pace";
 
   const monthLabel = new Date().toLocaleDateString("en-SG", { month: "long", year: "numeric" });
 
@@ -105,29 +113,28 @@ export default function PulseCard({
           </p>
         </div>
 
-        <div className="mt-2 flex items-center gap-4">
-          <FortuneCat state={state} />
+        <div className="mt-2 flex items-center gap-5">
+          <div className="flex flex-col items-center gap-2">
+            <LuckRing savingsRate={savingsRate} state={state} />
+            {streak >= 1 && (
+              <LanternStreak count={streak} label={`${streak}-night capture streak`} />
+            )}
+          </div>
           <div className="min-w-0">
             <p
               className={`text-3xl font-bold tracking-tight [font-variant-numeric:tabular-nums] ${
-                pulse.net >= 0 ? "text-emerald-700" : "text-ink"
+                pulse.net >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-ink"
               }`}
             >
               {pulse.net >= 0 ? "+" : "−"}
               {formatCurrency(Math.abs(pulse.net))}
             </p>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
-              <span className="text-emerald-700">▲ in {formatCurrency(pulse.inTotal)}</span>
+              <span className="text-emerald-700 dark:text-emerald-400">▲ in {formatCurrency(pulse.inTotal)}</span>
               <span>▼ out {formatCurrency(pulse.outTotal)}</span>
             </div>
-            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-subtle">
-              <span>{caption}</span>
-              {streak >= 2 && (
-                <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
-                  🔥 {streak}-day capture streak
-                </span>
-              )}
-            </p>
+            <p className="mt-1.5 text-sm font-medium text-ink">{caption}</p>
+            <p className="mt-0.5 text-xs text-ink-subtle">{ringNote}</p>
           </div>
         </div>
 

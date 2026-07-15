@@ -22,6 +22,12 @@ function monthLabel(key: string) {
 
 // "Today · Sat, 13 Jul" / "Yesterday · …" for the two most recent days, else the
 // weekday + date. Keeps the day headers scannable without repeating the year.
+function isToday(dateKey: string) {
+  const now = new Date();
+  const local = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return dateKey === local;
+}
+
 function dayLabel(date: string) {
   const d = new Date(`${date}T00:00:00`);
   const today = new Date();
@@ -39,10 +45,10 @@ function NetAmount({ value, strong = false }: { value: number; strong?: boolean 
   const positive = value >= 0;
   const cls = positive
     ? strong
-      ? "text-emerald-700"
-      : "text-emerald-600"
+      ? "text-emerald-700 dark:text-emerald-400"
+      : "text-emerald-600 dark:text-emerald-400"
     : strong
-      ? "text-red-600"
+      ? "text-red-600 dark:text-red-400"
       : "text-ink-faint";
   return (
     <span className={`[font-variant-numeric:tabular-nums] ${cls}`}>
@@ -155,7 +161,7 @@ function TransactionRow({
       </div>
       <div className="flex items-center gap-4">
         <span
-          className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700" : "text-ink"}`}
+          className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700 dark:text-emerald-400" : "text-ink"}`}
         >
           {isIncome ? "+" : "-"}
           {formatCurrency(t.amount)}
@@ -309,7 +315,17 @@ export default function TransactionList({
               month.days.map((day) => (
                 <div key={day.key}>
                   <div className="flex items-center justify-between gap-3 border-t border-line bg-surface-2 px-6 py-1.5">
-                    <span className="text-xs font-medium text-ink-subtle">{dayLabel(day.key)}</span>
+                    <span className="flex items-center gap-2 text-xs font-medium text-ink-subtle">
+                      {/* day bead on the spine — today glows gold, the rest stay quiet */}
+                      <span
+                        aria-hidden
+                        className={`inline-block h-2 w-2 rounded-full ${
+                          isToday(day.key) ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line"
+                        }`}
+                        style={isToday(day.key) ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
+                      />
+                      {dayLabel(day.key)}
+                    </span>
                     <span className="text-xs">
                       <NetAmount value={day.net} />
                     </span>

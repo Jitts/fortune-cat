@@ -2,36 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { drawDailySlip } from "../slipActions";
+import LanternStreak from "./LanternStreak";
 import type { FortuneSlipRow, SlipSeverity } from "@/lib/types";
 
-// Severity → tone. Per DESIGN: red is reserved for real attention (caution),
-// emerald for a good-money reading, gold for the fortune organ itself, neutral
-// for even. Never gold-for-alarm.
-const TONE: Record<SlipSeverity, { ring: string; word: string; badge: string; label: string }> = {
-  great: {
-    ring: "ring-fortune-400",
-    word: "text-fortune-700",
-    badge: "bg-emerald-50 text-emerald-700",
-    label: "Great fortune",
-  },
-  good: {
-    ring: "ring-emerald-200",
-    word: "text-emerald-700",
-    badge: "bg-emerald-50 text-emerald-700",
-    label: "Good fortune",
-  },
-  even: {
-    ring: "ring-line",
-    word: "text-ink-muted",
-    badge: "bg-surface-3 text-ink-muted",
-    label: "Steady",
-  },
-  caution: {
-    ring: "ring-red-200",
-    word: "text-red-600",
-    badge: "bg-red-50 text-red-600",
-    label: "Caution",
-  },
+// Severity → the chit's omen label and red seal (chop) character. Red is the
+// seal ink; the caution chit also tints its rule red (attention).
+const OMEN: Record<SlipSeverity, { label: string; chop: string; caution: boolean }> = {
+  great: { label: "Great omen", chop: "吉", caution: false },
+  good: { label: "Good omen", chop: "吉", caution: false },
+  even: { label: "Steady day", chop: "平", caution: false },
+  caution: { label: "Needs attention", chop: "改", caution: true },
 };
 
 export default function DailyFortuneSlip({
@@ -60,12 +40,6 @@ export default function DailyFortuneSlip({
     });
   }
 
-  const streakChip = streak >= 2 && (
-    <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
-      🎴 {streak}-day fortune streak
-    </span>
-  );
-
   if (!slip) {
     return (
       <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-5 shadow-sm ring-1 ring-line">
@@ -76,8 +50,8 @@ export default function DailyFortuneSlip({
               Draw the cat&apos;s reading of your money today.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {streakChip}
+          <div className="flex items-center gap-3">
+            {streak >= 1 && <LanternStreak count={streak} label={`${streak}-day streak`} />}
             <button
               onClick={handleDraw}
               disabled={pending}
@@ -92,27 +66,42 @@ export default function DailyFortuneSlip({
     );
   }
 
-  const tone = TONE[slip.severity];
+  const omen = OMEN[slip.severity];
 
+  // The paper chit — cream stock, red seal. Fixed dark text so it reads the same
+  // whether it floats on the daylight page or the dark Shrine hall.
   return (
-    <div className={`rounded-2xl bg-surface p-5 shadow-sm ring-1 ${tone.ring}`}>
-      <div className="flex items-start gap-4">
-        <div
-          className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-fortune-50 ring-1 ring-fortune-400 ${tone.word}`}
-          aria-hidden
-        >
-          <span className="text-2xl font-bold leading-none">{slip.fortune_word}</span>
-        </div>
+    <div
+      className={`relative overflow-hidden rounded-2xl border border-dashed bg-paper p-5 shadow-sm ${
+        omen.caution ? "border-red-400" : "border-red-300"
+      }`}
+    >
+      {/* red rule across the top, like a real fortune slip */}
+      <div className={`absolute inset-x-0 top-0 h-1 ${omen.caution ? "bg-red-500" : "bg-red-400"}`} />
+
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide ${tone.badge}`}>
-              {tone.label}
-            </span>
-            {streakChip}
-          </div>
-          <p className="mt-1.5 text-sm font-medium text-ink">{slip.headline}</p>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-red-700">
+            Today&apos;s fortune — {omen.label} · {slip.fortune_word}
+          </p>
+          <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-800">{slip.headline}</p>
+          {streak >= 2 && (
+            <div className="mt-3">
+              <LanternStreak count={streak} label={`${streak}-day fortune streak`} />
+            </div>
+          )}
         </div>
+
+        {/* the seal / chop */}
+        <span
+          aria-hidden
+          className="flex h-11 w-11 shrink-0 rotate-[-8deg] items-center justify-center rounded-md border-2 border-red-500 bg-red-500/10 text-xl font-bold text-red-600"
+        >
+          {omen.chop}
+        </span>
       </div>
+
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
     </div>
   );
 }

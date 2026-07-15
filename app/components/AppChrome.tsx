@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOutAction } from "@/app/auth/actions";
 import ProBadge from "@/app/app/components/ProBadge";
 import ThemeToggle from "@/app/components/ThemeToggle";
+import ShrineStars from "@/app/components/ShrineStars";
 
 type NavItem = {
   href: string;
@@ -69,7 +70,8 @@ export default function AppChrome({
     ) : null;
 
   return (
-    <div className="min-h-screen bg-surface-2">
+    <div className="relative min-h-screen bg-surface-2">
+      <ShrineStars />
       {/* ===== Desktop sidebar (full height) ===== */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto border-r border-line bg-surface px-3 py-5 sm:flex">
         <div className="mb-6 flex items-center gap-2 px-2">
@@ -123,7 +125,7 @@ export default function AppChrome({
       </aside>
 
       {/* ===== Content column (offset past the sidebar on desktop) ===== */}
-      <div className="sm:pl-60">
+      <div className="relative z-10 sm:pl-60">
         {/* Mobile-only header — desktop shows the brand in the sidebar */}
         <header className="flex items-center justify-between gap-3 px-6 pt-6 sm:hidden">
           <Link href="/app" className="text-2xl font-bold tracking-tight text-ink">
@@ -204,15 +206,32 @@ export default function AppChrome({
       )}
 
       {/* ===== Mobile bottom tab bar ===== */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 flex items-end border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden">
         {TABS.map((item) => {
           const active = isActive(item, pathname);
+          // The center "Add" is the elevated gold LOG button (Direction B).
+          if (item.label === "Add") {
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex flex-1 flex-col items-center gap-1 pt-2"
+              >
+                <span className="-mt-5 flex h-12 w-12 items-center justify-center rounded-full bg-fortune-400 text-2xl font-bold text-fortune-700 shadow-lg ring-4 ring-surface">
+                  ＋
+                </span>
+                <span className="pb-3 font-mono text-[10px] uppercase tracking-wide text-ink-faint">
+                  Log
+                </span>
+              </Link>
+            );
+          }
           return (
             <Link
               key={item.label}
               href={item.href}
               className={`flex flex-1 flex-col items-center gap-0.5 pb-3 pt-2 font-mono text-[10px] uppercase tracking-wide ${
-                active ? "font-semibold text-emerald-700" : "text-ink-faint"
+                active ? "font-semibold text-emerald-700 dark:text-emerald-400" : "text-ink-faint"
               }`}
             >
               <span className="relative text-base leading-none">

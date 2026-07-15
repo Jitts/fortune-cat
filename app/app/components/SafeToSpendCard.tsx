@@ -41,13 +41,13 @@ export default function SafeToSpendCard({
     return (
       <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-ink-subtle">🛟 Safe to spend</h2>
+          <h2 className="text-sm font-medium text-ink-subtle">👛 In your pouch</h2>
           <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
             PRO
           </span>
         </div>
         <p className="mt-2 text-sm text-ink-muted">
-          See exactly what&apos;s yours to spend this month — after bills still due and what
+          See exactly what&apos;s left in your pouch this month — after bills still due and what
           you&apos;re setting aside for goals.
         </p>
         <Link
@@ -85,7 +85,12 @@ export default function SafeToSpendCard({
   return (
     <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-medium text-ink-subtle">🛟 Safe to spend</h2>
+        <h2 className="text-sm font-medium text-ink-subtle">
+          👛 In your pouch{" "}
+          <span className="text-ink-faint">
+            · till {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
+          </span>
+        </h2>
         <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
           PRO
         </span>
