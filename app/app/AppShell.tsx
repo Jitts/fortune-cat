@@ -18,7 +18,6 @@ import SlipsPanel from "./components/SlipsPanel";
 import BillsDue from "./components/BillsDue";
 import CashFlowBars from "./components/CashFlowBars";
 import SubscriptionKillChain from "./components/SubscriptionKillChain";
-import TransactionDetailModal from "./components/TransactionDetailModal";
 import FortuneGoals from "./components/FortuneGoals";
 import RecurringRadar from "./components/RecurringRadar";
 import MonthlyOverview from "./components/MonthlyOverview";
@@ -70,7 +69,6 @@ export default function AppShell({
   const [transactions, setTransactions] = useState(initialTransactions);
   const [isPro, setIsPro] = useState(initialIsPro);
   const [modal, setModal] = useState<"add" | Transaction | null>(null);
-  const [detail, setDetail] = useState<Transaction | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -127,10 +125,7 @@ export default function AppShell({
       transactions={visibleTransactions}
       categories={categories}
       provenance={provenance}
-      onDetails={(t) => setDetail(t)}
       onEdit={(t) => setModal(t)}
-      onDelete={handleDelete}
-      deletingId={deletingId}
       onAcceptTag={handleAcceptTag}
       onRejectTag={handleRejectTag}
       tagPending={pending}
@@ -315,22 +310,19 @@ export default function AppShell({
               onSubmit={(formData) =>
                 modal === "add" ? handleAdd(formData) : handleEdit(modal.id, formData)
               }
+              onDelete={
+                modal === "add"
+                  ? undefined
+                  : () => {
+                      const id = modal.id;
+                      handleDelete(id);
+                      setModal(null);
+                    }
+              }
+              deleting={modal !== "add" && deletingId === modal.id}
             />
           </div>
         </div>
-      )}
-
-      {detail && (
-        <TransactionDetailModal
-          transaction={detail}
-          category={categories.find((c) => c.id === detail.category_id)}
-          provenance={provenance[detail.id]}
-          onClose={() => setDetail(null)}
-          onEdit={() => {
-            setModal(detail);
-            setDetail(null);
-          }}
-        />
       )}
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}

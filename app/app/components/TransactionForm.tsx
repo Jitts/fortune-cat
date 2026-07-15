@@ -44,6 +44,8 @@ export default function TransactionForm({
   submitLabel,
   onSubmit,
   onCancel,
+  onDelete,
+  deleting = false,
   pending,
   showReceiptScan = false,
 }: {
@@ -52,6 +54,9 @@ export default function TransactionForm({
   submitLabel: string;
   onSubmit: (formData: FormData) => void;
   onCancel: () => void;
+  // Edit mode only: renders a Delete button that removes this transaction.
+  onDelete?: () => void;
+  deleting?: boolean;
   pending: boolean;
   showReceiptScan?: boolean;
 }) {
@@ -175,21 +180,33 @@ export default function TransactionForm({
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted hover:bg-surface-3"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
-        >
-          {pending ? "Saving…" : submitLabel}
-        </button>
+      <div className="flex items-center gap-2 pt-2">
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={deleting || pending}
+            className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:hover:bg-red-500/10"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+        )}
+        <div className="ml-auto flex gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted hover:bg-surface-3"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={pending}
+            className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
+          >
+            {pending ? "Saving…" : submitLabel}
+          </button>
+        </div>
       </div>
     </form>
   );

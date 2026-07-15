@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOutAction } from "@/app/auth/actions";
 import ProBadge from "@/app/app/components/ProBadge";
 import ThemeToggle from "@/app/components/ThemeToggle";
+import SettingsGear from "@/app/components/SettingsGear";
 import ShrineStars from "@/app/components/ShrineStars";
 
 // The same top-tab nav as the Shrine dashboard, so the peripheral pages
@@ -17,7 +18,6 @@ const NAV = [
   { href: "/app?tab=ledger", label: "Ledger", match: () => false },
   { href: "/app?tab=fortunes", label: "Fortunes", match: () => false },
   { href: "/app?tab=bills", label: "Bills", match: () => false },
-  { href: "/settings", label: "Settings", match: (p: string) => p.startsWith("/settings") },
 ];
 
 /**
@@ -71,7 +71,10 @@ export default function AppChrome({
               );
             })}
           </nav>
-          <ThemeToggle variant="compact" />
+          <div className="flex items-center gap-1">
+            <SettingsGear />
+            <ThemeToggle variant="compact" />
+          </div>
         </div>
       </header>
 

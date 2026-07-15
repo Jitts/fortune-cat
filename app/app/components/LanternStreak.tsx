@@ -1,37 +1,28 @@
 /**
- * Lantern streak (Direction B): a row of paper-lantern beads, the first N lit
- * gold for an N-day streak, the rest hanging dim. Used for the capture streak
- * and the fortune-draw streak. SVG (not the 🏮 emoji) so lit vs. dim is real.
+ * Lantern streak (Direction B): a row of paper lanterns 🏮, the first N marking
+ * an N-day streak. Day/night aware — by day the streak lanterns simply hang red
+ * ("off"); at night (the Shrine theme) they light up with a warm gold glow. The
+ * remaining slots stay dim in both themes. Uses the emoji so the lanterns match
+ * the approved mockup.
  */
-
 function Lantern({ lit }: { lit: boolean }) {
-  const cap = lit ? "fill-fortune-700" : "fill-line";
   return (
-    <svg width="13" height="19" viewBox="0 0 13 19" aria-hidden className="shrink-0">
-      {/* hanger */}
-      <line x1="6.5" y1="0.5" x2="6.5" y2="2.5" className="stroke-ink-faint" strokeWidth="1" />
-      {/* top cap */}
-      <rect x="3.5" y="2.5" width="6" height="1.6" rx="0.8" className={cap} />
-      {/* body */}
-      <ellipse
-        cx="6.5"
-        cy="9.5"
-        rx="5"
-        ry="5.2"
-        strokeWidth="0.8"
-        className={lit ? "fill-fortune-400 stroke-fortune-700" : "fill-surface-3 stroke-line"}
-        style={lit ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
-      />
-      {/* bottom cap + tassel */}
-      <rect x="4.5" y="14.4" width="4" height="1.4" rx="0.7" className={cap} />
-      <line x1="6.5" y1="15.8" x2="6.5" y2="18.5" strokeWidth="1" className={lit ? "stroke-fortune-700" : "stroke-line"} />
-    </svg>
+    <span
+      aria-hidden
+      className={`text-lg leading-none ${
+        lit
+          ? "opacity-90 dark:opacity-100 dark:[filter:brightness(1.15)_drop-shadow(0_0_5px_rgba(255,176,32,0.9))]"
+          : "opacity-30 grayscale"
+      }`}
+    >
+      🏮
+    </span>
   );
 }
 
 export default function LanternStreak({
   count,
-  total = 7,
+  total = 6,
   label,
 }: {
   count: number;

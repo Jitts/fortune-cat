@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signOutAction } from "@/app/auth/actions";
 import ProBadge from "./ProBadge";
 import ThemeToggle from "@/app/components/ThemeToggle";
+import SettingsGear from "@/app/components/SettingsGear";
 import ShrineStars from "@/app/components/ShrineStars";
 
 export type ShrineTab = "home" | "ledger" | "fortunes" | "bills";
@@ -67,15 +68,12 @@ export default function ShrineChrome({
                 {t.label}
               </button>
             ))}
-            <Link
-              href="/settings"
-              className="rounded-full px-4 py-1.5 text-sm font-medium text-ink-muted transition hover:text-ink"
-            >
-              Settings
-            </Link>
           </nav>
 
-          <ThemeToggle variant="compact" />
+          <div className="flex items-center gap-1">
+            <SettingsGear />
+            <ThemeToggle variant="compact" />
+          </div>
         </div>
       </header>
 

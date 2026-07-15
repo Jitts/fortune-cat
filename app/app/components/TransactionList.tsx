@@ -64,10 +64,7 @@ function TransactionRow({
   t,
   categories,
   provenance,
-  onDetails,
   onEdit,
-  onDelete,
-  deletingId,
   onAcceptTag,
   onRejectTag,
   tagPending,
@@ -75,10 +72,7 @@ function TransactionRow({
   t: Transaction;
   categories: Category[];
   provenance: Record<string, TransactionProvenance>;
-  onDetails: (t: Transaction) => void;
   onEdit: (t: Transaction) => void;
-  onDelete: (id: string) => void;
-  deletingId: string | null;
   onAcceptTag: (id: string) => void;
   onRejectTag: (id: string) => void;
   tagPending: boolean;
@@ -93,9 +87,9 @@ function TransactionRow({
     <li className="flex items-center justify-between gap-4 rounded-xl bg-surface px-4 py-3 ring-1 ring-line">
       <div className="min-w-0 flex-1">
         <button
-          onClick={() => onDetails(t)}
+          onClick={() => onEdit(t)}
           className="flex w-full min-w-0 items-center gap-3 rounded-lg text-left hover:opacity-80"
-          title="View details"
+          title="Edit transaction"
         >
           <span className="text-xl">{category?.icon ?? "•"}</span>
           <div className="min-w-0">
@@ -161,27 +155,18 @@ function TransactionRow({
           />
         </div>
       </div>
-      <div className="flex items-center gap-4">
+      <button
+        onClick={() => onEdit(t)}
+        className="shrink-0 rounded-lg text-right hover:opacity-80"
+        title="Edit transaction"
+      >
         <span
           className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700 dark:text-emerald-400" : "text-ink"}`}
         >
           {isIncome ? "+" : "-"}
           {formatCurrency(t.amount)}
         </span>
-        <button
-          onClick={() => onEdit(t)}
-          className="text-xs font-medium text-ink-subtle hover:text-ink"
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => onDelete(t.id)}
-          disabled={deletingId === t.id}
-          className="text-xs font-medium text-red-500 hover:text-red-700 disabled:opacity-50"
-        >
-          {deletingId === t.id ? "Deleting…" : "Delete"}
-        </button>
-      </div>
+      </button>
     </li>
   );
 }
@@ -190,10 +175,7 @@ export default function TransactionList({
   transactions,
   categories,
   provenance,
-  onDetails,
   onEdit,
-  onDelete,
-  deletingId,
   onAcceptTag,
   onRejectTag,
   tagPending,
@@ -201,10 +183,7 @@ export default function TransactionList({
   transactions: Transaction[];
   categories: Category[];
   provenance: Record<string, TransactionProvenance>;
-  onDetails: (t: Transaction) => void;
   onEdit: (t: Transaction) => void;
-  onDelete: (id: string) => void;
-  deletingId: string | null;
   onAcceptTag: (id: string) => void;
   onRejectTag: (id: string) => void;
   tagPending: boolean;
@@ -405,10 +384,7 @@ export default function TransactionList({
                                     t={t}
                                     categories={categories}
                                     provenance={provenance}
-                                    onDetails={onDetails}
                                     onEdit={onEdit}
-                                    onDelete={onDelete}
-                                    deletingId={deletingId}
                                     onAcceptTag={onAcceptTag}
                                     onRejectTag={onRejectTag}
                                     tagPending={tagPending}
