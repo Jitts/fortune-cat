@@ -5,6 +5,12 @@ import GoProButton from "./GoProButton";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Fortune Cat Pro — $9 once, every engine unlocked",
+  description:
+    "One payment unlocks Safe-to-Spend, goals, recurring radar, subscription kill-chain, deep analytics, full history and more. No subscription, no renewal.",
+};
+
 export default async function UpgradePage() {
   const supabase = await createClient();
   const {

@@ -5,6 +5,8 @@ import AuthForm from "@/app/auth/AuthForm";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Log in" };
+
 export default async function LoginPage() {
   const supabase = await createClient();
   const {

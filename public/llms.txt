@@ -1,0 +1,41 @@
+# Fortune Cat
+
+> Fortune Cat is a web-based personal expense tracker that fills itself: users forward the
+> transaction SMS and emails their bank already sends, and Fortune Cat parses them into a live
+> cash-flow ledger. It never asks for a bank login and parsing happens on the user's device.
+
+Site: https://fortune-cat-nu.vercel.app
+
+## What it does
+
+- Automatic transaction capture from forwarded bank SMS and emails (and pasted statements).
+  The first message from a new sender waits in a review queue; once the sender is trusted,
+  later transactions post automatically.
+- Manual expense/income logging with categories also works — no SMS or email required.
+- Running balance, monthly cash-flow, category breakdown, and a daily "fortune slip": a
+  deterministic reading computed from the user's real spending, including a concrete
+  spend target for the day.
+- Works worldwide: users pick their country at onboarding (33 countries listed, more on
+  request), and all amounts display in their own currency. Foreign-currency captures are
+  converted into the user's base currency at ECB reference rates.
+
+## Pricing
+
+- Free tier: manual + automatic logging, one capture inbox, last 10 transactions of history.
+- Pro: US$9 one-time payment (not a subscription — no renewal, no monthly fee). Unlocks
+  Safe-to-Spend, savings goals, recurring-bill radar, subscription kill-chain with cancel
+  playbooks, deep analytics, actionable daily readings, full transaction history, and
+  three capture inboxes.
+
+## Privacy and security
+
+- No bank account connection, no bank credentials, no screen-scraping. Fortune Cat only
+  sees the notification text the user chooses to forward.
+- Each user's data is isolated with database row-level security. Users can export their
+  transactions as CSV or delete their account (and all data) at any time from Settings.
+
+## Key pages
+
+- Home: https://fortune-cat-nu.vercel.app/
+- Pro pricing: https://fortune-cat-nu.vercel.app/upgrade
+- Sign up (free): https://fortune-cat-nu.vercel.app/signup

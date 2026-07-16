@@ -9,8 +9,30 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Fortune Cat",
-  description: "Log expenses and income, see your balance, go Pro.",
+  metadataBase: new URL("https://fortune-cat-nu.vercel.app"),
+  title: {
+    default: "Fortune Cat — the money tracker that fills itself",
+    template: "%s · Fortune Cat",
+  },
+  description:
+    "Fortune Cat turns the SMS and emails your bank already sends into a live expense tracker — no bank login, parsed on your device. Free to start, $9 once for Pro, works in any currency worldwide.",
+  applicationName: "Fortune Cat",
+  alternates: { canonical: "/" },
+  openGraph: {
+    siteName: "Fortune Cat",
+    type: "website",
+    locale: "en",
+    url: "/",
+    title: "Fortune Cat — the money tracker that fills itself",
+    description:
+      "Forward the SMS and emails your bank already sends and your ledger fills itself. No bank login, any currency, $9 once for Pro.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fortune Cat — the money tracker that fills itself",
+    description:
+      "Forward the SMS and emails your bank already sends and your ledger fills itself. No bank login, any currency, $9 once for Pro.",
+  },
 };
 
 // Runs before first paint: applies the saved theme (or the time-of-day default)

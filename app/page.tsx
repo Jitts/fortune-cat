@@ -2,8 +2,32 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import LandingDemo from "@/app/components/LandingDemo";
 import ProShowcase from "@/app/components/ProShowcase";
+import UspSection from "@/app/components/UspSection";
+import FaqSection from "@/app/components/FaqSection";
 
 export const dynamic = "force-dynamic";
+
+// What Fortune Cat is, for search engines and AI assistants (FAQPage JSON-LD
+// lives in FaqSection, fed by the same copy users read).
+const APP_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Fortune Cat",
+  url: "https://fortune-cat-nu.vercel.app",
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "Web",
+  description:
+    "A personal expense tracker that fills itself: forward the SMS and emails your bank already sends and they become a live cash-flow ledger. No bank login, parsed on your device, works in any currency worldwide.",
+  offers: [
+    { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free tier" },
+    {
+      "@type": "Offer",
+      price: "9",
+      priceCurrency: "USD",
+      description: "Pro — one-time payment, no subscription",
+    },
+  ],
+};
 
 export default async function Home() {
   const supabase = await createClient();
@@ -69,7 +93,31 @@ export default async function Home() {
         <LandingDemo />
       </section>
 
+      <UspSection />
       <ProShowcase />
+      <FaqSection />
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-8 text-sm text-ink-faint">
+          <span>🐱 Fortune Cat · your money logs itself</span>
+          <nav className="flex gap-4">
+            <Link href="/upgrade" className="hover:text-ink-muted">
+              Pro — $9 once
+            </Link>
+            <Link href="/signup" className="hover:text-ink-muted">
+              Sign up free
+            </Link>
+            <Link href="/login" className="hover:text-ink-muted">
+              Log in
+            </Link>
+          </nav>
+        </div>
+      </footer>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(APP_JSON_LD) }}
+      />
     </main>
   );
 }
