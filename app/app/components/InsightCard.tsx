@@ -1,4 +1,7 @@
-import { formatCurrency, isCurrentMonth } from "@/lib/format";
+"use client";
+
+import { isCurrentMonth } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import type { Category, Transaction } from "@/lib/types";
 
 /**
@@ -12,6 +15,7 @@ export default function InsightCard({
   transactions: Transaction[];
   categories: Category[];
 }) {
+  const { format } = useMoney();
   const monthTx = transactions.filter((t) => isCurrentMonth(t.date));
   const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
@@ -50,7 +54,7 @@ export default function InsightCard({
             <p className="mt-1 text-base font-semibold text-ink">
               {topCat.icon} {topCat.name}
               <span className="block text-xs font-normal text-ink-subtle">
-                {formatCurrency(topCat.total)}
+                {format(topCat.total)}
               </span>
             </p>
           ) : (
@@ -68,7 +72,7 @@ export default function InsightCard({
           <p className="text-xs text-ink-subtle">Biggest expense</p>
           {biggest ? (
             <p className="mt-1 text-base font-semibold text-ink">
-              {formatCurrency(biggest.amount)}
+              {format(biggest.amount)}
               <span className="block truncate text-xs font-normal text-ink-subtle">
                 {biggest.note || "—"}
               </span>

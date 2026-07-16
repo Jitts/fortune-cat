@@ -1,4 +1,7 @@
-import { formatCurrency, isCurrentMonth } from "@/lib/format";
+"use client";
+
+import { isCurrentMonth } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import type { Category, Transaction } from "@/lib/types";
 
 export default function CategoryBreakdown({
@@ -8,6 +11,7 @@ export default function CategoryBreakdown({
   transactions: Transaction[];
   categories: Category[];
 }) {
+  const { format } = useMoney();
   const totals = new Map<string, number>();
   for (const t of transactions) {
     if (t.type !== "expense" || !t.category_id || !isCurrentMonth(t.date)) continue;
@@ -34,7 +38,7 @@ export default function CategoryBreakdown({
                 <span>{category?.icon ?? "•"}</span>
                 {category?.name ?? "Uncategorized"}
               </span>
-              <span className="text-sm font-semibold text-ink">{formatCurrency(total)}</span>
+              <span className="text-sm font-semibold text-ink">{format(total)}</span>
             </li>
           ))}
         </ul>

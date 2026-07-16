@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import { analyzePeriod, periodRange, type Delta, type PeriodPreset } from "@/lib/analytics";
 import type { Category, Transaction } from "@/lib/types";
 
@@ -30,6 +30,7 @@ function DeltaTag({ delta, invertGood }: { delta: Delta; invertGood?: boolean })
 
 /** Two-series monthly bars: income (jade) vs expense (ink). */
 function MonthlyChart({ monthly }: { monthly: { month: string; income: number; expense: number }[] }) {
+  const { format } = useMoney();
   const max = Math.max(1, ...monthly.map((m) => Math.max(m.income, m.expense)));
   const label = (key: string) =>
     new Date(`${key}-01T00:00:00`).toLocaleDateString("en-SG", { month: "short" });
@@ -50,12 +51,12 @@ function MonthlyChart({ monthly }: { monthly: { month: string; income: number; e
               <div
                 className="w-1/2 max-w-[14px] rounded-t bg-emerald-600"
                 style={{ height: `${(m.income / max) * 100}%` }}
-                title={`${label(m.month)} · in ${formatCurrency(m.income)}`}
+                title={`${label(m.month)} · in ${format(m.income)}`}
               />
               <div
                 className="w-1/2 max-w-[14px] rounded-t bg-out"
                 style={{ height: `${(m.expense / max) * 100}%` }}
-                title={`${label(m.month)} · out ${formatCurrency(m.expense)}`}
+                title={`${label(m.month)} · out ${format(m.expense)}`}
               />
             </div>
             <span className="font-mono text-[10px] text-ink-faint">{label(m.month)}</span>
@@ -72,6 +73,7 @@ function CategoryBars({
 }: {
   categories: { name: string; icon: string | null; total: number; pct: number }[];
 }) {
+  const { format } = useMoney();
   const shown = categories.slice(0, 6);
   const rest = categories.slice(6);
   const otherTotal = rest.reduce((s, c) => s + c.total, 0);
@@ -90,7 +92,7 @@ function CategoryBars({
               {r.name}
             </span>
             <span className="text-ink-subtle [font-variant-numeric:tabular-nums]">
-              {formatCurrency(r.total)}{" "}
+              {format(r.total)}{" "}
               <span className="text-xs text-ink-faint">{Math.round(r.pct)}%</span>
             </span>
           </div>
@@ -112,6 +114,7 @@ export default function AnalyticsPanel({
   categories: Category[];
   isPro: boolean;
 }) {
+  const { format } = useMoney();
   const [preset, setPreset] = useState<PeriodPreset>("3m");
   const analytics = useMemo(() => {
     const range = periodRange(preset, transactions);
@@ -176,17 +179,17 @@ export default function AnalyticsPanel({
                 }`}
               >
                 {a.net >= 0 ? "+" : "−"}
-                {formatCurrency(Math.abs(a.net))}
+                {format(Math.abs(a.net))}
               </p>
               <p className="text-[11px] text-ink-faint [font-variant-numeric:tabular-nums]">
                 {a.avgMonthlyNet >= 0 ? "+" : "−"}
-                {formatCurrency(Math.abs(a.avgMonthlyNet))}/mo average
+                {format(Math.abs(a.avgMonthlyNet))}/mo average
               </p>
             </div>
             <div className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
               <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Total expenses</p>
               <p className="mt-1 text-2xl font-bold text-ink [font-variant-numeric:tabular-nums]">
-                {formatCurrency(a.expense)}
+                {format(a.expense)}
               </p>
               <DeltaTag delta={a.expenseDelta} invertGood />
             </div>
@@ -239,7 +242,7 @@ export default function AnalyticsPanel({
                       <p className="text-xs text-ink-subtle">{f.reason}</p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold text-ink [font-variant-numeric:tabular-nums]">
-                      {formatCurrency(f.amount)}
+                      {format(f.amount)}
                     </span>
                   </li>
                 ))}

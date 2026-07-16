@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { analyzeRecurring } from "@/lib/recurring";
 import { mergeBillFlows } from "@/lib/manualBills";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import type { ManualRecurringBill, Transaction } from "@/lib/types";
 
 /**
@@ -29,6 +29,7 @@ export default function BillsDue({
   limit?: number;
   onAdd?: () => void;
 }) {
+  const { format } = useMoney();
   const bills = useMemo(() => {
     const detected = analyzeRecurring(transactions).upcoming.filter((f) => f.type === "expense");
     const manual = manualBills.filter((b) => b.type === "expense");
@@ -71,7 +72,7 @@ export default function BillsDue({
                 </p>
               </div>
               <span className="shrink-0 text-sm font-semibold text-ink [font-variant-numeric:tabular-nums]">
-                ~{formatCurrency(b.expectedAmount)}
+                ~{format(b.expectedAmount)}
               </span>
             </li>
           ))}

@@ -1,5 +1,5 @@
 import { analyzeRecurring } from "@/lib/recurring";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, DEFAULT_CURRENCY, DEFAULT_LOCALE } from "@/lib/format";
 import type { Category, CategoryBudget, Transaction } from "@/lib/types";
 
 /**
@@ -14,6 +14,8 @@ export function computeAttention(
   transactions: Transaction[],
   categories: Category[],
   budgets: CategoryBudget[],
+  currency: string = DEFAULT_CURRENCY,
+  locale: string = DEFAULT_LOCALE,
   today = new Date(),
 ): AttentionSlip | null {
   const thisMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
@@ -36,7 +38,7 @@ export function computeAttention(
   if (worst) {
     return {
       word: "凶",
-      headline: `${worst.name} crossed its ceiling by ${formatCurrency(worst.over)}. The cat's ears twitch.`,
+      headline: `${worst.name} crossed its ceiling by ${formatCurrency(worst.over, currency, locale)}. The cat's ears twitch.`,
       hint: "A quiet week here mends it before month-end.",
     };
   }

@@ -4,15 +4,16 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { computeSlip } from "@/lib/fortune";
+import { getUserProfile } from "@/lib/profile";
 import type { BalanceAnchor, Category, FortuneGoal, Transaction, FortuneSlipRow } from "@/lib/types";
 
 type SlipResult =
   | { data: FortuneSlipRow; error?: undefined }
   | { data?: undefined; error: string };
 
-/** Local (SG) calendar date as yyyy-mm-dd — the slip is keyed to the user's day. */
-function todayIso(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Singapore" });
+/** The user's local calendar date as yyyy-mm-dd — the slip is keyed to their day. */
+function todayIso(timeZone: string): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone });
 }
 
 /**
@@ -26,6 +27,8 @@ export async function drawDailySlip(): Promise<SlipResult> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
+
+  const profile = await getUserProfile(supabase);
 
   const [
     { data: transactions },
@@ -47,8 +50,10 @@ export async function drawDailySlip(): Promise<SlipResult> {
     !!activePayment,
     (goals ?? []) as FortuneGoal[],
     (anchor ?? null) as BalanceAnchor | null,
+    profile.currency,
+    profile.locale,
   );
-  const slipDate = todayIso();
+  const slipDate = todayIso(profile.timezone);
 
   const { data, error } = await supabase
     .from("fortune_slips")

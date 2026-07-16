@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { formatCurrency, isCurrentMonth } from "@/lib/format";
+import { isCurrentMonth } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import type { Category, CategoryBudget, Transaction } from "@/lib/types";
 import { setBudget, removeBudget } from "../budgetActions";
 
@@ -22,6 +23,7 @@ export default function FortuneBudget({
   categories: Category[];
   transactions: Transaction[];
 }) {
+  const { format } = useMoney();
   const [items, setItems] = useState(budgets);
   const [editId, setEditId] = useState<string | null>(null); // category_id being edited
   const [editValue, setEditValue] = useState("");
@@ -137,10 +139,10 @@ export default function FortuneBudget({
         <div className="mt-3">
           <div className="flex items-baseline justify-between text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
             <span>
-              {formatCurrency(totalSpent)} of {formatCurrency(totalBudget)} budgeted
+              {format(totalSpent)} of {format(totalBudget)} budgeted
             </span>
             <span className={remaining < 0 ? "font-semibold text-red-600" : "text-ink-subtle"}>
-              {remaining < 0 ? `${formatCurrency(-remaining)} over` : `${formatCurrency(remaining)} left`}
+              {remaining < 0 ? `${format(-remaining)} over` : `${format(remaining)} left`}
             </span>
           </div>
           <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-surface-3">
@@ -223,7 +225,7 @@ export default function FortuneBudget({
                     )}
                   </span>
                   <span className="text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
-                    {formatCurrency(spent)} / {formatCurrency(budget.monthly_limit)}
+                    {format(spent)} / {format(budget.monthly_limit)}
                   </span>
                 </div>
                 <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-surface-3">
@@ -231,7 +233,7 @@ export default function FortuneBudget({
                 </div>
                 <div className="mt-1 flex items-center justify-between">
                   <span className="text-[11px] text-ink-faint [font-variant-numeric:tabular-nums]">
-                    {left >= 0 ? `${formatCurrency(left)} left` : `${formatCurrency(-left)} over`}
+                    {left >= 0 ? `${format(left)} left` : `${format(-left)} over`}
                   </span>
                   {editId === budget.category_id ? (
                     <span className="flex items-center gap-2">

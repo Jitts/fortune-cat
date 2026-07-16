@@ -15,6 +15,7 @@ import EmailCandidateList from "@/app/settings/components/EmailCandidateList";
 import AppChrome from "@/app/components/AppChrome";
 import Toast from "@/app/app/components/Toast";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { CurrencyProvider } from "@/app/components/CurrencyProvider";
 
 export default function ReviewShell({
   hasConnection,
@@ -22,12 +23,16 @@ export default function ReviewShell({
   initialAutoPosted,
   userEmail,
   isPro,
+  currency,
+  locale,
 }: {
   hasConnection: boolean;
   initialCandidates: EmailTransactionCandidate[];
   initialAutoPosted: EmailTransactionCandidate[];
   userEmail: string;
   isPro: boolean;
+  currency: string;
+  locale: string;
 }) {
   const router = useRouter();
   const [candidates, setCandidates] = useState(initialCandidates);
@@ -114,6 +119,7 @@ export default function ReviewShell({
   }
 
   return (
+    <CurrencyProvider currency={currency} locale={locale}>
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={candidates.length}>
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
@@ -171,7 +177,7 @@ export default function ReviewShell({
                   </div>
                   <span className="text-sm font-semibold text-ink [font-variant-numeric:tabular-nums]">
                     {c.suggested_type === "income" ? "+" : "−"}
-                    {c.amount !== null ? formatCurrency(c.amount) : "—"}
+                    {c.amount !== null ? formatCurrency(c.amount, currency, locale) : "—"}
                   </span>
                   <button
                     onClick={() => handleUndo(c.id)}
@@ -189,5 +195,6 @@ export default function ReviewShell({
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
     </AppChrome>
+    </CurrencyProvider>
   );
 }

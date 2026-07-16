@@ -314,6 +314,40 @@ async function main() {
 
       const anonBill = await anon.from("manual_recurring_bills").select("*").eq("id", aBill?.id ?? "");
       check("Anonymous caller cannot read a manual recurring bill", (anonBill.data?.length ?? 0) === 0);
+
+      // User profiles — locale/currency, keyed on user_id (one row per user), strictly private.
+      const { data: aProfile } = await clientA
+        .from("user_profiles")
+        .upsert(
+          {
+            user_id: userA.id,
+            country: "SG",
+            base_currency: "SGD",
+            locale: "en-SG",
+            timezone: "Asia/Singapore",
+          },
+          { onConflict: "user_id" },
+        )
+        .select()
+        .single();
+      check("User A can create its own profile", !!aProfile);
+
+      const bReadProfile = await clientB.from("user_profiles").select("*").eq("user_id", userA.id);
+      check("User B cannot read User A's profile", (bReadProfile.data?.length ?? 0) === 0,
+        `rows returned=${bReadProfile.data?.length ?? 0}`);
+
+      const bUpdProfile = await clientB
+        .from("user_profiles")
+        .update({ base_currency: "USD" })
+        .eq("user_id", userA.id)
+        .select();
+      check("User B cannot alter User A's profile", (bUpdProfile.data?.length ?? 0) === 0);
+
+      const bDelProfile = await clientB.from("user_profiles").delete().eq("user_id", userA.id).select();
+      check("User B cannot delete User A's profile", (bDelProfile.data?.length ?? 0) === 0);
+
+      const anonProfile = await anon.from("user_profiles").select("*").eq("user_id", userA.id);
+      check("Anonymous caller cannot read a profile", (anonProfile.data?.length ?? 0) === 0);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -467,6 +501,7 @@ async function main() {
         await service.from("balance_anchors").delete().in("user_id", ids);
         await service.from("subscription_decisions").delete().in("user_id", ids);
         await service.from("manual_recurring_bills").delete().in("user_id", ids);
+        await service.from("user_profiles").delete().in("user_id", ids);
       }
       for (const b of createdBuckets) {
         await service.from("rate_limit_events").delete().eq("bucket", b);

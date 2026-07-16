@@ -1,7 +1,7 @@
 import { analyzeRecurring } from "@/lib/recurring";
 import { computeSafeToSpend } from "@/lib/safeToSpend";
 import { catState, type CatState } from "@/app/app/components/FortuneCat";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency as fmtCurrency, DEFAULT_CURRENCY, DEFAULT_LOCALE } from "@/lib/format";
 import type { BalanceAnchor, Category, FortuneGoal, SlipSeverity, Transaction } from "@/lib/types";
 
 /**
@@ -167,6 +167,7 @@ function detailLine(
   categories: Category[],
   s: MonthSignals,
   today: Date,
+  fmt: (n: number) => string,
 ): string {
   const { upcoming } = analyzeRecurring(transactions, today);
 
@@ -174,7 +175,7 @@ function detailLine(
   if (urgentBill) {
     const when =
       urgentBill.daysUntil <= 0 ? "due now" : urgentBill.daysUntil === 1 ? "due tomorrow" : `due in ${urgentBill.daysUntil} days`;
-    return `${urgentBill.name} (~${formatCurrency(urgentBill.expectedAmount)}) is ${when}.`;
+    return `${urgentBill.name} (~${fmt(urgentBill.expectedAmount)}) is ${when}.`;
   }
 
   const pace = categoryPaceSignal(transactions, categories, today);
@@ -186,9 +187,9 @@ function detailLine(
   if (anyBill) {
     const when =
       anyBill.daysUntil <= 0 ? "due now" : anyBill.daysUntil === 1 ? "due tomorrow" : `due in ${anyBill.daysUntil} days`;
-    return `${anyBill.name} (~${formatCurrency(anyBill.expectedAmount)}) is ${when}.`;
+    return `${anyBill.name} (~${fmt(anyBill.expectedAmount)}) is ${when}.`;
   }
-  if (s.outTotal > 0) return `You're burning ${formatCurrency(s.burnPerDay)} a day this month.`;
+  if (s.outTotal > 0) return `You're burning ${fmt(s.burnPerDay)} a day this month.`;
   return "Nothing captured yet this month — the ledger is quiet.";
 }
 
@@ -204,6 +205,7 @@ function weeklyRecommendation(
   goals: FortuneGoal[],
   anchor: BalanceAnchor | null,
   today: Date,
+  fmt: (n: number) => string,
 ): string | null {
   const sts = computeSafeToSpend({ transactions, goals, anchor, today });
   if (sts.safe <= 0) return null;
@@ -213,7 +215,7 @@ function weeklyRecommendation(
   const dailyCap = sts.safe / Math.max(1, daysLeftInMonth);
   if (dailyCap <= 0) return null;
 
-  return `Keep today under ${formatCurrency(dailyCap)} and the week closes ahead.`;
+  return `Keep today under ${fmt(dailyCap)} and the week closes ahead.`;
 }
 
 export function computeSlip(
@@ -222,8 +224,13 @@ export function computeSlip(
   isPro: boolean,
   goals: FortuneGoal[],
   anchor: BalanceAnchor | null,
+  currency: string = DEFAULT_CURRENCY,
+  locale: string = DEFAULT_LOCALE,
   today = new Date(),
 ): FortuneSlip {
+  // One formatter bound to the user's currency, threaded through every line the
+  // slip prints, so the frozen slip text reads in their money.
+  const fmt = (n: number) => fmtCurrency(n, currency, locale);
   const s = monthSignals(transactions, today);
   const state = catState(s.net, s.burnDelta);
   const severity = severityFor(state, s.savingsRate);
@@ -236,7 +243,7 @@ export function computeSlip(
         [
           `A prosperous day — you're keeping ${s.savingsRate}% of what comes in.`,
           `The coin beckons: ${s.savingsRate}% of your income stayed put this month.`,
-          `Fortune smiles — ${formatCurrency(s.net)} saved so far this month.`,
+          `Fortune smiles — ${fmt(s.net)} saved so far this month.`,
         ],
         seed,
       );
@@ -244,7 +251,7 @@ export function computeSlip(
     case "good":
       headline = pick(
         [
-          `Steady fortune — you're ahead by ${formatCurrency(s.net)} this month.`,
+          `Steady fortune — you're ahead by ${fmt(s.net)} this month.`,
           `The cat is content: more came in than went out this month.`,
           s.burnDelta != null && s.burnDelta <= 0
             ? `Good pace — spending ${Math.abs(s.burnDelta)}% below last month.`
@@ -269,8 +276,8 @@ export function computeSlip(
         s.net < 0
           ? pick(
               [
-                `Ears back — you're ${formatCurrency(-s.net)} in the red this month.`,
-                `Guard your coin — out is beating in by ${formatCurrency(-s.net)}.`,
+                `Ears back — you're ${fmt(-s.net)} in the red this month.`,
+                `Guard your coin — out is beating in by ${fmt(-s.net)}.`,
               ],
               seed,
             )
@@ -288,7 +295,7 @@ export function computeSlip(
     severity,
     fortuneWord: FORTUNE_WORD[severity],
     headline,
-    detail: detailLine(transactions, categories, s, today),
-    recommendation: isPro ? weeklyRecommendation(transactions, goals, anchor, today) : null,
+    detail: detailLine(transactions, categories, s, today, fmt),
+    recommendation: isPro ? weeklyRecommendation(transactions, goals, anchor, today, fmt) : null,
   };
 }

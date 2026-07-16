@@ -1,5 +1,7 @@
+"use client";
+
 import { useMemo } from "react";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import type { Transaction } from "@/lib/types";
 
 type MonthRow = {
@@ -16,6 +18,7 @@ type MonthRow = {
  * month's heartbeat; this card shows the trend line behind it.
  */
 export default function MonthlyOverview({ transactions }: { transactions: Transaction[] }) {
+  const { format } = useMoney();
   const months = useMemo<MonthRow[]>(() => {
     const map = new Map<string, { inTotal: number; outTotal: number }>();
     for (const t of transactions) {
@@ -76,12 +79,12 @@ export default function MonthlyOverview({ transactions }: { transactions: Transa
                 }`}
               >
                 {m.net >= 0 ? "+" : "−"}
-                {formatCurrency(Math.abs(m.net))}
+                {format(Math.abs(m.net))}
               </span>
             </div>
             <div className="mt-0.5 flex justify-between pl-16 pr-24 font-mono text-[10px] text-ink-faint [font-variant-numeric:tabular-nums]">
-              <span className="text-emerald-700">▲ {formatCurrency(m.inTotal)}</span>
-              <span>▼ {formatCurrency(m.outTotal)}</span>
+              <span className="text-emerald-700">▲ {format(m.inTotal)}</span>
+              <span>▼ {format(m.outTotal)}</span>
             </div>
           </li>
         ))}

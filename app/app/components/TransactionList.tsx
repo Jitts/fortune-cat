@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import { resolveMerchant } from "@/lib/merchants";
 import type { Category, Transaction, TransactionProvenance } from "@/lib/types";
 import AiTagBadge from "./AiTagBadge";
@@ -44,6 +44,7 @@ function dayLabel(date: string) {
 // A net subtotal: green when money came in, red (strong, for months) or muted
 // (soft, for days) when more went out than came in.
 function NetAmount({ value, strong = false }: { value: number; strong?: boolean }) {
+  const { format } = useMoney();
   const positive = value >= 0;
   const cls = positive
     ? strong
@@ -55,7 +56,7 @@ function NetAmount({ value, strong = false }: { value: number; strong?: boolean 
   return (
     <span className={`[font-variant-numeric:tabular-nums] ${cls}`}>
       {positive ? "+" : "−"}
-      {formatCurrency(Math.abs(value))}
+      {format(Math.abs(value))}
     </span>
   );
 }
@@ -77,6 +78,7 @@ function TransactionRow({
   onRejectTag: (id: string) => void;
   tagPending: boolean;
 }) {
+  const { format } = useMoney();
   const category = categories.find((c) => c.id === t.category_id);
   const isIncome = t.type === "income";
   const prov = provenance[t.id];
@@ -164,7 +166,7 @@ function TransactionRow({
           className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700 dark:text-emerald-400" : "text-ink"}`}
         >
           {isIncome ? "+" : "-"}
-          {formatCurrency(t.amount)}
+          {format(t.amount)}
         </span>
       </button>
     </li>

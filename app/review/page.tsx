@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUserProfile } from "@/lib/profile";
 import ReviewShell from "./ReviewShell";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,8 @@ export default async function ReviewPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
+
+  const profile = await getUserProfile(supabase);
 
   const [{ data: connection }, { data: candidates }, { data: autoPosted }, { data: activePayment }] =
     await Promise.all([
@@ -41,6 +44,8 @@ export default async function ReviewPage() {
       initialAutoPosted={autoPosted ?? []}
       userEmail={user.email ?? ""}
       isPro={!!activePayment}
+      currency={profile.currency}
+      locale={profile.locale}
     />
   );
 }

@@ -10,7 +10,8 @@ import { processFetchedEmails, createTransactionFromCandidate } from "@/lib/emai
 import { parseStatementCsv, type StatementRow } from "@/lib/csv/parseStatement";
 import { parseStatementText } from "@/lib/docs/parseStatementText";
 import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
-import { convertToSgd } from "@/lib/fx";
+import { convertToBase } from "@/lib/fx";
+import { getBaseCurrency } from "@/lib/profile";
 import { suggestCategory } from "@/lib/tagger";
 import { inboxLimit } from "@/lib/email/inboxLimits";
 import { ensureGraphAccessToken, fetchRecentMessagesGraph } from "@/lib/email/graphClient";
@@ -781,10 +782,12 @@ export async function importDocument(formData: FormData): Promise<ImportResult> 
     };
   }
 
-  // Receipts parsed via the email heuristic may be in a foreign currency.
-  if (receipt && !statement.rows[0] && receipt.currency !== "SGD") {
-    const fx = await convertToSgd(receipt.amount, receipt.currency);
-    if (fx) single.amount = fx.sgd;
+  // Receipts parsed via the email heuristic may be in a foreign currency —
+  // foreign meaning "not the user's own base currency".
+  const baseCurrency = await getBaseCurrency(supabase, user.id);
+  if (receipt && !statement.rows[0] && receipt.currency !== baseCurrency) {
+    const fx = await convertToBase(receipt.amount, receipt.currency, baseCurrency);
+    if (fx) single.amount = fx.base;
     const rows = await importParsedRows(supabase, user.id, [single], { ...meta, source, skipped: 0 });
     if ("error" in rows) return rows;
     // Mark the FX guess for review visibility (importParsedRows only flags duplicates).
@@ -795,7 +798,7 @@ export async function importDocument(formData: FormData): Promise<ImportResult> 
         original_currency: receipt.currency,
         review_reason: fx
           ? `${receipt.currency} ${receipt.amount.toLocaleString("en-SG")} @ ${fx.rate.toFixed(4)} — confirm the rate`
-          : `${receipt.currency} ${receipt.amount.toLocaleString("en-SG")} — rate unavailable, edit the SGD amount`,
+          : `${receipt.currency} ${receipt.amount.toLocaleString("en-SG")} — rate unavailable, edit the ${baseCurrency} amount`,
       })
       .eq("user_id", user.id)
       .eq("status", "pending")

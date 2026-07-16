@@ -31,6 +31,7 @@ import TransactionForm, {
   transactionToFormValues,
 } from "./components/TransactionForm";
 import Toast from "./components/Toast";
+import { CurrencyProvider } from "@/app/components/CurrencyProvider";
 
 const VALID_TABS: ShrineTab[] = ["home", "ledger", "fortunes", "bills"];
 
@@ -40,6 +41,8 @@ export default function AppShell({
   initialTransactions,
   categories,
   isPro: initialIsPro,
+  currency,
+  locale,
   userEmail,
   pendingReviewCount,
   provenance,
@@ -55,6 +58,8 @@ export default function AppShell({
   initialTransactions: Transaction[];
   categories: Category[];
   isPro: boolean;
+  currency: string;
+  locale: string;
   userEmail: string;
   pendingReviewCount: number;
   provenance: Record<string, TransactionProvenance>;
@@ -260,6 +265,7 @@ export default function AppShell({
   };
 
   return (
+    <CurrencyProvider currency={currency} locale={locale}>
     <ShrineChrome
       active={active}
       onTab={setTab}
@@ -375,5 +381,6 @@ export default function AppShell({
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
     </ShrineChrome>
+    </CurrencyProvider>
   );
 }

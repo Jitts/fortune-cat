@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import type { FortuneGoal, Transaction } from "@/lib/types";
 import { createGoal, updateGoal, contributeToGoal, deleteGoal } from "../goalActions";
 
@@ -60,6 +60,7 @@ export default function FortuneGoals({
   transactions: Transaction[];
   isPro: boolean;
 }) {
+  const { format } = useMoney();
   const [items, setItems] = useState(goals);
   const [modal, setModal] = useState<Draft | null>(null);
   const [boostId, setBoostId] = useState<string | null>(null);
@@ -86,8 +87,8 @@ export default function FortuneGoals({
           {monthlyExpense > 0 && (
             <>
               {" "}
-              (<b>~{formatCurrency(recommendedEmergency)}</b>, six months of your ~
-              {formatCurrency(monthlyExpense)}/mo)
+              (<b>~{format(recommendedEmergency)}</b>, six months of your ~
+              {format(monthlyExpense)}/mo)
             </>
           )}
           .
@@ -212,7 +213,7 @@ export default function FortuneGoals({
             className="mt-3 rounded-lg bg-fortune-400 px-4 py-2 text-sm font-semibold text-fortune-700 hover:brightness-95"
           >
             Start an emergency fund
-            {recommendedEmergency > 0 && <> · {formatCurrency(recommendedEmergency)}</>}
+            {recommendedEmergency > 0 && <> · {format(recommendedEmergency)}</>}
           </button>
         </div>
       ) : (
@@ -234,7 +235,7 @@ export default function FortuneGoals({
                       )}
                     </p>
                     <p className="mt-0.5 text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
-                      {formatCurrency(g.saved_amount)} of {formatCurrency(g.target_amount)}
+                      {format(g.saved_amount)} of {format(g.target_amount)}
                       {g.target_date && (
                         <> · by {new Date(`${g.target_date}T00:00:00`).toLocaleDateString("en-SG", { month: "short", year: "numeric" })}</>
                       )}
@@ -249,7 +250,7 @@ export default function FortuneGoals({
 
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <p className="text-[11px] text-ink-faint [font-variant-numeric:tabular-nums]">
-                    {done ? "Fully funded — nice work." : `${formatCurrency(remaining)} to go`}
+                    {done ? "Fully funded — nice work." : `${format(remaining)} to go`}
                   </p>
                   <div className="flex items-center gap-3 text-xs">
                     <button
@@ -317,7 +318,7 @@ export default function FortuneGoals({
           onClick={() => openAdd("emergency")}
           className="mt-3 text-xs font-medium text-fortune-700 hover:underline"
         >
-          + Add an emergency fund{recommendedEmergency > 0 && <> ({formatCurrency(recommendedEmergency)} recommended)</>}
+          + Add an emergency fund{recommendedEmergency > 0 && <> ({format(recommendedEmergency)} recommended)</>}
         </button>
       )}
 
@@ -331,7 +332,7 @@ export default function FortuneGoals({
             {modal.kind === "emergency" && !modal.id && (
               <p className="mt-1 text-xs text-ink-subtle">
                 {monthlyExpense > 0
-                  ? `Recommended: ${formatCurrency(recommendedEmergency)} — six months of your ~${formatCurrency(monthlyExpense)}/mo spending. Adjust to taste.`
+                  ? `Recommended: ${format(recommendedEmergency)} — six months of your ~${format(monthlyExpense)}/mo spending. Adjust to taste.`
                   : "Aim for three to six months of expenses. Adjust as your spending history grows."}
               </p>
             )}

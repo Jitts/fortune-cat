@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import { monthPulse } from "@/lib/monthPulse";
 import type { Transaction } from "@/lib/types";
 
@@ -11,6 +11,7 @@ import type { Transaction } from "@/lib/types";
  * the Ledger tab while the luck ring lives in the cat rail.
  */
 export default function CashFlowBars({ transactions }: { transactions: Transaction[] }) {
+  const { format } = useMoney();
   const pulse = useMemo(() => monthPulse(transactions), [transactions]);
   const monthLabel = new Date().toLocaleDateString("en-SG", { month: "long", year: "numeric" });
 
@@ -19,8 +20,8 @@ export default function CashFlowBars({ transactions }: { transactions: Transacti
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-sm font-medium text-ink-subtle">Cash flow · {monthLabel}</p>
         <p className="font-mono text-xs [font-variant-numeric:tabular-nums]">
-          <span className="text-emerald-700 dark:text-emerald-400">▲ {formatCurrency(pulse.inTotal)}</span>
-          <span className="ml-3 text-ink-muted">▼ {formatCurrency(pulse.outTotal)}</span>
+          <span className="text-emerald-700 dark:text-emerald-400">▲ {format(pulse.inTotal)}</span>
+          <span className="ml-3 text-ink-muted">▼ {format(pulse.outTotal)}</span>
         </p>
       </div>
 
@@ -31,7 +32,7 @@ export default function CashFlowBars({ transactions }: { transactions: Transacti
               <div
                 key={i}
                 className="flex h-24 flex-1 flex-col items-center"
-                title={`${i + 1} ${monthLabel}: in ${formatCurrency(d.in)} · out ${formatCurrency(d.out)}`}
+                title={`${i + 1} ${monthLabel}: in ${format(d.in)} · out ${format(d.out)}`}
               >
                 <div className="flex w-full max-w-[16px] flex-1 items-end justify-center">
                   <div
@@ -57,7 +58,7 @@ export default function CashFlowBars({ transactions }: { transactions: Transacti
       )}
 
       <p className="mt-3 text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
-        Burning {formatCurrency(pulse.burnPerDay)}/day
+        Burning {format(pulse.burnPerDay)}/day
         {pulse.burnDelta != null && (
           <>
             {" · "}

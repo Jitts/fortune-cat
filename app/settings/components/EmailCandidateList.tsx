@@ -1,4 +1,7 @@
-import { formatCurrency, formatDate } from "@/lib/format";
+"use client";
+
+import { formatDate } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import type { EmailTransactionCandidate } from "@/lib/types";
 
 export default function EmailCandidateList({
@@ -14,6 +17,7 @@ export default function EmailCandidateList({
   onTrustSender: (fromAddress: string) => void;
   pendingId: string | null;
 }) {
+  const { format } = useMoney();
   if (candidates.length === 0) {
     return (
       <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-line">
@@ -42,7 +46,7 @@ export default function EmailCandidateList({
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 [font-variant-numeric:tabular-nums]">
                       {c.suggested_type === "income" ? "+" : "-"}
-                      {c.amount !== null ? formatCurrency(c.amount) : "—"}
+                      {c.amount !== null ? format(c.amount) : "—"}
                     </span>
                     {c.suggested_category && (
                       <span className="inline-flex items-center rounded-full bg-surface-3 px-2 py-0.5 text-xs font-medium text-ink-muted">

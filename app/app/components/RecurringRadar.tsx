@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { analyzeRecurring } from "@/lib/recurring";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import { addManualBill, deleteManualBill } from "../manualBillActions";
 import type { ManualRecurringBill, Transaction } from "@/lib/types";
 
@@ -28,6 +28,7 @@ function todayIso() {
  */
 function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecurringBill[] }) {
   const [manualBills, setManualBills] = useState(initial);
+  const { format } = useMoney();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -195,7 +196,7 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
                 }`}
               >
                 {b.type === "income" ? "+" : "−"}
-                {formatCurrency(b.amount)}
+                {format(b.amount)}
               </span>
               <button
                 onClick={() => handleDelete(b.id)}
@@ -234,6 +235,7 @@ export default function RecurringRadar({
   manualBills: ManualRecurringBill[];
   isPro: boolean;
 }) {
+  const { format } = useMoney();
   const { upcoming, alerts } = useMemo(() => analyzeRecurring(transactions), [transactions]);
   const hasDetected = upcoming.length > 0 || alerts.length > 0;
 
@@ -311,7 +313,7 @@ export default function RecurringRadar({
                         f.type === "income" ? "text-emerald-700" : "text-ink"
                       }`}
                     >
-                      {f.type === "income" ? "+" : "−"}~{formatCurrency(f.expectedAmount)}
+                      {f.type === "income" ? "+" : "−"}~{format(f.expectedAmount)}
                     </span>
                   </li>
                 ))}
@@ -333,7 +335,7 @@ export default function RecurringRadar({
                         {a.message}
                       </span>
                       <span className="shrink-0 font-semibold text-ink [font-variant-numeric:tabular-nums]">
-                        −{formatCurrency(a.amount)}
+                        −{format(a.amount)}
                       </span>
                     </li>
                   ))}

@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
 import { suggestAccountTag } from "@/lib/email/accountTag";
-import { convertToSgd } from "@/lib/fx";
+import { convertToBase } from "@/lib/fx";
+import { getBaseCurrency } from "@/lib/profile";
 import type { FetchedEmail } from "@/lib/email/imapClient";
 
 // Works with both the RLS-scoped server client (manual scans) and the
@@ -105,25 +106,27 @@ export async function processFetchedEmails(
   const accountTagger = options.accountTagger ?? suggestAccountTag;
   const source = options.source ?? "email";
   const patterns = trustedPatterns.map((p) => p.toLowerCase()).filter(Boolean);
+  // The user's own currency — anything else is "foreign" and routes to review.
+  const baseCurrency = await getBaseCurrency(supabase, userId);
 
   const candidateRows = [];
   for (const mail of emails) {
     const parsed = parser(mail.subject, mail.text);
     if (!parsed) continue;
 
-    const foreign = parsed.currency !== "SGD";
+    const foreign = parsed.currency !== baseCurrency;
     let amount = parsed.amount;
     let reviewReason: string | null = null;
 
     if (foreign) {
       // Foreign currency ALWAYS routes to review — a guessed rate never
-      // silently enters an SGD ledger. Conversion just prefills the number.
-      const fx = await convertToSgd(parsed.amount, parsed.currency);
+      // silently enters the ledger. Conversion just prefills the number.
+      const fx = await convertToBase(parsed.amount, parsed.currency, baseCurrency);
       if (fx) {
-        amount = fx.sgd;
+        amount = fx.base;
         reviewReason = `${parsed.currency} ${parsed.amount.toLocaleString("en-SG")} @ ${fx.rate.toFixed(4)} — confirm the rate`;
       } else {
-        reviewReason = `${parsed.currency} ${parsed.amount.toLocaleString("en-SG")} — rate unavailable, edit the SGD amount`;
+        reviewReason = `${parsed.currency} ${parsed.amount.toLocaleString("en-SG")} — rate unavailable, edit the ${baseCurrency} amount`;
       }
     }
 

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUserProfile } from "@/lib/profile";
 import type { BalanceAnchor, CategoryBudget, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, TransactionProvenance } from "@/lib/types";
 import AppShell from "./AppShell";
 
@@ -13,6 +14,48 @@ export default async function AppPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
+
+  // Profile (currency/locale/timezone) resolves in parallel with the data. It
+  // degrades to SG defaults when the table isn't there yet, so this is safe to
+  // deploy before migration 0021 is applied.
+  const [profile, bundle] = await Promise.all([
+    getUserProfile(supabase),
+    Promise.all([
+      supabase.from("transactions").select().order("date", { ascending: false }).order("created_at", { ascending: false }),
+      supabase.from("categories").select().order("name"),
+      supabase.from("payments").select("id").eq("status", "active").limit(1).maybeSingle(),
+      supabase
+        .from("email_transaction_candidates")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("email_transaction_candidates")
+        .select(
+          "transaction_id, source, from_address, subject, raw_snippet, message_id, email_date, review_reason, auto_posted",
+        )
+        .not("transaction_id", "is", null),
+      supabase.from("email_transaction_candidates").select("id", { count: "exact", head: true }),
+      supabase.from("trusted_senders").select("id", { count: "exact", head: true }),
+      supabase
+        .from("email_transaction_candidates")
+        .select("id", { count: "exact", head: true })
+        .in("source", ["csv", "pdf", "image"]),
+      supabase.from("fortune_goals").select().order("created_at", { ascending: true }),
+      supabase.from("category_budgets").select(),
+      supabase.from("fortune_slips").select().order("slip_date", { ascending: false }),
+      supabase
+        .from("balance_anchors")
+        .select()
+        .order("anchored_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase.from("subscription_decisions").select(),
+      supabase.from("manual_recurring_bills").select().order("next_due_date", { ascending: true }),
+    ]),
+  ]);
+
+  // Send brand-new users through the one-step country/currency setup first.
+  if (profile.needsOnboarding) redirect("/welcome");
 
   const [
     { data: transactions },
@@ -29,42 +72,12 @@ export default async function AppPage() {
     { data: anchor },
     { data: subscriptionDecisions },
     { data: manualBills },
-  ] = await Promise.all([
-    supabase.from("transactions").select().order("date", { ascending: false }).order("created_at", { ascending: false }),
-    supabase.from("categories").select().order("name"),
-    supabase.from("payments").select("id").eq("status", "active").limit(1).maybeSingle(),
-    supabase
-      .from("email_transaction_candidates")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
-    supabase
-      .from("email_transaction_candidates")
-      .select(
-        "transaction_id, source, from_address, subject, raw_snippet, message_id, email_date, review_reason, auto_posted",
-      )
-      .not("transaction_id", "is", null),
-    supabase.from("email_transaction_candidates").select("id", { count: "exact", head: true }),
-    supabase.from("trusted_senders").select("id", { count: "exact", head: true }),
-    supabase
-      .from("email_transaction_candidates")
-      .select("id", { count: "exact", head: true })
-      .in("source", ["csv", "pdf", "image"]),
-    supabase.from("fortune_goals").select().order("created_at", { ascending: true }),
-    supabase.from("category_budgets").select(),
-    supabase.from("fortune_slips").select().order("slip_date", { ascending: false }),
-    supabase
-      .from("balance_anchors")
-      .select()
-      .order("anchored_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase.from("subscription_decisions").select(),
-    supabase.from("manual_recurring_bills").select().order("next_due_date", { ascending: true }),
-  ]);
+  ] = bundle;
 
   // Daily fortune: today's drawn slip (if any) + the consecutive-day streak.
-  // All arithmetic in UTC-day units so the server's timezone can't shift it.
-  const sgToday = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Singapore" });
+  // "Today" is the user's local calendar date; arithmetic in UTC-day units so
+  // the server's timezone can't shift it.
+  const sgToday = new Date().toLocaleDateString("en-CA", { timeZone: profile.timezone });
   const slipDates = new Set((slips ?? []).map((s) => (s as FortuneSlipRow).slip_date));
   const todaySlip = ((slips ?? []) as FortuneSlipRow[]).find((s) => s.slip_date === sgToday) ?? null;
   const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10);
@@ -95,6 +108,8 @@ export default async function AppPage() {
         initialTransactions={transactions ?? []}
         categories={categories ?? []}
         isPro={!!activePayment}
+        currency={profile.currency}
+        locale={profile.locale}
         userEmail={user.email ?? ""}
         pendingReviewCount={pendingReviewCount ?? 0}
         provenance={provenance}

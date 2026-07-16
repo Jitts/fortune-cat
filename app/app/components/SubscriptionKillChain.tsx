@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { detectSubscriptions } from "@/lib/subscriptions";
 import { getPlaybook } from "@/lib/cancelPlaybooks";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import { setSubscriptionDecision } from "../subscriptionActions";
 import type { SubscriptionDecision, SubscriptionStatus, Transaction } from "@/lib/types";
 
@@ -37,6 +37,7 @@ export default function SubscriptionKillChain({
   decisions: SubscriptionDecision[];
   isPro: boolean;
 }) {
+  const { format } = useMoney();
   const subs = useMemo(() => detectSubscriptions(transactions), [transactions]);
 
   const [decisionMap, setDecisionMap] = useState<Record<string, SubscriptionDecision>>(() =>
@@ -59,7 +60,7 @@ export default function SubscriptionKillChain({
         </div>
         <p className="mt-2 text-sm text-ink-muted">
           Found <b>{subs.length} subscription{subs.length === 1 ? "" : "s"}</b> costing about{" "}
-          <b>{formatCurrency(annualTotal)}/year</b>. Go Pro for cancel playbooks and to track what
+          <b>{format(annualTotal)}/year</b>. Go Pro for cancel playbooks and to track what
           you kill.
         </p>
         <Link
@@ -120,7 +121,7 @@ export default function SubscriptionKillChain({
         </div>
         {freedAnnual > 0 && (
           <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 [font-variant-numeric:tabular-nums]">
-            freed {formatCurrency(freedAnnual)}/yr
+            freed {format(freedAnnual)}/yr
           </span>
         )}
       </div>
@@ -155,11 +156,11 @@ export default function SubscriptionKillChain({
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-ink [font-variant-numeric:tabular-nums]">
-                    {formatCurrency(sub.monthlyAmount)}
+                    {format(sub.monthlyAmount)}
                     <span className="font-normal text-ink-faint">/mo</span>
                   </p>
                   <p className="text-[11px] text-ink-subtle [font-variant-numeric:tabular-nums]">
-                    {formatCurrency(sub.annualAmount)}/yr
+                    {format(sub.annualAmount)}/yr
                   </p>
                 </div>
               </div>

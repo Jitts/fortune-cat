@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { computeAttention } from "@/lib/attention";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import DailyFortuneSlip from "./DailyFortuneSlip";
 import type { Category, CategoryBudget, FortuneSlipRow, Transaction } from "@/lib/types";
 
@@ -25,9 +26,10 @@ export default function SlipsPanel({
   slipStreak: number;
   heading?: boolean;
 }) {
+  const { currency, locale } = useMoney();
   const attention = useMemo(
-    () => computeAttention(transactions, categories, budgets),
-    [transactions, categories, budgets],
+    () => computeAttention(transactions, categories, budgets, currency, locale),
+    [transactions, categories, budgets, currency, locale],
   );
 
   return (

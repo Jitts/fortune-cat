@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { computeSafeToSpend } from "@/lib/safeToSpend";
-import { formatCurrency } from "@/lib/format";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import { setBalanceAnchor } from "../balanceActions";
 import type { BalanceAnchor, FortuneGoal, Transaction } from "@/lib/types";
 
@@ -24,6 +24,7 @@ export default function PouchSummary({
   anchor: BalanceAnchor | null;
   isPro: boolean;
 }) {
+  const { format } = useMoney();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
@@ -99,7 +100,7 @@ export default function PouchSummary({
         }`}
       >
         {negative ? "−" : ""}
-        {formatCurrency(Math.abs(sts.safe))}
+        {format(Math.abs(sts.safe))}
       </p>
 
       <dl className="mt-3 space-y-1 border-t border-line pt-3 text-xs [font-variant-numeric:tabular-nums]">
@@ -109,7 +110,7 @@ export default function PouchSummary({
               {line.kind === "sub" ? "− " : ""}
               {line.label}
             </dt>
-            <dd className="text-ink">{formatCurrency(line.amount)}</dd>
+            <dd className="text-ink">{format(line.amount)}</dd>
           </div>
         ))}
       </dl>
