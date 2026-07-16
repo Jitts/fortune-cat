@@ -1,9 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
+import { regionForCountry, CURRENCIES } from "@/lib/regions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -137,4 +139,59 @@ export async function deleteAccount(formData: FormData): Promise<{ error: string
 
   await supabase.auth.signOut();
   redirect("/");
+}
+
+/**
+ * Update the user's region/currency after onboarding — for anyone who picked
+ * the wrong country at setup. Country drives locale + timezone; currency
+ * defaults to the country's but may be overridden. This relabels how money is
+ * shown; it does NOT convert amounts already logged (the caller warns about
+ * that). Upsert keeps it a single owner-only row.
+ */
+export async function updateRegion(
+  formData: FormData,
+): Promise<{ error: string } | { success: true }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const country = String(formData.get("country") ?? "").toUpperCase();
+  const currencyRaw = String(formData.get("currency") ?? "").toUpperCase();
+  const region = regionForCountry(country);
+  if (!region) return { error: "Please choose a country." };
+  const currency = CURRENCIES.includes(currencyRaw) ? currencyRaw : region.currency;
+
+  const now = new Date().toISOString();
+  const { error } = await supabase.from("user_profiles").upsert(
+    {
+      user_id: user.id,
+      country: region.code,
+      base_currency: currency,
+      locale: region.locale,
+      timezone: region.timezone,
+      onboarded_at: now,
+      updated_at: now,
+    },
+    { onConflict: "user_id" },
+  );
+
+  if (error) {
+    console.error("[updateRegion]", error);
+    return { error: "Could not save — please try again." };
+  }
+
+  await logAudit(supabase, {
+    action: "profile.region_updated",
+    entityType: "user_profile",
+    entityId: user.id,
+    payload: { country: region.code, currency },
+    riskLevel: "low",
+    userId: user.id,
+  });
+
+  revalidatePath("/app");
+  revalidatePath("/settings");
+  return { success: true };
 }

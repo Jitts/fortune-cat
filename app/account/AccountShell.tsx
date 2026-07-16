@@ -5,6 +5,7 @@ import Link from "next/link";
 import ProBadge from "@/app/app/components/ProBadge";
 import Toast from "@/app/app/components/Toast";
 import ThemeToggle from "@/app/components/ThemeToggle";
+import RegionSettings from "./RegionSettings";
 import { signOutAction } from "@/app/auth/actions";
 import type { Category, Transaction } from "@/lib/types";
 import { transactionsToCsv } from "@/lib/exportCsv";
@@ -15,11 +16,15 @@ export default function AccountShell({
   isPro,
   transactions,
   categories,
+  country,
+  currency,
 }: {
   userEmail: string;
   isPro: boolean;
   transactions: Transaction[];
   categories: Category[];
+  country: string | null;
+  currency: string;
 }) {
   const [toast, setToast] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -105,6 +110,9 @@ export default function AccountShell({
           <ThemeToggle />
         </div>
       </div>
+
+      {/* ===== Region & currency ===== */}
+      <RegionSettings initialCountry={country} initialCurrency={currency} />
 
       {/* ===== Account ===== */}
       <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">

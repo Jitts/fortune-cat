@@ -1,53 +1,12 @@
 import Link from "next/link";
+import { PRO_FEATURES } from "@/lib/proFeatures";
 
 /**
- * Every benefit here maps to a real Pro gate in the app (grep `isPro`) — no
- * feature is invented for marketing. Keep this list in sync with the bullets
- * on /upgrade when a new Pro gate is added.
+ * The homepage Pro section. Its feature list is the shared lib/proFeatures set,
+ * the single source of truth also used by /upgrade — so the two never drift.
+ * Every item maps to a real Pro gate in the app (grep `isPro`); nothing is
+ * invented for marketing.
  */
-const FEATURES = [
-  {
-    icon: "🔭",
-    title: "Recurring radar",
-    desc: "Every recurring bill and subscription detected automatically, with alerts on spikes, double-charges, and new billers.",
-  },
-  {
-    icon: "🗡️",
-    title: "Subscription kill-chain",
-    desc: "A cancel playbook for every subscription found, plus a running tally of what you've freed per year.",
-  },
-  {
-    icon: "👛",
-    title: "Safe-to-spend",
-    desc: "See exactly what's yours to spend this month, after bills and goal set-asides — not just your balance.",
-  },
-  {
-    icon: "🎯",
-    title: "Fortune Goals",
-    desc: "Save toward a goal on a real plan — emergency funds size themselves to six months of your actual spending.",
-  },
-  {
-    icon: "📊",
-    title: "Deep analytics",
-    desc: "Savings rate and cash flow with period comparisons, a category ranking, and the trend behind the numbers.",
-  },
-  {
-    icon: "🎴",
-    title: "Sharper daily fortune",
-    desc: "Your slip adds a same-day spending cap, so the reading tells you what to actually do about it.",
-  },
-  {
-    icon: "📜",
-    title: "Full history",
-    desc: "See every transaction you've ever logged — the free tier only shows your last 10.",
-  },
-  {
-    icon: "📥",
-    title: "3 capture inboxes",
-    desc: "Connect up to three email inboxes for auto-capture, instead of one.",
-  },
-];
-
 export default function ProShowcase() {
   return (
     <section className="border-t border-line">
@@ -66,7 +25,7 @@ export default function ProShowcase() {
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
+          {PRO_FEATURES.map((f) => (
             <div key={f.title} className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
               <span className="text-2xl" aria-hidden>
                 {f.icon}

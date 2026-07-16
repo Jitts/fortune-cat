@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUserProfile } from "@/lib/profile";
 import SettingsShell from "./SettingsShell";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,8 @@ export default async function SettingsPage() {
   const votedIds = new Set((myVotes ?? []).map((v) => v.feature_request_id));
   const requestsWithVoteState = (featureRequests ?? []).map((r) => ({ ...r, hasVoted: votedIds.has(r.id) }));
 
+  const profile = await getUserProfile(supabase);
+
   return (
     <SettingsShell
       initialConnections={connections ?? []}
@@ -59,6 +62,8 @@ export default async function SettingsPage() {
       transactions={transactions ?? []}
       categories={categories ?? []}
       initialRequests={requestsWithVoteState}
+      country={profile.country}
+      currency={profile.currency}
     />
   );
 }

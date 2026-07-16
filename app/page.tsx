@@ -45,9 +45,9 @@ export default async function Home() {
             Your money logs itself.
           </h1>
           <p className="text-lg text-ink-muted">
-            Fortune Cat reads the SMS, emails and statements your banks already send you — parsed
-            on your device, no bank login — and turns them into a live cash-flow ledger. Built for
-            Singapore.
+            Fortune Cat reads the SMS, emails and statements your bank already sends you — parsed
+            on your device, no bank login — and turns them into a live cash-flow ledger, in your
+            own currency.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link

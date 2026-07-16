@@ -33,6 +33,8 @@ export default function SettingsShell({
   transactions,
   categories,
   initialRequests,
+  country,
+  currency,
 }: {
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
@@ -44,6 +46,8 @@ export default function SettingsShell({
   transactions: Transaction[];
   categories: Category[];
   initialRequests: FeatureRequest[];
+  country: string | null;
+  currency: string;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -82,7 +86,7 @@ export default function SettingsShell({
           />
         )}
         {active === "account" && (
-          <AccountShell userEmail={userEmail} isPro={isPro} transactions={transactions} categories={categories} />
+          <AccountShell userEmail={userEmail} isPro={isPro} transactions={transactions} categories={categories} country={country} currency={currency} />
         )}
         {active === "feedback" && <FeedbackShell initialRequests={initialRequests} />}
       </div>
