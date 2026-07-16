@@ -106,11 +106,24 @@ export async function processFetchedEmails(
   const accountTagger = options.accountTagger ?? suggestAccountTag;
   const source = options.source ?? "email";
   const patterns = trustedPatterns.map((p) => p.toLowerCase()).filter(Boolean);
+  // Blocked senders are skipped before parsing — loaded here so every caller
+  // (manual scan, scan-older, cron, SMS) gets the same guard. A missing table
+  // (pre-migration 0022) errors into null → nothing blocked, scans unaffected.
+  const { data: blockedRows } = await supabase
+    .from("blocked_senders")
+    .select("pattern")
+    .eq("user_id", userId);
+  const blocked = ((blockedRows ?? []) as { pattern: string }[])
+    .map((r) => r.pattern.toLowerCase())
+    .filter(Boolean);
   // The user's own currency — anything else is "foreign" and routes to review.
   const baseCurrency = await getBaseCurrency(supabase, userId);
 
   const candidateRows = [];
   for (const mail of emails) {
+    const from = mail.from.toLowerCase();
+    if (blocked.some((p) => from.includes(p))) continue;
+
     const parsed = parser(mail.subject, mail.text);
     if (!parsed) continue;
 
@@ -130,7 +143,6 @@ export async function processFetchedEmails(
       }
     }
 
-    const from = mail.from.toLowerCase();
     const trusted = patterns.some((p) => from.includes(p));
     if (!trusted && !reviewReason) reviewReason = "unrecognised sender";
 

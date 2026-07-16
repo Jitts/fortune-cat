@@ -9,12 +9,14 @@ export default function EmailCandidateList({
   onAccept,
   onDismiss,
   onTrustSender,
+  onBlockSender,
   pendingId,
 }: {
   candidates: EmailTransactionCandidate[];
   onAccept: (id: string) => void;
   onDismiss: (id: string) => void;
   onTrustSender: (fromAddress: string) => void;
+  onBlockSender?: (fromAddress: string) => void;
   pendingId: string | null;
 }) {
   const { format } = useMoney();
@@ -99,6 +101,16 @@ export default function EmailCandidateList({
                       className="rounded-md px-2 py-1 text-[11px] font-medium text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50 disabled:opacity-50"
                     >
                       Trust sender
+                    </button>
+                  )}
+                  {onBlockSender && c.from_address && (
+                    <button
+                      onClick={() => onBlockSender(c.from_address!)}
+                      disabled={pendingId === c.id}
+                      title="Skip this sender in every future scan and dismiss its pending items"
+                      className="rounded-md px-2 py-1 text-[11px] font-medium text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      Block sender
                     </button>
                   )}
                 </div>

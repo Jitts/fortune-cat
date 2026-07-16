@@ -348,6 +348,37 @@ async function main() {
 
       const anonProfile = await anon.from("user_profiles").select("*").eq("user_id", userA.id);
       check("Anonymous caller cannot read a profile", (anonProfile.data?.length ?? 0) === 0);
+
+      // Blocked senders — personal capture deny-list, strictly private.
+      const { data: aBlocked } = await clientA
+        .from("blocked_senders")
+        .insert({ user_id: userA.id, pattern: `junk-${stamp}.example` })
+        .select()
+        .single();
+      check("User A can create its own blocked sender", !!aBlocked);
+
+      const bReadBlocked = await clientB.from("blocked_senders").select("*").eq("id", aBlocked?.id ?? "");
+      check("User B cannot read User A's blocked sender", (bReadBlocked.data?.length ?? 0) === 0,
+        `rows returned=${bReadBlocked.data?.length ?? 0}`);
+
+      const bDelBlocked = await clientB.from("blocked_senders").delete().eq("id", aBlocked?.id ?? "").select();
+      check("User B cannot delete User A's blocked sender", (bDelBlocked.data?.length ?? 0) === 0);
+
+      const anonBlocked = await anon.from("blocked_senders").select("*").eq("id", aBlocked?.id ?? "");
+      check("Anonymous caller cannot read a blocked sender", (anonBlocked.data?.length ?? 0) === 0);
+
+      // Sender signals — anonymous global aggregate: RLS with no policies, so
+      // NOBODY below service role can read or write it, signed in or not.
+      const userReadSignals = await clientA.from("sender_signals").select("*").limit(1);
+      check("Signed-in user cannot read sender signals", (userReadSignals.data?.length ?? 0) === 0);
+
+      const userWriteSignals = await clientA
+        .from("sender_signals")
+        .insert({ domain: `poison-${stamp}.example`, country: "SG", block_count: 999 });
+      check("Signed-in user cannot write sender signals", !!userWriteSignals.error);
+
+      const anonSignals = await anon.from("sender_signals").select("*").limit(1);
+      check("Anonymous caller cannot read sender signals", (anonSignals.data?.length ?? 0) === 0);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -502,6 +533,8 @@ async function main() {
         await service.from("subscription_decisions").delete().in("user_id", ids);
         await service.from("manual_recurring_bills").delete().in("user_id", ids);
         await service.from("user_profiles").delete().in("user_id", ids);
+        await service.from("blocked_senders").delete().in("user_id", ids);
+        await service.from("sender_signals").delete().like("domain", "%.example");
       }
       for (const b of createdBuckets) {
         await service.from("rate_limit_events").delete().eq("bucket", b);

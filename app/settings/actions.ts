@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
 import { testImapConnection, fetchRecentEmails, fetchOlderEmails } from "@/lib/email/imapClient";
@@ -11,11 +12,11 @@ import { parseStatementCsv, type StatementRow } from "@/lib/csv/parseStatement";
 import { parseStatementText } from "@/lib/docs/parseStatementText";
 import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
 import { convertToBase } from "@/lib/fx";
-import { getBaseCurrency } from "@/lib/profile";
+import { getBaseCurrency, getUserProfile } from "@/lib/profile";
 import { suggestCategory } from "@/lib/tagger";
 import { inboxLimit } from "@/lib/email/inboxLimits";
 import { ensureGraphAccessToken, fetchRecentMessagesGraph } from "@/lib/email/graphClient";
-import type { EmailConnection, EmailTransactionCandidate, Transaction, TrustedSender } from "@/lib/types";
+import type { BlockedSender, EmailConnection, EmailTransactionCandidate, Transaction, TrustedSender } from "@/lib/types";
 
 type ConnectResult = { data: EmailConnection; error?: undefined } | { data?: undefined; error: string };
 
@@ -537,6 +538,163 @@ export async function untrustSender(id: string): Promise<{ error?: string }> {
   });
 
   revalidatePath("/settings");
+  return {};
+}
+
+type BlockResult =
+  | { data: BlockedSender; dismissed: number; error?: undefined }
+  | { data?: undefined; error: string };
+
+// Freemail domains never contribute to the anonymous global aggregate — one
+// person blocking a personal contact must not nudge a shared domain's score.
+const FREEMAIL_DOMAINS = new Set([
+  "gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "live.com",
+  "msn.com", "yahoo.com", "yahoo.com.sg", "ymail.com", "icloud.com", "me.com",
+  "mac.com", "proton.me", "protonmail.com", "pm.me", "aol.com", "gmx.com",
+  "zoho.com", "mail.com", "qq.com", "163.com", "126.com", "naver.com",
+]);
+
+/**
+ * Anonymous (domain, country) block tally — service-role write, no user ids.
+ * Best-effort: a signal failure never fails the user's block/unblock.
+ */
+async function bumpSenderSignal(domain: string, country: string, delta: 1 | -1) {
+  if (FREEMAIL_DOMAINS.has(domain) || !domain.includes(".")) return;
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("sender_signals")
+      .select("block_count")
+      .eq("domain", domain)
+      .eq("country", country)
+      .maybeSingle();
+    // ponytail: read-modify-write race under concurrent blocks; swap for an
+    // atomic RPC if signal volume ever matters.
+    await admin.from("sender_signals").upsert(
+      {
+        domain,
+        country,
+        block_count: Math.max(0, (data?.block_count ?? 0) + delta),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "domain,country" },
+    );
+  } catch (err) {
+    console.error("[bumpSenderSignal]", err);
+  }
+}
+
+/**
+ * The mirror of trustSender: every future scan skips this sender entirely,
+ * and its currently-pending review items are dismissed on the spot.
+ */
+export async function blockSender(fromAddress: string): Promise<BlockResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+  if (typeof fromAddress !== "string" || !fromAddress.trim()) return { error: "Missing sender." };
+
+  const emailMatch = fromAddress.toLowerCase().match(/@([a-z0-9.-]+)/);
+  const pattern = (emailMatch?.[1] ?? fromAddress.toLowerCase()).trim();
+  if (!pattern || pattern.length < 3) return { error: "Could not read a sender domain." };
+
+  // First-time block by this user drives the distinct-user aggregate below.
+  const { data: existing } = await supabase
+    .from("blocked_senders")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("pattern", pattern)
+    .maybeSingle();
+
+  const { data, error } = await supabase
+    .from("blocked_senders")
+    .upsert({ user_id: user.id, pattern }, { onConflict: "user_id,pattern" })
+    .select()
+    .single();
+
+  if (error || !data) {
+    console.error("[blockSender]", error);
+    return { error: "Could not save — please try again." };
+  }
+
+  // Sweep the sender's pending review items — same substring match the scans
+  // use, applied in JS so the semantics can never drift from processScan.
+  const { data: pendingRows } = await supabase
+    .from("email_transaction_candidates")
+    .select("id, from_address")
+    .eq("user_id", user.id)
+    .eq("status", "pending");
+  const ids = (pendingRows ?? [])
+    .filter((c) => (c.from_address ?? "").toLowerCase().includes(pattern))
+    .map((c) => c.id);
+  if (ids.length > 0) {
+    await supabase
+      .from("email_transaction_candidates")
+      .update({ status: "dismissed" })
+      .in("id", ids)
+      .eq("user_id", user.id);
+  }
+
+  if (!existing) {
+    const profile = await getUserProfile(supabase);
+    await bumpSenderSignal(pattern, profile.country ?? "", 1);
+  }
+
+  await logAudit(supabase, {
+    action: "blocked_sender.added",
+    entityType: "blocked_sender",
+    entityId: data.id,
+    payload: { pattern, dismissed: ids.length },
+    riskLevel: "medium",
+    userId: user.id,
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/app");
+  return { data, dismissed: ids.length };
+}
+
+export async function unblockSender(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const { data: existing } = await supabase
+    .from("blocked_senders")
+    .select("id, pattern")
+    .eq("user_id", user.id)
+    .eq("id", id)
+    .maybeSingle();
+  if (!existing) return { error: "Could not find that blocked sender." };
+
+  const { error } = await supabase
+    .from("blocked_senders")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("id", id);
+  if (error) {
+    console.error("[unblockSender]", error);
+    return { error: "Could not remove — please try again." };
+  }
+
+  const profile = await getUserProfile(supabase);
+  await bumpSenderSignal(existing.pattern, profile.country ?? "", -1);
+
+  await logAudit(supabase, {
+    action: "blocked_sender.removed",
+    entityType: "blocked_sender",
+    entityId: id,
+    payload: { pattern: existing.pattern },
+    riskLevel: "medium",
+    userId: user.id,
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/app");
   return {};
 }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { EmailConnection, SmsTokenInfo, TrustedSender } from "@/lib/types";
+import type { BlockedSender, EmailConnection, SmsTokenInfo, TrustedSender } from "@/lib/types";
 import {
   connectEmailAccount,
   disableSmsForwarding,
@@ -14,6 +14,7 @@ import {
   scanEmailInbox,
   scanOlderEmails,
   trustSender,
+  unblockSender,
   untrustSender,
 } from "../actions";
 import ConnectEmailForm from "./ConnectEmailForm";
@@ -49,12 +50,14 @@ function MicrosoftConnectButton() {
 export default function CaptureSettings({
   initialConnections,
   initialTrustedSenders,
+  initialBlockedSenders,
   initialSmsToken,
   isPro,
   msOAuthAvailable,
 }: {
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
+  initialBlockedSenders: BlockedSender[];
   initialSmsToken: SmsTokenInfo | null;
   isPro: boolean;
   msOAuthAvailable: boolean;
@@ -63,6 +66,7 @@ export default function CaptureSettings({
   const searchParams = useSearchParams();
   const [connections, setConnections] = useState(initialConnections);
   const [trustedSenders, setTrustedSenders] = useState(initialTrustedSenders);
+  const [blockedSenders, setBlockedSenders] = useState(initialBlockedSenders);
   const [smsToken, setSmsToken] = useState(initialSmsToken);
   const [showSmsGuide, setShowSmsGuide] = useState(false);
   const [newPattern, setNewPattern] = useState("");
@@ -90,6 +94,7 @@ export default function CaptureSettings({
   // after router.refresh() post-scan) — useState only seeds from props once.
   useEffect(() => setConnections(initialConnections), [initialConnections]);
   useEffect(() => setTrustedSenders(initialTrustedSenders), [initialTrustedSenders]);
+  useEffect(() => setBlockedSenders(initialBlockedSenders), [initialBlockedSenders]);
   useEffect(() => setSmsToken(initialSmsToken), [initialSmsToken]);
 
   // Surface the outcome of the Microsoft OAuth round-trip (the callback redirects
@@ -225,6 +230,18 @@ export default function CaptureSettings({
         return;
       }
       setTrustedSenders((prev) => prev.filter((t) => t.id !== id));
+    });
+  }
+
+  function handleUnblock(id: string) {
+    startTransition(async () => {
+      const result = await unblockSender(id);
+      if (result.error) {
+        setToast(result.error);
+        return;
+      }
+      setBlockedSenders((prev) => prev.filter((b) => b.id !== id));
+      setToast("Unblocked — future captures from it will appear again.");
     });
   }
 
@@ -516,6 +533,34 @@ export default function CaptureSettings({
               Trust domain
             </button>
           </form>
+        </div>
+      )}
+
+      {blockedSenders.length > 0 && (
+        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+          <h2 className="text-sm font-medium text-ink-subtle">🚫 Blocked senders</h2>
+          <p className="mt-1 text-xs text-ink-faint">
+            Scans skip these senders entirely — nothing from them reaches your ledger or review.
+            Block one from any review item; unblock here if you change your mind.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {blockedSenders.map((b) => (
+              <span
+                key={b.id}
+                className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 font-mono text-xs text-red-700"
+              >
+                🚫 {b.pattern}
+                <button
+                  onClick={() => handleUnblock(b.id)}
+                  disabled={pending}
+                  title={`Let captures from ${b.pattern} through again`}
+                  className="text-red-400 hover:text-red-800 disabled:opacity-50"
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
       )}
 

@@ -7,6 +7,7 @@ import type { EmailTransactionCandidate } from "@/lib/types";
 import {
   acceptAllCleanCandidates,
   acceptEmailCandidate,
+  blockSender,
   dismissEmailCandidate,
   trustSender,
   undoAutoPost,
@@ -86,6 +87,24 @@ export default function ReviewShell({
     });
   }
 
+  function handleBlockSender(fromAddress: string) {
+    startTransition(async () => {
+      const result = await blockSender(fromAddress);
+      if (result.error || !result.data) {
+        setToast(result.error ?? "Could not save — please try again.");
+        return;
+      }
+      const pattern = result.data.pattern;
+      setCandidates((prev) =>
+        prev.filter((c) => !(c.from_address ?? "").toLowerCase().includes(pattern)),
+      );
+      setToast(
+        `Blocked ${pattern} — future scans skip it${result.dismissed > 0 ? ` (${result.dismissed} pending item${result.dismissed === 1 ? "" : "s"} dismissed)` : ""}. Unblock in Settings › Capture.`,
+      );
+      router.refresh();
+    });
+  }
+
   function handleAcceptAll() {
     startBulkAccept(async () => {
       const result = await acceptAllCleanCandidates();
@@ -143,6 +162,7 @@ export default function ReviewShell({
             onAccept={handleAccept}
             onDismiss={handleDismiss}
             onTrustSender={handleTrustSender}
+            onBlockSender={handleBlockSender}
             pendingId={candidateActionId}
           />
         ) : (

@@ -5,7 +5,7 @@ import AppChrome from "@/app/components/AppChrome";
 import AccountShell from "@/app/account/AccountShell";
 import FeedbackShell from "@/app/feedback/FeedbackShell";
 import CaptureSettings from "./components/CaptureSettings";
-import type { Category, EmailConnection, FeatureRequest, SmsTokenInfo, Transaction, TrustedSender } from "@/lib/types";
+import type { BlockedSender, Category, EmailConnection, FeatureRequest, SmsTokenInfo, Transaction, TrustedSender } from "@/lib/types";
 
 type SettingsTab = "capture" | "account" | "feedback";
 
@@ -25,6 +25,7 @@ const TABS: { id: SettingsTab; label: string }[] = [
 export default function SettingsShell({
   initialConnections,
   initialTrustedSenders,
+  initialBlockedSenders,
   initialSmsToken,
   pendingReviewCount,
   userEmail,
@@ -38,6 +39,7 @@ export default function SettingsShell({
 }: {
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
+  initialBlockedSenders: BlockedSender[];
   initialSmsToken: SmsTokenInfo | null;
   pendingReviewCount: number;
   userEmail: string;
@@ -80,6 +82,7 @@ export default function SettingsShell({
           <CaptureSettings
             initialConnections={initialConnections}
             initialTrustedSenders={initialTrustedSenders}
+            initialBlockedSenders={initialBlockedSenders}
             initialSmsToken={initialSmsToken}
             isPro={isPro}
             msOAuthAvailable={msOAuthAvailable}

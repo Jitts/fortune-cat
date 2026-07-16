@@ -15,6 +15,7 @@ export default async function SettingsPage() {
   const [
     { data: connections },
     { data: trustedSenders },
+    { data: blockedSenders },
     { count: pendingReviewCount },
     { data: activePayment },
     { data: smsToken },
@@ -29,6 +30,7 @@ export default async function SettingsPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: true }),
     supabase.from("trusted_senders").select().eq("user_id", user.id).order("pattern"),
+    supabase.from("blocked_senders").select().eq("user_id", user.id).order("pattern"),
     supabase
       .from("email_transaction_candidates")
       .select("id", { count: "exact", head: true })
@@ -54,6 +56,7 @@ export default async function SettingsPage() {
     <SettingsShell
       initialConnections={connections ?? []}
       initialTrustedSenders={trustedSenders ?? []}
+      initialBlockedSenders={blockedSenders ?? []}
       initialSmsToken={smsToken ?? null}
       pendingReviewCount={pendingReviewCount ?? 0}
       userEmail={user.email ?? ""}
