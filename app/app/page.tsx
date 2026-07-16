@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/profile";
-import type { BalanceAnchor, CategoryBudget, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, TransactionProvenance } from "@/lib/types";
+import type { BalanceAnchor, CategoryBudget, EmailConnection, EmailTransactionCandidate, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, TransactionProvenance } from "@/lib/types";
 import AppShell from "./AppShell";
 
 export const dynamic = "force-dynamic";
@@ -26,8 +26,10 @@ export default async function AppPage() {
       supabase.from("payments").select("id").eq("status", "active").limit(1).maybeSingle(),
       supabase
         .from("email_transaction_candidates")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending"),
+        .select()
+        .eq("status", "pending")
+        .order("email_date", { ascending: false }),
+      supabase.from("email_connections").select().order("created_at", { ascending: true }),
       supabase
         .from("email_transaction_candidates")
         .select(
@@ -61,7 +63,8 @@ export default async function AppPage() {
     { data: transactions },
     { data: categories },
     { data: activePayment },
-    { count: pendingReviewCount },
+    { data: reviewCandidates },
+    { data: connections },
     { data: provenanceRows },
     { count: capturedCount },
     { count: trustedCount },
@@ -111,7 +114,9 @@ export default async function AppPage() {
         currency={profile.currency}
         locale={profile.locale}
         userEmail={user.email ?? ""}
-        pendingReviewCount={pendingReviewCount ?? 0}
+        pendingReviewCount={(reviewCandidates ?? []).length}
+        reviewCandidates={(reviewCandidates ?? []) as EmailTransactionCandidate[]}
+        connections={(connections ?? []) as EmailConnection[]}
         provenance={provenance}
         setup={setup}
         goals={(goals ?? []) as FortuneGoal[]}

@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { BalanceAnchor, Category, CategoryBudget, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
+import type { BalanceAnchor, Category, CategoryBudget, EmailConnection, EmailTransactionCandidate, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
 import {
   acceptAiTag,
   addTransaction,
@@ -11,6 +11,8 @@ import {
   rejectAiTag,
   updateTransaction,
 } from "./actions";
+import { scanEmailInbox } from "@/app/settings/actions";
+import ReviewQueue from "./components/ReviewQueue";
 import ShrineChrome, { type ShrineTab } from "./components/ShrineChrome";
 import AutopilotChecklist from "./components/AutopilotChecklist";
 import CatRail from "./components/CatRail";
@@ -45,6 +47,8 @@ export default function AppShell({
   locale,
   userEmail,
   pendingReviewCount,
+  reviewCandidates,
+  connections,
   provenance,
   setup,
   goals,
@@ -62,6 +66,8 @@ export default function AppShell({
   locale: string;
   userEmail: string;
   pendingReviewCount: number;
+  reviewCandidates: EmailTransactionCandidate[];
+  connections: EmailConnection[];
   provenance: Record<string, TransactionProvenance>;
   setup: { captured: boolean; trusted: boolean; backfilled: boolean };
   goals: FortuneGoal[];
@@ -117,6 +123,36 @@ export default function AppShell({
   }, [searchParams]);
   const [pending, startTransition] = useTransition();
   const [, startBackgroundRefresh] = useTransition();
+  const [scanning, startScan] = useTransition();
+
+  // Same on-demand scan as Capture settings, run across every connected inbox
+  // in turn (one at a time — concurrent scans are avoided there too).
+  function handleScanAll() {
+    startScan(async () => {
+      let found = 0;
+      let autoPosted = 0;
+      let scanned = 0;
+      for (const conn of connections) {
+        const result = await scanEmailInbox(conn.id);
+        if ("error" in result) {
+          setToast(result.error);
+          return;
+        }
+        found += result.found;
+        autoPosted += result.autoPosted;
+        scanned += result.scanned;
+      }
+      if (found === 0) {
+        setToast(`No new transactions found (scanned ${scanned} emails).`);
+      } else {
+        const parts = [`Found ${found} new transaction${found === 1 ? "" : "s"}`];
+        if (autoPosted > 0) parts.push(`${autoPosted} auto-posted ⚡`);
+        if (found - autoPosted > 0) parts.push(`${found - autoPosted} waiting for review`);
+        setToast(`${parts.join(" · ")} (from ${scanned} emails).`);
+      }
+      router.refresh();
+    });
+  }
 
   // Auto-posted captures (email auto-scan, cron) land server-side, not through
   // our own actions — router.refresh() re-runs the server component so the
@@ -288,12 +324,24 @@ export default function AppShell({
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-ink">{tabTitle[active]}</h2>
             {active === "ledger" && (
-              <button
-                onClick={() => setModal("add")}
-                className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
-              >
-                + Add
-              </button>
+              <div className="flex items-center gap-2">
+                {connections.length > 0 && (
+                  <button
+                    onClick={handleScanAll}
+                    disabled={scanning}
+                    title="Scan your connected inboxes for new transactions now"
+                    className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
+                  >
+                    {scanning ? "Scanning…" : "Scan now"}
+                  </button>
+                )}
+                <button
+                  onClick={() => setModal("add")}
+                  className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
+                >
+                  + Add
+                </button>
+              </div>
             )}
           </div>
 
@@ -312,6 +360,7 @@ export default function AppShell({
             <>
               {freeNote}
               {ledger}
+              <ReviewQueue initialCandidates={reviewCandidates} />
             </>
           )}
 
