@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { saveProfile } from "./actions";
-import { REGIONS, regionForCountry, CURRENCIES, DEFAULT_REGION } from "@/lib/regions";
+import { regionForCountry, CURRENCIES, DEFAULT_REGION } from "@/lib/regions";
 import { formatCurrency } from "@/lib/format";
+import CountrySelect from "./CountrySelect";
 
 /**
  * One-step onboarding: pick your country, and the currency auto-selects (you can
@@ -52,20 +53,10 @@ export default function WelcomeForm() {
           </p>
         </div>
 
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-ink-muted">Country</span>
-          <select
-            value={country}
-            onChange={(e) => onCountry(e.target.value)}
-            className="w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:border-action focus:outline-none"
-          >
-            {REGIONS.map((r) => (
-              <option key={r.code} value={r.code}>
-                {r.flag} {r.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="space-y-1.5">
+          <span className="block text-sm font-medium text-ink-muted">Country</span>
+          <CountrySelect value={country} onChange={onCountry} />
+        </div>
 
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-ink-muted">Currency</span>
@@ -95,7 +86,7 @@ export default function WelcomeForm() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-lg bg-action px-4 py-3 text-sm font-semibold text-on-action hover:bg-action/90 disabled:opacity-60"
+          className="w-full rounded-lg bg-amber-500 px-4 py-3.5 text-[15px] font-bold text-white shadow-sm transition hover:bg-amber-600 disabled:opacity-60"
         >
           {pending ? "Setting up…" : "Start tracking →"}
         </button>

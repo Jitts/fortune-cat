@@ -13,6 +13,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.45.0",
+    "country-flag-icons": "^1.6.20",
     "html-to-text": "^10.0.0",
     "imapflow": "^1.4.6",
     "mailparser": "^3.9.14",
