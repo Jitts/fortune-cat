@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PRO_FEATURES } from "@/lib/proFeatures";
+import { FREE_PRO_BETA } from "@/lib/beta";
 
 /**
  * The homepage Pro section. Its feature list is the shared lib/proFeatures set,
@@ -22,6 +23,11 @@ export default function ProShowcase() {
             One-time unlock — <span className="font-semibold text-ink">$9, forever</span>. No
             subscription, no renewal.
           </p>
+          {FREE_PRO_BETA && (
+            <p className="mt-2 inline-block rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
+              🎁 Free for beta testers right now — unlock it while beta lasts, keep it forever.
+            </p>
+          )}
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -41,7 +47,7 @@ export default function ProShowcase() {
             href="/upgrade"
             className="inline-block rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-600"
           >
-            See Fortune Cat Pro — $9 once →
+            {FREE_PRO_BETA ? "See Fortune Cat Pro — free in beta →" : "See Fortune Cat Pro — $9 once →"}
           </Link>
         </div>
       </div>

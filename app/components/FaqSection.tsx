@@ -1,3 +1,5 @@
+import { FREE_PRO_BETA } from "@/lib/beta";
+
 /**
  * Landing-page FAQ. One array feeds both the visible <details> list and the
  * FAQPage JSON-LD, so search engines / AI assistants read exactly what users
@@ -19,7 +21,11 @@ const FAQS = [
   },
   {
     q: "How much does Fortune Cat cost?",
-    a: "The core tracker is free, and Pro is a US$9 one-time payment — not a subscription. There is no renewal and no monthly fee, ever.",
+    a:
+      "The core tracker is free, and Pro is a US$9 one-time payment — not a subscription. There is no renewal and no monthly fee, ever." +
+      (FREE_PRO_BETA
+        ? " During the beta, the $9 is waived: beta testers unlock Pro free and keep it."
+        : ""),
   },
   {
     q: "What's the difference between Free and Pro?",

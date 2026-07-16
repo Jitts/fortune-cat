@@ -506,6 +506,17 @@ async function main() {
         keys.length === 1 && keys[0] === "isPro" && payBody.isPro === false,
         `body=${JSON.stringify(payBody)}`);
 
+      // Paywall bypass: users may insert only 'pending' payments (checkout);
+      // 'active' — which is what isPro checks — is service-role only
+      // (Stripe webhook / beta grant). Requires migration 0023.
+      const selfGrant = await clientB
+        .from("payments")
+        .insert({ user_id: userB.id, status: "active", plan: "pro", amount_cents: 0 })
+        .select();
+      check("Signed-in user cannot self-grant Pro (insert active payment)",
+        !!selfGrant.error || (selfGrant.data?.length ?? 0) === 0,
+        selfGrant.error ? `denied: ${selfGrant.error.code || selfGrant.error.message}` : "insert succeeded!");
+
       // admin_user_overview lists every user's email + Pro status. It must not
       // be reachable through PostgREST (no grant to anon/authenticated). A leak
       // here would dump the whole user base.
@@ -525,6 +536,7 @@ async function main() {
       if (userA || userB) {
         const ids = [userA?.id, userB?.id].filter(Boolean);
         await service.from("transactions").delete().in("user_id", ids);
+        await service.from("payments").delete().in("user_id", ids);
         await service.from("audit_logs").delete().in("user_id", ids);
         await service.from("sms_tokens").delete().in("user_id", ids);
         await service.from("email_connections").delete().in("user_id", ids);

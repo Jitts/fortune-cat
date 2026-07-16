@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PRO_FEATURES, PRO_PRICE, PRO_TAGLINE } from "@/lib/proFeatures";
+import { FREE_PRO_BETA } from "@/lib/beta";
 import GoProButton from "./GoProButton";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +32,23 @@ export default async function UpgradePage() {
           </span>
           <h1 className="mt-3 text-2xl font-bold text-ink">Unlock every engine</h1>
           <p className="mt-2 text-sm text-ink-subtle">{PRO_TAGLINE}</p>
-          <div className="mt-4 text-4xl font-bold text-ink">
-            {PRO_PRICE} <span className="text-base font-normal text-ink-faint">one-time</span>
-          </div>
+          {FREE_PRO_BETA ? (
+            <div className="mt-4">
+              <div className="text-4xl font-bold text-ink">
+                <span className="mr-2 text-2xl font-semibold text-ink-faint line-through">
+                  {PRO_PRICE}
+                </span>
+                Free
+              </div>
+              <p className="mt-1 text-sm font-medium text-emerald-700">
+                Waived for beta testers — unlock now, keep it forever.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-4 text-4xl font-bold text-ink">
+              {PRO_PRICE} <span className="text-base font-normal text-ink-faint">one-time</span>
+            </div>
+          )}
         </div>
 
         <ul className="space-y-3 border-y border-line py-5">
@@ -55,7 +70,7 @@ export default async function UpgradePage() {
             ✨ You&apos;re already Pro — thank you!
           </p>
         ) : user ? (
-          <GoProButton />
+          <GoProButton label={FREE_PRO_BETA ? "Unlock Pro free — beta" : "Go Pro"} />
         ) : (
           <Link
             href="/login"

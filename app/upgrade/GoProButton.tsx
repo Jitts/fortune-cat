@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function GoProButton() {
+export default function GoProButton({ label = "Go Pro" }: { label?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +31,7 @@ export default function GoProButton() {
         disabled={loading}
         className="w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
       >
-        {loading ? "Redirecting…" : "Go Pro"}
+        {loading ? "Redirecting…" : label}
       </button>
     </div>
   );
