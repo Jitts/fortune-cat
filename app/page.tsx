@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import LandingDemo from "@/app/components/LandingDemo";
 import ProShowcase from "@/app/components/ProShowcase";
+import ThemeToggle from "@/app/components/ThemeToggle";
 import UspSection from "@/app/components/UspSection";
 import FaqSection from "@/app/components/FaqSection";
 
@@ -40,6 +41,7 @@ export default async function Home() {
       <header className="mx-auto flex max-w-5xl items-center justify-between p-6">
         <span className="text-xl font-bold text-ink">🐱 Fortune Cat</span>
         <nav className="flex items-center gap-3 text-sm">
+          <ThemeToggle variant="compact" />
           {user ? (
             <Link
               href="/app"
