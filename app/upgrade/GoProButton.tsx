@@ -29,7 +29,7 @@ export default function GoProButton({ label = "Go Pro" }: { label?: string }) {
       <button
         onClick={handleGoPro}
         disabled={loading}
-        className="w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
+        className="pressable w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
       >
         {loading ? "Redirecting…" : label}
       </button>

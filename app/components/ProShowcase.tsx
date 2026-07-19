@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Reveal from "@/app/components/Reveal";
 import { PRO_FEATURES } from "@/lib/proFeatures";
 import { FREE_PRO_BETA } from "@/lib/beta";
 
@@ -12,7 +13,7 @@ export default function ProShowcase() {
   return (
     <section className="border-t border-line">
       <div className="mx-auto max-w-5xl px-6 py-16">
-        <div className="mx-auto max-w-xl text-center">
+        <Reveal className="mx-auto max-w-xl text-center">
           <span className="inline-block rounded-full bg-fortune-50 px-3 py-1 font-mono text-xs font-semibold uppercase tracking-wide text-fortune-700">
             Fortune Cat Pro
           </span>
@@ -28,28 +29,30 @@ export default function ProShowcase() {
               🎁 Free for beta testers right now — unlock it while beta lasts, keep it forever.
             </p>
           )}
-        </div>
+        </Reveal>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {PRO_FEATURES.map((f) => (
-            <div key={f.title} className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
-              <span className="text-2xl" aria-hidden>
-                {f.icon}
-              </span>
-              <h3 className="mt-3 text-sm font-semibold text-ink">{f.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-ink-muted">{f.desc}</p>
-            </div>
+          {PRO_FEATURES.map((f, i) => (
+            <Reveal key={f.title} delay={(i % 4) * 60}>
+              <div className="card-lift h-full rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
+                <span className="text-2xl" aria-hidden>
+                  {f.icon}
+                </span>
+                <h3 className="mt-3 text-sm font-semibold text-ink">{f.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-ink-muted">{f.desc}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
 
-        <div className="mt-10 text-center">
+        <Reveal className="mt-10 text-center">
           <Link
             href="/upgrade"
-            className="inline-block rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-600"
+            className="pressable inline-block rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-600"
           >
             {FREE_PRO_BETA ? "See Fortune Cat Pro — free in beta →" : "See Fortune Cat Pro — $9 once →"}
           </Link>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

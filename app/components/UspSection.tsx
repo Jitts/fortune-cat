@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Reveal from "@/app/components/Reveal";
 
 /**
  * "Why Fortune Cat exists" — the three reasons the product was born, each with
@@ -195,22 +196,27 @@ export default function UspSection() {
   return (
     <section className="border-t border-line">
       <div className="mx-auto max-w-5xl px-6 py-16">
-        <div className="mx-auto max-w-xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+        <Reveal className="mx-auto max-w-xl text-center">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-red-700 dark:text-red-400">
+            the origin story
+          </p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
             Why Fortune Cat exists
           </h2>
           <p className="mt-2 text-ink-muted">
             Every expense tracker asks you to do the work. This one was born to do it for you.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
-          {USPS.map((u) => (
-            <div key={u.title} className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
-              <h3 className="text-base font-semibold text-ink">{u.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{u.story}</p>
-              {u.demo}
-            </div>
+          {USPS.map((u, i) => (
+            <Reveal key={u.title} delay={i * 80}>
+              <div className="card-lift h-full rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
+                <h3 className="text-base font-semibold text-ink">{u.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{u.story}</p>
+                {u.demo}
+              </div>
+            </Reveal>
           ))}
         </div>
       </div>

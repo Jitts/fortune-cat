@@ -5,6 +5,7 @@ import ProShowcase from "@/app/components/ProShowcase";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import UspSection from "@/app/components/UspSection";
 import FaqSection from "@/app/components/FaqSection";
+import Reveal from "@/app/components/Reveal";
 import { FREE_PRO_BETA } from "@/lib/beta";
 
 export const dynamic = "force-dynamic";
@@ -39,61 +40,81 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-surface-2">
-      <header className="mx-auto flex max-w-5xl items-center justify-between p-6">
-        <span className="text-xl font-bold text-ink">🐱 Fortune Cat</span>
-        <nav className="flex items-center gap-3 text-sm">
-          <ThemeToggle variant="compact" />
-          {user ? (
-            <Link
-              href="/app"
-              className="rounded-lg bg-action px-4 py-2 font-semibold text-white hover:bg-action/90"
-            >
-              Open app
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" className="font-medium text-ink-muted hover:text-ink">
-                Log in
-              </Link>
+      <header className="sticky top-0 z-40 border-b border-line/60 bg-surface-2/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <span className="text-xl font-bold text-ink">🐱 Fortune Cat</span>
+          <nav className="flex items-center gap-3 text-sm">
+            <ThemeToggle variant="compact" />
+            {user ? (
               <Link
-                href="/signup"
-                className="rounded-lg bg-action px-4 py-2 font-semibold text-white hover:bg-action/90"
+                href="/app"
+                className="pressable rounded-lg bg-action px-4 py-2 font-semibold text-white hover:bg-action/90"
               >
-                Get started
+                Open app
               </Link>
-            </>
-          )}
-        </nav>
+            ) : (
+              <>
+                <Link href="/login" className="font-medium text-ink-muted hover:text-ink">
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="pressable rounded-lg bg-action px-4 py-2 font-semibold text-white hover:bg-action/90"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
       </header>
 
-      <section className="mx-auto grid max-w-5xl gap-10 px-6 py-12 md:grid-cols-2 md:items-center">
-        <div className="space-y-6">
-          <h1 className="text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
-            Your money logs itself.
-          </h1>
-          <p className="text-lg text-ink-muted">
-            Fortune Cat reads the SMS, emails, and statements your bank already sends you — no
-            bank login, it only ever sees the notification text — and turns them into a live
-            cash-flow ledger, in your own currency.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={user ? "/app" : "/signup"}
-              className="rounded-lg bg-amber-500 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-600"
-            >
-              {user ? "Open your app" : "Start tracking — it's free"}
-            </Link>
-            <Link
-              href="/upgrade"
-              className="rounded-lg px-5 py-3 text-sm font-semibold text-ink-muted ring-1 ring-line hover:bg-surface-3"
-            >
-              See Pro
-            </Link>
-          </div>
+      <section className="mx-auto grid max-w-5xl gap-10 px-6 py-16 md:grid-cols-2 md:items-center">
+        <div>
+          <Reveal>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-red-700 dark:text-red-400">
+              the tracker that fills itself
+            </p>
+          </Reveal>
+          <Reveal delay={60}>
+            <h1 className="mt-4 text-balance text-5xl font-extrabold tracking-tight text-ink sm:text-6xl">
+              Your money <span className="gold-swash">logs itself.</span>
+            </h1>
+          </Reveal>
+          <Reveal delay={120}>
+            <p className="mt-5 text-pretty text-lg text-ink-muted">
+              Fortune Cat reads the SMS, emails, and statements your bank already sends you — no
+              bank login, it only ever sees the notification text — and turns them into a live
+              cash-flow ledger, in your own currency.
+            </p>
+          </Reveal>
+          <Reveal delay={180}>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href={user ? "/app" : "/signup"}
+                className="pressable rounded-lg bg-amber-500 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-600"
+              >
+                {user ? "Open your app" : "Start tracking — it's free"}
+              </Link>
+              <Link
+                href="/upgrade"
+                className="pressable rounded-lg px-5 py-3 text-sm font-semibold text-ink-muted ring-1 ring-line hover:bg-surface-3"
+              >
+                See Pro
+              </Link>
+            </div>
+          </Reveal>
+          <Reveal delay={240}>
+            <p className="mt-6 font-mono text-xs text-ink-faint">
+              no bank login · free to start · Pro is US$9 once
+            </p>
+          </Reveal>
         </div>
 
         {/* Live capture-loop demo, entirely client-side */}
-        <LandingDemo />
+        <Reveal delay={150}>
+          <LandingDemo />
+        </Reveal>
       </section>
 
       <UspSection />

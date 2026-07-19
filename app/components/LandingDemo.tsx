@@ -53,7 +53,7 @@ export default function LandingDemo() {
           {stage === 0 && (
             <button
               onClick={() => setStage(1)}
-              className="mt-2 rounded-lg bg-action px-3 py-1.5 text-xs font-semibold text-white hover:bg-action/90"
+              className="pressable mt-2 rounded-lg bg-action px-3 py-1.5 text-xs font-semibold text-white hover:bg-action/90"
             >
               Forward to Fortune Cat →
             </button>
@@ -65,7 +65,7 @@ export default function LandingDemo() {
 
         {/* Captured rows */}
         {stage >= 1 && (
-          <div className="rounded-xl ring-1 ring-line">
+          <div className="rounded-xl ring-1 ring-line transition-[opacity,transform] duration-500 starting:translate-y-2 starting:opacity-0">
             <div className="flex items-center gap-3 px-3 py-2.5">
               <span className="text-xl">🛒</span>
               <div className="min-w-0 flex-1">
@@ -90,7 +90,7 @@ export default function LandingDemo() {
               <div className="border-t border-line px-3 py-2">
                 <button
                   onClick={() => setStage(2)}
-                  className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800"
+                  className="pressable rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800"
                 >
                   Accept &amp; trust DBS
                 </button>
@@ -100,7 +100,7 @@ export default function LandingDemo() {
         )}
 
         {stage >= 3 && (
-          <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 ring-1 ring-emerald-200">
+          <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 ring-1 ring-emerald-200 transition-[opacity,transform] duration-500 starting:translate-y-2 starting:opacity-0">
             <span className="text-xl">☕</span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-ink">Kopitiam @ TTSH</p>

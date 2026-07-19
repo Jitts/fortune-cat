@@ -1,3 +1,4 @@
+import Reveal from "@/app/components/Reveal";
 import { FREE_PRO_BETA } from "@/lib/beta";
 
 /**
@@ -59,17 +60,22 @@ export default function FaqSection() {
   return (
     <section className="border-t border-line">
       <div className="mx-auto max-w-3xl px-6 py-16">
-        <h2 className="text-center text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-          Questions, answered
-        </h2>
+        <Reveal className="text-center">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-red-700 dark:text-red-400">
+            faq
+          </p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+            Questions, answered
+          </h2>
+        </Reveal>
 
-        <div className="mt-8 space-y-2">
+        <Reveal delay={80} className="mt-8 space-y-2">
           {FAQS.map((f) => (
             <details
               key={f.q}
               className="group rounded-2xl bg-surface shadow-sm ring-1 ring-line open:pb-4"
             >
-              <summary className="cursor-pointer list-none px-5 py-4 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
+              <summary className="cursor-pointer list-none rounded-2xl px-5 py-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-3/60 [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center justify-between gap-3">
                   {f.q}
                   <span className="text-ink-faint transition-transform group-open:rotate-45" aria-hidden>
@@ -77,10 +83,10 @@ export default function FaqSection() {
                   </span>
                 </span>
               </summary>
-              <p className="px-5 text-sm leading-relaxed text-ink-muted">{f.a}</p>
+              <p className="faq-answer px-5 text-sm leading-relaxed text-ink-muted">{f.a}</p>
             </details>
           ))}
-        </div>
+        </Reveal>
       </div>
 
       <script

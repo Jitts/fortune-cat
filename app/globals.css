@@ -32,6 +32,10 @@
   --color-fortune-50: #fff8d6;
   --color-fortune-400: #ffd700;
   --color-fortune-700: #705d00;
+
+  /* Strong easings — built-in CSS curves are too weak to feel intentional. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 /* ── Day (light) — values equal the previous hardcoded neutrals, so light mode
@@ -75,6 +79,78 @@
     transition:
       background-color 0.35s ease,
       color 0.35s ease;
+  }
+}
+
+/* ── Marketing motion system (landing + upgrade) ─────────────────────────
+   transform/opacity only, so everything stays off the main thread. */
+
+/* Press feedback: the interface confirms every tap. */
+.pressable {
+  transition: transform 160ms var(--ease-out-strong);
+}
+.pressable:active {
+  transform: scale(0.97);
+}
+
+/* Scroll entrance — Reveal.tsx flips .is-visible once, on first view. */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 550ms var(--ease-out-strong),
+    transform 550ms var(--ease-out-strong);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transform: none;
+    transition: opacity 200ms ease;
+  }
+}
+/* Without JS nothing would ever flip .is-visible — keep content readable. */
+@media (scripting: none) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Card hover lift — pointer devices only, so touch taps don't stick. */
+@media (hover: hover) and (pointer: fine) {
+  .card-lift {
+    transition:
+      transform 200ms var(--ease-out-strong),
+      box-shadow 200ms var(--ease-out-strong);
+  }
+  .card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 0.08);
+  }
+}
+
+/* Gold highlighter swash under the hero's key phrase (gold = lucky). */
+.gold-swash {
+  background: linear-gradient(to top, rgb(255 215 0 / 0.4) 0 0.26em, transparent 0.26em);
+}
+
+/* FAQ answers ease in instead of popping (native <details> has no motion). */
+details[open] .faq-answer {
+  animation: faq-in 220ms var(--ease-out-strong);
+}
+@keyframes faq-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  details[open] .faq-answer {
+    animation: none;
   }
 }
 
