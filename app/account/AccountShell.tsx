@@ -251,14 +251,14 @@ export default function AccountShell({
         <div className="mt-4 flex flex-wrap gap-3">
           <button
             onClick={exportCsv}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3"
+            disabled={pending}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted ring-1 ring-line hover:bg-surface-3 disabled:opacity-50"
           >
-            ⬇ Export my data (CSV)
+            {pending ? "Preparing…" : "⬇ Export my data (CSV)"}
           </button>
         </div>
         <p className="mt-2 text-xs text-ink-faint">
-          {transactions.length} transaction{transactions.length === 1 ? "" : "s"} · downloads a
-          spreadsheet you can open anywhere.
+          Every transaction you&apos;ve logged · downloads a spreadsheet you can open anywhere.
         </p>
       </div>
 
