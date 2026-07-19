@@ -313,14 +313,16 @@ export default function AppShell({
       {/* Persistent 3-column shrine: the cat rail (left) and the slips + bills
           rail (right) stay put on every tab; only the centre column swaps. */}
       <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)_300px] lg:items-start">
-        {/* ===== LEFT RAIL — persistent ===== */}
-        <div className="order-1 space-y-6">
+        {/* ===== LEFT RAIL — persistent, desktop only (mobile folds the cat
+            into Home and the budget into Fortunes, so tabs open on their own
+            content instead of a wall of rails) ===== */}
+        <div className="hidden space-y-6 lg:block">
           <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
           <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
         </div>
 
         {/* ===== CENTRE — swaps with the active tab ===== */}
-        <div className="order-3 min-w-0 space-y-6 lg:order-2">
+        <div className="min-w-0 space-y-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-ink">{tabTitle[active]}</h2>
             {active === "ledger" && (
@@ -347,6 +349,9 @@ export default function AppShell({
 
           {active === "home" && (
             <>
+              <div className="lg:hidden">
+                <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
+              </div>
               <AutopilotChecklist {...setup} />
               <CashFlowBars transactions={transactions} />
               <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
@@ -366,6 +371,17 @@ export default function AppShell({
 
           {active === "fortunes" && (
             <>
+              <div className="space-y-6 lg:hidden">
+                <SlipsPanel
+                  transactions={transactions}
+                  categories={categories}
+                  budgets={budgets}
+                  todaySlip={todaySlip}
+                  slipStreak={slipStreak}
+                />
+                <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
+                <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
+              </div>
               <InsightCard transactions={transactions} categories={categories} />
               <AnalyticsPanel transactions={transactions} categories={categories} isPro={isPro} />
             </>
@@ -373,6 +389,9 @@ export default function AppShell({
 
           {active === "bills" && (
             <div className="space-y-6">
+              <div className="lg:hidden">
+                <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} />
+              </div>
               <RecurringRadar transactions={transactions} manualBills={manualBills} isPro={isPro} />
               <SubscriptionKillChain
                 transactions={transactions}
@@ -383,8 +402,9 @@ export default function AppShell({
           )}
         </div>
 
-        {/* ===== RIGHT RAIL — persistent ===== */}
-        <div className="order-2 space-y-6 lg:order-3">
+        {/* ===== RIGHT RAIL — persistent, desktop only (mobile folds slips +
+            goals into Fortunes and bills-due into Bills) ===== */}
+        <div className="hidden space-y-6 lg:block">
           <SlipsPanel
             transactions={transactions}
             categories={categories}
