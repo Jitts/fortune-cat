@@ -29,7 +29,7 @@ function CaptureIllustration() {
         <p className="font-mono text-[10px] uppercase tracking-wide text-ink-faint">SMS from your bank</p>
         <p className="mt-1 text-xs text-ink-muted">Your card was used for 12.40 at CORNER CAFE…</p>
       </div>
-      <p className="text-center text-xs text-ink-faint">↓ forwarded, parsed on your device</p>
+      <p className="text-center text-xs text-ink-faint">↓ forwarded, parsed automatically</p>
       <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 ring-1 ring-line">
         <span className="text-xl">☕</span>
         <div className="min-w-0 flex-1">
@@ -174,17 +174,17 @@ const USPS = [
   {
     title: "Your money logs itself",
     story:
-      "Trackers die because typing every coffee is a chore. Fortune Cat reads the SMS and emails your bank already sends — no bank login, parsed on your device.",
+      "Trackers die because typing every coffee is a chore. Fortune Cat reads the SMS and emails your bank already sends — no bank login, and it only ever sees the message text you forward.",
     demo: <CaptureIllustration />,
   },
   {
     title: "A ritual, not a spreadsheet",
     story:
-      "Money apps get abandoned because they feel like homework. The daily fortune slip reads your real cash-flow and hands you one concrete number for the day.",
+      "Money apps get abandoned because they feel like homework. The daily fortune slip reads your real cash flow and hands you one concrete number for the day.",
     demo: <SlipDemo />,
   },
   {
-    title: "$9 once, yours forever",
+    title: "US$9 once, yours forever",
     story:
       "A money-saving app that bills you monthly is a leak, not a fix. One payment unlocks every engine — no subscription, no renewal.",
     demo: <PriceDemo />,

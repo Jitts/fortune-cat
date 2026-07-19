@@ -5,6 +5,7 @@ import ProShowcase from "@/app/components/ProShowcase";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import UspSection from "@/app/components/UspSection";
 import FaqSection from "@/app/components/FaqSection";
+import { FREE_PRO_BETA } from "@/lib/beta";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ const APP_JSON_LD = {
   applicationCategory: "FinanceApplication",
   operatingSystem: "Web",
   description:
-    "A personal expense tracker that fills itself: forward the SMS and emails your bank already sends and they become a live cash-flow ledger. No bank login, parsed on your device, works in any currency worldwide.",
+    "A personal expense tracker that fills itself: forward the SMS and emails your bank already sends and they become a live cash-flow ledger. No bank login — it only ever sees the notification text you forward. Works in any currency worldwide.",
   offers: [
     { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free tier" },
     {
@@ -71,9 +72,9 @@ export default async function Home() {
             Your money logs itself.
           </h1>
           <p className="text-lg text-ink-muted">
-            Fortune Cat reads the SMS, emails and statements your bank already sends you — parsed
-            on your device, no bank login — and turns them into a live cash-flow ledger, in your
-            own currency.
+            Fortune Cat reads the SMS, emails, and statements your bank already sends you — no
+            bank login, it only ever sees the notification text — and turns them into a live
+            cash-flow ledger, in your own currency.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -104,7 +105,7 @@ export default async function Home() {
           <span>🐱 Fortune Cat · your money logs itself</span>
           <nav className="flex gap-4">
             <Link href="/upgrade" className="hover:text-ink-muted">
-              Pro — $9 once
+              {FREE_PRO_BETA ? "Pro — free in beta" : "Pro — $9 once"}
             </Link>
             <Link href="/signup" className="hover:text-ink-muted">
               Sign up free

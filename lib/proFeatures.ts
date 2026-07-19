@@ -5,8 +5,8 @@
 
 export type ProFeature = { icon: string; title: string; desc: string };
 
-export const PRO_PRICE = "$9";
-export const PRO_PRICE_LABEL = "$9 one-time";
+export const PRO_PRICE = "US$9";
+export const PRO_PRICE_LABEL = "US$9 one-time";
 
 export const PRO_TAGLINE = "One payment. Every engine unlocked, for good.";
 

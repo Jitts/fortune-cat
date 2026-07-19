@@ -9,7 +9,7 @@ import { FREE_PRO_BETA } from "@/lib/beta";
 const FAQS = [
   {
     q: "How does Fortune Cat log transactions automatically?",
-    a: "You forward the transaction SMS or emails your bank already sends you, and Fortune Cat parses them into ledger entries on your device. The first message from a new sender waits in a review queue for your approval; once you trust the sender, later transactions post themselves.",
+    a: "You forward the transaction SMS or emails your bank already sends you, and Fortune Cat parses them into ledger entries — it never asks for a bank login and only sees the message text you forward. The first message from a new sender waits in a review queue for your approval; once you trust the sender, later transactions post themselves.",
   },
   {
     q: "Do I need to connect my bank account?",
@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: "Is my financial data safe?",
-    a: "Yes — Fortune Cat holds no bank credentials, and every user's data is isolated with database row-level security. You can export your transactions as CSV or permanently delete your account and all its data from Settings at any time.",
+    a: "Fortune Cat is built so there's little to steal: it holds no bank credentials, and every user's data is isolated with database row-level security. You can export your transactions as CSV or permanently delete your account and all its data from Settings at any time.",
   },
   {
     q: "How much does Fortune Cat cost?",
@@ -29,11 +29,11 @@ const FAQS = [
   },
   {
     q: "What's the difference between Free and Pro?",
-    a: "Free includes manual and automatic logging, one capture inbox, and your last 10 transactions of history. Pro unlocks everything: Safe-to-Spend, savings goals, recurring-bill radar, the subscription kill-chain, deep analytics, actionable daily readings, full history, and three capture inboxes.",
+    a: "Free includes manual and automatic logging, one capture inbox, and your last 10 transactions of history. Pro unlocks everything: Safe-to-Spend, savings goals, recurring-bill radar, the subscription kill-chain (cancel steps for the subscriptions you no longer want), deep analytics, actionable daily readings, full history, and three capture inboxes.",
   },
   {
     q: "Does Fortune Cat work in my country and currency?",
-    a: "Yes — Fortune Cat works worldwide, in your own currency. You pick your country when you sign up, amounts display in your currency, and captures in a foreign currency are converted into it at ECB reference rates.",
+    a: "Yes — Fortune Cat works worldwide, in your own currency. You pick your country when you sign up (33 countries listed, more added on request), amounts display in your currency, and captures in a foreign currency are converted into it at ECB reference rates.",
   },
   {
     q: "What is the daily fortune slip?",
