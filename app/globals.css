@@ -52,6 +52,7 @@
   --action: #171717; /* neutral-900 primary buttons */
   --out: #404040; /* neutral-700 — money-out bars */
   --paper: #fff8dc; /* fortune-slip chit */
+  --focus-ring: #705d00; /* deep gold — visible on light surfaces */
 }
 
 /* ── Evening (Shrine / dark) — warm near-black lacquer hall. Ink lightens,
@@ -69,6 +70,7 @@
   --action: #3a3a46;
   --out: #8b8b98;
   --paper: #f6eccf;
+  --focus-ring: #ffd700; /* full gold — visible on lacquer */
 
   color-scheme: dark;
 }
@@ -79,6 +81,24 @@
     transition:
       background-color 0.35s ease,
       color 0.35s ease;
+  }
+}
+
+/* ── Site-wide interaction affordance & keyboard focus ───────────────────
+   Buttons look pressable, feel pressable, and keyboard focus is always
+   visible in the brand's gold. Inputs keep their own focus border (their
+   focus:outline-none utility outranks this element-level rule). */
+button:not(:disabled) {
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out-strong);
+}
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  button:not(:disabled):active {
+    transform: scale(0.97);
   }
 }
 

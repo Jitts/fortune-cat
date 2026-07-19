@@ -142,7 +142,7 @@ export default function AppChrome({
         <NavItem href="/app" label="Home" glyph="🏮" active={false} />
         <NavItem href="/app?tab=ledger" label="Ledger" glyph="📜" active={false} badge={pendingReviewCount} />
         <Link href="/app?add=1" className="flex flex-1 flex-col items-center gap-1 pt-2">
-          <span className="-mt-5 flex h-12 w-12 items-center justify-center rounded-full bg-fortune-400 text-2xl font-bold text-fortune-700 shadow-lg ring-4 ring-surface">
+          <span className="pressable -mt-5 flex h-12 w-12 items-center justify-center rounded-full bg-fortune-400 text-2xl font-bold text-fortune-700 shadow-lg ring-4 ring-surface">
             ＋
           </span>
           <span className="pb-3 font-mono text-[10px] uppercase tracking-wide text-ink-faint">Log</span>

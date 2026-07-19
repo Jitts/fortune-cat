@@ -16,7 +16,7 @@ export default function SettingsGear() {
       aria-label="Settings"
       title="Settings"
       aria-current={active ? "page" : undefined}
-      className={`flex h-9 w-9 items-center justify-center rounded-full text-lg transition ${
+      className={`flex h-9 w-9 items-center justify-center rounded-full text-lg transition max-sm:h-11 max-sm:w-11 ${
         active ? "bg-surface text-ink shadow-sm ring-1 ring-line" : "text-ink-muted hover:bg-surface-3 hover:text-ink"
       }`}
     >

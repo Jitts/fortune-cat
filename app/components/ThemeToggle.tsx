@@ -75,7 +75,7 @@ export default function ThemeToggle({ variant = "full" }: { variant?: "full" | "
         onClick={() => choose(goDark ? "dark" : "light")}
         aria-label={goDark ? "Switch to Shrine (dark)" : "Switch to daylight (light)"}
         title={goDark ? "Switch to Shrine" : "Switch to daylight"}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-3"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-3 max-sm:h-11 max-sm:w-11"
       >
         {goDark ? "☾" : "☀"}
       </button>

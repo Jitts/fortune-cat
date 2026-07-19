@@ -6,6 +6,7 @@ import ThemeToggle from "@/app/components/ThemeToggle";
 import UspSection from "@/app/components/UspSection";
 import FaqSection from "@/app/components/FaqSection";
 import Reveal from "@/app/components/Reveal";
+import ShrineStars from "@/app/components/ShrineStars";
 import { FREE_PRO_BETA } from "@/lib/beta";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +40,9 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   return (
-    <main className="min-h-screen bg-surface-2">
+    <main className="relative min-h-screen bg-surface-2">
+      {/* Gold night sky in Shrine mode — same field as the signed-in app */}
+      <ShrineStars />
       <header className="sticky top-0 z-40 border-b border-line/60 bg-surface-2/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <span className="text-xl font-bold text-ink">🐱 Fortune Cat</span>
