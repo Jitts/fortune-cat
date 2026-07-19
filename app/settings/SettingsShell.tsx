@@ -5,7 +5,7 @@ import AppChrome from "@/app/components/AppChrome";
 import AccountShell from "@/app/account/AccountShell";
 import FeedbackShell from "@/app/feedback/FeedbackShell";
 import CaptureSettings from "./components/CaptureSettings";
-import type { BlockedSender, Category, EmailConnection, FeatureRequest, SmsTokenInfo, Transaction, TrustedSender } from "@/lib/types";
+import type { BlockedSender, EmailConnection, FeatureRequest, SmsTokenInfo, TrustedSender } from "@/lib/types";
 
 type SettingsTab = "capture" | "account" | "feedback";
 
@@ -31,8 +31,6 @@ export default function SettingsShell({
   userEmail,
   isPro,
   msOAuthAvailable,
-  transactions,
-  categories,
   initialRequests,
   country,
   currency,
@@ -45,8 +43,6 @@ export default function SettingsShell({
   userEmail: string;
   isPro: boolean;
   msOAuthAvailable: boolean;
-  transactions: Transaction[];
-  categories: Category[];
   initialRequests: FeatureRequest[];
   country: string | null;
   currency: string;
@@ -89,7 +85,7 @@ export default function SettingsShell({
           />
         )}
         {active === "account" && (
-          <AccountShell userEmail={userEmail} isPro={isPro} transactions={transactions} categories={categories} country={country} currency={currency} />
+          <AccountShell userEmail={userEmail} isPro={isPro} country={country} currency={currency} />
         )}
         {active === "feedback" && <FeedbackShell initialRequests={initialRequests} />}
       </div>

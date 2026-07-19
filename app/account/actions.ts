@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
 import { regionForCountry, CURRENCIES } from "@/lib/regions";
+import { transactionsToCsv } from "@/lib/exportCsv";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -49,6 +50,34 @@ export async function updateEmail(
   });
 
   return { success: true };
+}
+
+/**
+ * Builds the CSV on demand so /settings doesn't have to ship the user's whole
+ * transaction history on every page load just in case they click Export.
+ */
+export async function exportTransactionsCsv(): Promise<
+  { csv: string; count: number } | { error: string }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const [{ data: transactions, error }, { data: categories }] = await Promise.all([
+    supabase.from("transactions").select().order("date", { ascending: false }),
+    supabase.from("categories").select(),
+  ]);
+  if (error) {
+    console.error("[exportTransactionsCsv]", error);
+    return { error: "Could not load your transactions — please try again." };
+  }
+
+  return {
+    csv: transactionsToCsv(transactions ?? [], categories ?? []),
+    count: (transactions ?? []).length,
+  };
 }
 
 export async function changePassword(

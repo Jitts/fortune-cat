@@ -7,22 +7,16 @@ import Toast from "@/app/app/components/Toast";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import RegionSettings from "./RegionSettings";
 import { signOutAction } from "@/app/auth/actions";
-import type { Category, Transaction } from "@/lib/types";
-import { transactionsToCsv } from "@/lib/exportCsv";
-import { changePassword, deleteAccount, updateEmail } from "./actions";
+import { changePassword, deleteAccount, exportTransactionsCsv, updateEmail } from "./actions";
 
 export default function AccountShell({
   userEmail,
   isPro,
-  transactions,
-  categories,
   country,
   currency,
 }: {
   userEmail: string;
   isPro: boolean;
-  transactions: Transaction[];
-  categories: Category[];
   country: string | null;
   currency: string;
 }) {
@@ -72,15 +66,21 @@ export default function AccountShell({
   }
 
   function exportCsv() {
-    const csv = transactionsToCsv(transactions, categories);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `fortune-cat-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setToast(`Exported ${transactions.length} transactions`);
+    startTransition(async () => {
+      const result = await exportTransactionsCsv();
+      if ("error" in result) {
+        setToast(result.error);
+        return;
+      }
+      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fortune-cat-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setToast(`Exported ${result.count} transactions`);
+    });
   }
 
   function runDelete() {

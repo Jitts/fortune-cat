@@ -12,18 +12,23 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
 
+  // One parallel batch — no serial follow-up queries, and no bulk data (the
+  // CSV export fetches transactions on demand via exportTransactionsCsv).
   const [
-    { data: connections },
-    { data: trustedSenders },
-    { data: blockedSenders },
-    { count: pendingReviewCount },
-    { data: activePayment },
-    { data: smsToken },
-    { data: transactions },
-    { data: categories },
-    { data: featureRequests },
-    { data: myVotes },
+    profile,
+    [
+      { data: connections },
+      { data: trustedSenders },
+      { data: blockedSenders },
+      { count: pendingReviewCount },
+      { data: activePayment },
+      { data: smsToken },
+      { data: featureRequests },
+      { data: myVotes },
+    ],
   ] = await Promise.all([
+    getUserProfile(supabase),
+    Promise.all([
     supabase
       .from("email_connections")
       .select("id, email, imap_host, imap_port, last_scanned_at, created_at, oldest_scanned_seq, auth_type")
@@ -41,16 +46,13 @@ export default async function SettingsPage() {
       .select("token, created_at, last_received_at")
       .eq("user_id", user.id)
       .maybeSingle(),
-    supabase.from("transactions").select().order("date", { ascending: false }),
-    supabase.from("categories").select(),
     supabase.from("feature_requests").select().order("created_at"),
     supabase.from("feature_votes").select("feature_request_id").eq("user_id", user.id),
+    ]),
   ]);
 
   const votedIds = new Set((myVotes ?? []).map((v) => v.feature_request_id));
   const requestsWithVoteState = (featureRequests ?? []).map((r) => ({ ...r, hasVoted: votedIds.has(r.id) }));
-
-  const profile = await getUserProfile(supabase);
 
   return (
     <SettingsShell
@@ -62,8 +64,6 @@ export default async function SettingsPage() {
       userEmail={user.email ?? ""}
       isPro={!!activePayment}
       msOAuthAvailable={!!(process.env.MICROSOFT_OAUTH_CLIENT_ID && process.env.MICROSOFT_OAUTH_CLIENT_SECRET)}
-      transactions={transactions ?? []}
-      categories={categories ?? []}
       initialRequests={requestsWithVoteState}
       country={profile.country}
       currency={profile.currency}
