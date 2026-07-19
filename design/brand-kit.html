@@ -108,7 +108,8 @@
     background: #14141A; color: #F5F5F4; border-radius: 20px;
     margin-top: 40px; padding: 56px 48px 48px; position: relative; overflow: hidden;
   }
-  .plate > :not(.stars) { position: relative; z-index: 1; }
+  .plate > :not(.stars, .plate-mark) { position: relative; z-index: 1; }
+  .plate > .plate-mark { z-index: 1; }
   .plate .mono { color: #FFD700; }
   .plate h1 { font-size: 48px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.12; margin: 14px 0 12px; text-wrap: balance; }
   .plate p { color: #B4AEA8; max-width: 58ch; margin: 0 0 20px; font-size: 18px; }
