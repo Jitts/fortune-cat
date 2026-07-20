@@ -8,7 +8,6 @@ import FaqSection from "@/app/components/FaqSection";
 import Reveal from "@/app/components/Reveal";
 import ShrineStars from "@/app/components/ShrineStars";
 import Wordmark from "@/app/components/Wordmark";
-import Daruma from "@/app/app/components/Daruma";
 import { FREE_PRO_BETA } from "@/lib/beta";
 
 export const dynamic = "force-dynamic";
@@ -135,26 +134,6 @@ export default async function Home() {
           </Reveal>
         </div>
       </section>
-
-      {/* Day-theme talisman — the daytime counterpart to the night's gold sky.
-          One eye is always painted (the wish is set); the second fills in as
-          a real Fortune Goal closes. Shown in day mode only. */}
-      <Reveal>
-        <section className="mx-auto max-w-6xl px-5 pb-6 dark:hidden sm:px-8">
-          <div className="card-lift flex items-center gap-5 rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line sm:gap-6">
-            <Daruma progress={0} size={60} className="shrink-0" />
-            <div>
-              <p className="font-display text-base font-semibold text-ink sm:text-lg">
-                Make a wish. Paint it true.
-              </p>
-              <p className="mt-1 max-w-md text-sm leading-relaxed text-ink-muted">
-                Set a Fortune Goal and the daruma watches over it — one eye for the wish, the
-                second painted in the day you reach it.
-              </p>
-            </div>
-          </div>
-        </section>
-      </Reveal>
 
       <UspSection />
       <ProShowcase />

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Reveal from "@/app/components/Reveal";
+import Daruma from "@/app/app/components/Daruma";
 
 /**
  * "Why Fortune Cat exists" — the three reasons the product was born, each with
@@ -165,9 +166,71 @@ function PriceDemo() {
   );
 }
 
+/* ── USP 4 · a Fortune Goal fills as you save, mirrors the real goal row ── */
+
+const GOAL_STEPS = 34;
+
+function GoalsDemo() {
+  const reduced = useReducedMotion();
+  const [step, setStep] = useState(reduced ? GOAL_STEPS : 0);
+
+  useEffect(() => {
+    if (reduced) {
+      setStep(GOAL_STEPS);
+      return;
+    }
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    function tick(s: number) {
+      if (cancelled) return;
+      setStep(s);
+      timer = setTimeout(() => tick(s >= GOAL_STEPS ? 0 : s + 1), s >= GOAL_STEPS ? 1800 : 90);
+    }
+    timer = setTimeout(() => tick(0), 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [reduced]);
+
+  const pct = step / GOAL_STEPS;
+  const saved = Math.round(pct * 10000);
+
+  return (
+    <div className="rounded-xl p-4 ring-1 ring-line" aria-hidden>
+      <div className="flex items-start gap-3">
+        <Daruma progress={pct} size={40} className="mt-0.5 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-ink">Emergency fund</p>
+              <p className="mt-0.5 text-xs tabular-nums text-ink-subtle">${saved.toLocaleString()} of $10,000</p>
+            </div>
+            <span className="shrink-0 font-mono text-sm font-semibold tabular-nums text-gold-text">
+              {Math.round(pct * 100)}%
+            </span>
+          </div>
+          <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-surface-3">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${Math.max(3, pct * 100)}%`,
+                background: "linear-gradient(90deg, var(--leaf-hi), var(--gold) 60%, var(--vermilion))",
+                transition: "width 90ms linear",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── the section ── */
 
-const USPS = [
+type Usp = { kicker: string; title: string; badge?: string; story: string; demo: React.ReactNode };
+
+const USPS: Usp[] = [
   {
     kicker: "capture",
     title: "Your money logs itself",
@@ -188,6 +251,14 @@ const USPS = [
     story:
       "A money-saving app that bills you monthly is a leak, not a fix. One payment unlocks every engine — no subscription, no renewal.",
     demo: <PriceDemo />,
+  },
+  {
+    kicker: "goals",
+    title: "Make a wish. Paint it true.",
+    badge: "Pro",
+    story:
+      "Set a Fortune Goal — a holiday, an emergency fund — and the daruma watches over it. One eye for the wish, the second painted in the day you reach it.",
+    demo: <GoalsDemo />,
   },
 ];
 
@@ -210,7 +281,10 @@ export default function UspSection() {
                   <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-gold-text">
                     {u.kicker}
                   </p>
-                  <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-ink">{u.title}</h3>
+                  <h3 className="mt-3 flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-ink">
+                    {u.title}
+                    {u.badge && <span className="chip chip-gold">{u.badge}</span>}
+                  </h3>
                   <p className="mt-3 max-w-md text-base leading-relaxed text-ink-muted">{u.story}</p>
                 </div>
                 <div className={i % 2 === 1 ? "md:order-1" : ""}>{u.demo}</div>
