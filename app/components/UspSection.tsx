@@ -246,19 +246,19 @@ const USPS: Usp[] = [
     demo: <SlipDemo />,
   },
   {
-    kicker: "price",
-    title: "US$9 once, yours forever",
-    story:
-      "A money-saving app that bills you monthly is a leak, not a fix. One payment unlocks every engine — no subscription, no renewal.",
-    demo: <PriceDemo />,
-  },
-  {
     kicker: "goals",
     title: "Make a wish. Paint it true.",
     badge: "Pro",
     story:
       "Set a Fortune Goal — a holiday, an emergency fund — and the daruma watches over it. One eye for the wish, the second painted in the day you reach it.",
     demo: <GoalsDemo />,
+  },
+  {
+    kicker: "price",
+    title: "US$9 once, yours forever",
+    story:
+      "A money-saving app that bills you monthly is a leak, not a fix. One payment unlocks every engine — no subscription, no renewal.",
+    demo: <PriceDemo />,
   },
 ];
 
