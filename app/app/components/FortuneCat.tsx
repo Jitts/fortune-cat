@@ -2,10 +2,8 @@
  * The fortune cat — a minted maneki-neko whose expression is a pure function of
  * this month's cash flow. No AI, no randomness: saving = content (eyes closed,
  * calm), even = watchful, burning = alert. Gold leaf on a lacquer outline; the
- * one mark used everywhere from the 24px wordmark to the dashboard hero, so
- * the silhouette is kept deliberately simple — one rounded body, one pendant,
- * no fine detail that turns to mush at logo size. Red is never used here —
- * attention lives elsewhere.
+ * one mark used everywhere from the 22px wordmark to the dashboard hero, so it
+ * stays crisp at any size. Red is never used here — attention lives elsewhere.
  */
 
 export type CatState = "saving" | "even" | "burning";
@@ -21,6 +19,7 @@ const GOLD = "#e8bd54";
 const GOLD_HI = "#f4d888";
 const LINE = "#6f4e0d";
 const CREAM = "#fbf3dd";
+const BELL = "#cf9528";
 
 export default function FortuneCat({
   state,
@@ -56,69 +55,82 @@ export default function FortuneCat({
         </linearGradient>
       </defs>
 
-      {/* ears — one simple fold each; alarmed pulls them back and flat */}
+      {/* ears */}
       {alarmed ? (
         <>
-          <path d="M22 38 L11 22 L36 28 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
-          <path d="M78 38 L89 22 L64 28 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M22 42 L20 20 L41 33 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M78 42 L80 20 L59 33 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
         </>
       ) : (
         <>
-          <path d="M26 30 L20 10 L42 24 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
-          <path d="M74 30 L80 10 L58 24 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
-          <path d="M29 26 L26 15 L38 23 Z" fill={CREAM} />
-          <path d="M71 26 L74 15 L62 23 Z" fill={CREAM} />
+          <path d="M27 38 L30 15 L46 31 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M73 38 L70 15 L54 31 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M31 33 L33 22 L41 30 Z" fill={CREAM} />
+          <path d="M69 33 L67 22 L59 30 Z" fill={CREAM} />
         </>
       )}
 
-      {/* one rounded body+head silhouette — no separate paw, coin, or collar
-          floating off the mark, so it stays crisp at logo size */}
+      {/* body */}
       <path
-        d="M50 12 C70 12 82 28 82 48 C82 64 79 74 72 81 C64 89 56 92 50 92
-           C44 92 36 89 28 81 C21 74 18 64 18 48 C18 28 30 12 50 12 Z"
+        d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z"
         fill={`url(#fc-leaf-${state})`}
         stroke={LINE}
         strokeWidth="2"
         strokeLinejoin="round"
       />
+      {/* raised beckoning paw */}
+      <circle cx="78" cy="55" r="8" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" />
+      {/* resting paw */}
+      <ellipse cx="34" cy="82" rx="7" ry="5" fill={CREAM} stroke={LINE} strokeWidth="1.4" />
 
-      {/* face patch */}
-      <ellipse cx="50" cy="53" rx="17" ry="13" fill={CREAM} />
+      {/* head */}
+      <circle cx="50" cy="46" r="27" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" />
+      <ellipse cx="50" cy="52" rx="13" ry="9" fill={CREAM} />
 
       {/* eyes */}
       {state === "saving" && (
         <>
-          <path d="M35 43 q5 5 10 0" stroke={LINE} strokeWidth="2.4" fill="none" strokeLinecap="round" />
-          <path d="M55 43 q5 5 10 0" stroke={LINE} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+          <path d="M36 44 q5 5 10 0" stroke={LINE} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+          <path d="M54 44 q5 5 10 0" stroke={LINE} strokeWidth="2.4" fill="none" strokeLinecap="round" />
         </>
       )}
       {state === "even" && (
         <>
-          <circle cx="40" cy="43" r="2.8" fill={LINE} />
-          <circle cx="60" cy="43" r="2.8" fill={LINE} />
+          <circle cx="41" cy="44" r="2.7" fill={LINE} />
+          <circle cx="59" cy="44" r="2.7" fill={LINE} />
         </>
       )}
       {alarmed && (
         <>
-          <circle cx="40" cy="43" r="4.8" fill="#fff" stroke={LINE} strokeWidth="1.5" />
-          <circle cx="60" cy="43" r="4.8" fill="#fff" stroke={LINE} strokeWidth="1.5" />
-          <circle cx="40" cy="44" r="2.1" fill={LINE} />
-          <circle cx="60" cy="44" r="2.1" fill={LINE} />
+          <circle cx="41" cy="44" r="4.6" fill="#fff" stroke={LINE} strokeWidth="1.5" />
+          <circle cx="59" cy="44" r="4.6" fill="#fff" stroke={LINE} strokeWidth="1.5" />
+          <circle cx="41" cy="45" r="2" fill={LINE} />
+          <circle cx="59" cy="45" r="2" fill={LINE} />
         </>
       )}
 
       {/* nose + mouth */}
-      <path d="M48 50 h4 l-2 2.3 Z" fill={LINE} />
+      <path d="M48.5 49 h3 l-1.5 2 Z" fill={LINE} />
       {state === "saving" && (
-        <path d="M44 56 q6 4.5 12 0" stroke={LINE} strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        <path d="M45 54 q5 4 10 0" stroke={LINE} strokeWidth="1.8" fill="none" strokeLinecap="round" />
       )}
-      {state === "even" && <path d="M45 57 h10" stroke={LINE} strokeWidth="1.8" strokeLinecap="round" />}
-      {alarmed && <ellipse cx="50" cy="59" rx="3.2" ry="3.8" fill="none" stroke={LINE} strokeWidth="1.6" />}
+      {state === "even" && <path d="M46 55 h8" stroke={LINE} strokeWidth="1.8" strokeLinecap="round" />}
+      {alarmed && <ellipse cx="50" cy="57" rx="3" ry="3.6" fill="none" stroke={LINE} strokeWidth="1.6" />}
 
-      {/* pendant — the one accessory, gold on a thin cord */}
-      <path d="M50 66 v6" stroke={GOLD} strokeWidth="1.6" />
-      <circle cx="50" cy="76" r="5.5" fill={GOLD_HI} stroke={LINE} strokeWidth="1.4" />
-      <circle cx="48.3" cy="74.3" r="1.3" fill="#fff" opacity="0.7" />
+      {/* whiskers */}
+      <path d="M28 45 l-9 -2 M28 49 l-9 2" stroke={LINE} strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
+      <path d="M72 45 l9 -2 M72 49 l9 2" stroke={LINE} strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
+
+      {/* bell collar */}
+      <path d="M34 62 Q50 70 66 62" stroke={BELL} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <circle cx="50" cy="67" r="3.4" fill={GOLD_HI} stroke={LINE} strokeWidth="1.2" />
+      <path d="M47 67 h6" stroke={LINE} strokeWidth="0.9" />
+
+      {/* koban coin at the paw */}
+      <ellipse cx="82" cy="70" rx="10" ry="7" fill={GOLD_HI} stroke={LINE} strokeWidth="1.6" transform="rotate(-14 82 70)" />
+      <text x="82" y="73.5" textAnchor="middle" fontSize="8" fontWeight="700" fill={LINE} transform="rotate(-14 82 70)">
+        金
+      </text>
     </svg>
   );
 }
