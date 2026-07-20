@@ -364,8 +364,8 @@ export default function AppShell({
           {active === "ledger" && (
             <>
               {freeNote}
-              {ledger}
               <ReviewQueue initialCandidates={reviewCandidates} />
+              {ledger}
             </>
           )}
 

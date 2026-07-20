@@ -94,19 +94,21 @@
   --coin-void: #efe7d3;
 }
 
-/* ── Lacquer hall — gold leaf & cinnabar (dark, the signature) ─────────── */
+/* ── Midnight hall — gold leaf on deep night blue (dark, the signature) ──
+   Cooler than the original cinnabar-lacquer dark: a true midnight-blue depth
+   so the gold reads as stars/leaf against a night sky, not warm lacquer. ── */
 .dark {
-  --surface: #17130f;
-  --surface-2: #1f1a15;
-  --surface-3: #2a231c;
+  --surface: #0a0e1c;
+  --surface-2: #10162a;
+  --surface-3: #171f38;
   --ink: #f7f1e6;
-  --ink-muted: #c9bfae;
-  --ink-subtle: #9d9384;
-  --ink-faint: #776e60;
-  --line: #38302a;
-  --action: #35302a;
+  --ink-muted: #bcc3dd;
+  --ink-subtle: #8f97b8;
+  --ink-faint: #636c92;
+  --line: #333f70;
+  --action: #1f2742;
   --on-action: #f7f1e6;
-  --out: #8f8578;
+  --out: #9aa2c0;
   --paper: #f6ecd3;
 
   --gold: #edc35b;
@@ -123,7 +125,7 @@
 
   --leaf-hi: #f6d878;
   --leaf-lo: #b9832a;
-  --coin-void: #241d15;
+  --coin-void: #141b32;
 
   color-scheme: dark;
 }
@@ -379,14 +381,24 @@ details[open] .faq-answer {
   .print-in { animation: none; }
 }
 
-/* Drifting gold dust (night sky) — replaces the old twinkle. */
+/* Drifting gold dust (night sky) — the dense, dim star field. */
 @keyframes dust-drift {
-  0%, 100% { opacity: 0.75; transform: translateY(0); }
-  50%      { opacity: 0.3; transform: translateY(-2px); }
+  0%, 100% { opacity: 0.85; transform: translateY(0); }
+  50%      { opacity: 0.25; transform: translateY(-2px); }
 }
-.gold-dust { opacity: 0.6; }
+.gold-dust { opacity: 0.7; }
 @media (prefers-reduced-motion: no-preference) {
-  .gold-dust { animation: dust-drift 5s ease-in-out infinite; }
+  .gold-dust { animation: dust-drift 4.5s ease-in-out infinite; }
+}
+
+/* Sparkle — the brighter, glowing star layer with a punchier swing. */
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.15; }
+}
+.gold-sparkle { opacity: 0.85; }
+@media (prefers-reduced-motion: no-preference) {
+  .gold-sparkle { animation: sparkle-twinkle 3s ease-in-out infinite; }
 }
 
 /* Underline swash beneath a hero phrase — a stroke of gold leaf. */

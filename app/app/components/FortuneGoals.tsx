@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMoney } from "@/app/components/CurrencyProvider";
 import type { FortuneGoal, Transaction } from "@/lib/types";
 import { createGoal, updateGoal, contributeToGoal, deleteGoal } from "../goalActions";
+import Daruma from "./Daruma";
 
 /** Average monthly expense from history — powers the emergency-fund target. */
 function avgMonthlyExpense(transactions: Transaction[]): number {
@@ -224,89 +225,94 @@ export default function FortuneGoals({
             const remaining = Math.max(0, g.target_amount - g.saved_amount);
             return (
               <li key={g.id} className="rounded-xl ring-1 ring-line p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-                      {g.kind === "emergency" ? "🛟" : "🎯"} {g.name}
-                      {done && (
-                        <span className="rounded-full bg-jade-soft px-1.5 py-px font-mono text-[10px] text-jade">
-                          ✓ reached
-                        </span>
-                      )}
-                    </p>
-                    <p className="mt-0.5 text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
-                      {format(g.saved_amount)} of {format(g.target_amount)}
-                      {g.target_date && (
-                        <> · by {new Date(`${g.target_date}T00:00:00`).toLocaleDateString("en-SG", { month: "short", year: "numeric" })}</>
-                      )}
-                    </p>
+                <div className="flex items-start gap-3">
+                  <Daruma progress={pct / 100} size={40} className="mt-0.5 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                          {g.name}
+                          {done && (
+                            <span className="rounded-full bg-jade-soft px-1.5 py-px font-mono text-[10px] text-jade">
+                              ✓ reached
+                            </span>
+                          )}
+                        </p>
+                        <p className="mt-0.5 text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
+                          {format(g.saved_amount)} of {format(g.target_amount)}
+                          {g.target_date && (
+                            <> · by {new Date(`${g.target_date}T00:00:00`).toLocaleDateString("en-SG", { month: "short", year: "numeric" })}</>
+                          )}
+                        </p>
+                      </div>
+                      <span className="shrink-0 font-mono text-sm font-semibold text-gold-text [font-variant-numeric:tabular-nums]">
+                        {Math.round(pct)}%
+                      </span>
+                    </div>
+
+                    <GoalBar pct={pct} />
+
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <p className="text-[11px] text-ink-faint [font-variant-numeric:tabular-nums]">
+                        {done ? "Fully funded — nice work." : `${format(remaining)} to go`}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs">
+                        <button
+                          onClick={() => {
+                            setError(null);
+                            setBoostId(boostId === g.id ? null : g.id);
+                            setBoostAmount("");
+                          }}
+                          className="font-medium text-gold-text hover:underline"
+                        >
+                          Boost
+                        </button>
+                        <button
+                          onClick={() => openEdit(g)}
+                          className="font-medium text-ink-subtle hover:text-ink"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(g.id)}
+                          disabled={pending}
+                          className="font-medium text-ink-faint hover:text-vermilion disabled:opacity-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    {boostId === g.id && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-xs text-ink-subtle">Add</span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          autoFocus
+                          value={boostAmount}
+                          onChange={(e) => setBoostAmount(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && submitBoost(g.id)}
+                          placeholder="100"
+                          className="w-24 rounded-lg border border-line px-2 py-1 text-sm [font-variant-numeric:tabular-nums] focus:border-gold focus:outline-none"
+                        />
+                        <button
+                          onClick={() => submitBoost(g.id)}
+                          disabled={pending}
+                          className="btn btn-gold px-3 py-1 text-xs"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setBoostId(null)}
+                          className="text-xs text-ink-faint hover:text-ink-muted"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <span className="shrink-0 font-mono text-sm font-semibold text-gold-text [font-variant-numeric:tabular-nums]">
-                    {Math.round(pct)}%
-                  </span>
                 </div>
-
-                <GoalBar pct={pct} />
-
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-ink-faint [font-variant-numeric:tabular-nums]">
-                    {done ? "Fully funded — nice work." : `${format(remaining)} to go`}
-                  </p>
-                  <div className="flex items-center gap-3 text-xs">
-                    <button
-                      onClick={() => {
-                        setError(null);
-                        setBoostId(boostId === g.id ? null : g.id);
-                        setBoostAmount("");
-                      }}
-                      className="font-medium text-gold-text hover:underline"
-                    >
-                      Boost
-                    </button>
-                    <button
-                      onClick={() => openEdit(g)}
-                      className="font-medium text-ink-subtle hover:text-ink"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(g.id)}
-                      disabled={pending}
-                      className="font-medium text-ink-faint hover:text-vermilion disabled:opacity-50"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-
-                {boostId === g.id && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="text-xs text-ink-subtle">Add</span>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      autoFocus
-                      value={boostAmount}
-                      onChange={(e) => setBoostAmount(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && submitBoost(g.id)}
-                      placeholder="100"
-                      className="w-24 rounded-lg border border-line px-2 py-1 text-sm [font-variant-numeric:tabular-nums] focus:border-gold focus:outline-none"
-                    />
-                    <button
-                      onClick={() => submitBoost(g.id)}
-                      disabled={pending}
-                      className="btn btn-gold px-3 py-1 text-xs"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setBoostId(null)}
-                      className="text-xs text-ink-faint hover:text-ink-muted"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
               </li>
             );
           })}

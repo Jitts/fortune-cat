@@ -14,9 +14,9 @@ import EmailCandidateList from "@/app/settings/components/EmailCandidateList";
 import Toast from "./Toast";
 
 /**
- * The review queue embedded below the ledger — the same pending queue as
- * /review (which stays for the nav badge + auto-posted history). Accepting
- * refreshes the server data so the new row appears in the ledger above.
+ * The review queue embedded above the ledger list — the same pending queue
+ * as /review (which stays for the nav badge + auto-posted history).
+ * Accepting refreshes the server data so the new row appears in the ledger.
  */
 export default function ReviewQueue({
   initialCandidates,
