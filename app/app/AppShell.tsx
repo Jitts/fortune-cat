@@ -48,6 +48,7 @@ export default function AppShell({
   userEmail,
   pendingReviewCount,
   reviewCandidates,
+  filteredCandidates,
   connections,
   provenance,
   setup,
@@ -67,6 +68,7 @@ export default function AppShell({
   userEmail: string;
   pendingReviewCount: number;
   reviewCandidates: EmailTransactionCandidate[];
+  filteredCandidates: EmailTransactionCandidate[];
   connections: EmailConnection[];
   provenance: Record<string, TransactionProvenance>;
   setup: { captured: boolean; trusted: boolean; backfilled: boolean };
@@ -364,7 +366,7 @@ export default function AppShell({
           {active === "ledger" && (
             <>
               {freeNote}
-              <ReviewQueue initialCandidates={reviewCandidates} />
+              <ReviewQueue initialCandidates={reviewCandidates} initialFiltered={filteredCandidates} />
               {ledger}
             </>
           )}

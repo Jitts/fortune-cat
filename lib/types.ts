@@ -76,7 +76,7 @@ export type EmailConnection = {
   auth_type: EmailAuthType;
 };
 
-export type EmailCandidateStatus = "pending" | "accepted" | "dismissed";
+export type EmailCandidateStatus = "pending" | "accepted" | "dismissed" | "filtered";
 
 export type EmailTransactionCandidate = {
   id: string;

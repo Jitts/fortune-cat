@@ -3,8 +3,8 @@
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
+import { bumpSenderSignal, bumpTrustSignal, extractSenderDomain } from "@/lib/email/senderSignals";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
 import { testImapConnection, fetchRecentEmails, fetchOlderEmails } from "@/lib/email/imapClient";
 import { processFetchedEmails, createTransactionFromCandidate } from "@/lib/email/processScan";
@@ -487,9 +487,16 @@ export async function trustSender(fromAddress: string): Promise<TrustResult> {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
 
-  const emailMatch = fromAddress.toLowerCase().match(/@([a-z0-9.-]+)/);
-  const pattern = (emailMatch?.[1] ?? fromAddress.toLowerCase()).trim();
+  const pattern = extractSenderDomain(fromAddress) ?? fromAddress.toLowerCase().trim();
   if (!pattern || pattern.length < 3) return { error: "Could not read a sender domain." };
+
+  // First-time trust by this user drives the distinct-user aggregate below.
+  const { data: existing } = await supabase
+    .from("trusted_senders")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("pattern", pattern)
+    .maybeSingle();
 
   const { data, error } = await supabase
     .from("trusted_senders")
@@ -500,6 +507,11 @@ export async function trustSender(fromAddress: string): Promise<TrustResult> {
   if (error || !data) {
     console.error("[trustSender]", error);
     return { error: "Could not save — please try again." };
+  }
+
+  if (!existing) {
+    const profile = await getUserProfile(supabase);
+    await bumpTrustSignal(pattern, profile.country ?? "", 1);
   }
 
   await logAudit(supabase, {
@@ -522,10 +534,22 @@ export async function untrustSender(id: string): Promise<{ error?: string }> {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
 
+  const { data: existing } = await supabase
+    .from("trusted_senders")
+    .select("id, pattern")
+    .eq("user_id", user.id)
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("trusted_senders").delete().eq("id", id);
   if (error) {
     console.error("[untrustSender]", error);
     return { error: "Could not remove — please try again." };
+  }
+
+  if (existing) {
+    const profile = await getUserProfile(supabase);
+    await bumpTrustSignal(existing.pattern, profile.country ?? "", -1);
   }
 
   await logAudit(supabase, {
@@ -545,45 +569,6 @@ type BlockResult =
   | { data: BlockedSender; dismissed: number; error?: undefined }
   | { data?: undefined; error: string };
 
-// Freemail domains never contribute to the anonymous global aggregate — one
-// person blocking a personal contact must not nudge a shared domain's score.
-const FREEMAIL_DOMAINS = new Set([
-  "gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "live.com",
-  "msn.com", "yahoo.com", "yahoo.com.sg", "ymail.com", "icloud.com", "me.com",
-  "mac.com", "proton.me", "protonmail.com", "pm.me", "aol.com", "gmx.com",
-  "zoho.com", "mail.com", "qq.com", "163.com", "126.com", "naver.com",
-]);
-
-/**
- * Anonymous (domain, country) block tally — service-role write, no user ids.
- * Best-effort: a signal failure never fails the user's block/unblock.
- */
-async function bumpSenderSignal(domain: string, country: string, delta: 1 | -1) {
-  if (FREEMAIL_DOMAINS.has(domain) || !domain.includes(".")) return;
-  try {
-    const admin = createAdminClient();
-    const { data } = await admin
-      .from("sender_signals")
-      .select("block_count")
-      .eq("domain", domain)
-      .eq("country", country)
-      .maybeSingle();
-    // ponytail: read-modify-write race under concurrent blocks; swap for an
-    // atomic RPC if signal volume ever matters.
-    await admin.from("sender_signals").upsert(
-      {
-        domain,
-        country,
-        block_count: Math.max(0, (data?.block_count ?? 0) + delta),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "domain,country" },
-    );
-  } catch (err) {
-    console.error("[bumpSenderSignal]", err);
-  }
-}
-
 /**
  * The mirror of trustSender: every future scan skips this sender entirely,
  * and its currently-pending review items are dismissed on the spot.
@@ -596,8 +581,7 @@ export async function blockSender(fromAddress: string): Promise<BlockResult> {
   if (!user) return { error: "Please log in." };
   if (typeof fromAddress !== "string" || !fromAddress.trim()) return { error: "Missing sender." };
 
-  const emailMatch = fromAddress.toLowerCase().match(/@([a-z0-9.-]+)/);
-  const pattern = (emailMatch?.[1] ?? fromAddress.toLowerCase()).trim();
+  const pattern = extractSenderDomain(fromAddress) ?? fromAddress.toLowerCase().trim();
   if (!pattern || pattern.length < 3) return { error: "Could not read a sender domain." };
 
   // First-time block by this user drives the distinct-user aggregate below.
@@ -726,6 +710,46 @@ export async function dismissEmailCandidate(id: string): Promise<CandidateAction
     userId: user.id,
   });
 
+  revalidatePath("/settings");
+  return { data };
+}
+
+/**
+ * Undo for a collaboratively-filtered capture (status "filtered") — puts it
+ * back in the normal review queue. The global signal never gets a silent
+ * last word; every graduated domain stays one tap away from a normal review
+ * item for anyone who disagrees with it.
+ */
+export async function restoreFilteredCandidate(id: string): Promise<CandidateActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  const { data, error } = await supabase
+    .from("email_transaction_candidates")
+    .update({ status: "pending", review_reason: "restored from filtered" })
+    .eq("id", id)
+    .eq("status", "filtered")
+    .select()
+    .single();
+
+  if (error || !data) {
+    console.error("[restoreFilteredCandidate]", error);
+    return { error: "Could not restore — please try again." };
+  }
+
+  await logAudit(supabase, {
+    action: "email_candidate.filter_restored",
+    entityType: "email_transaction_candidate",
+    entityId: id,
+    payload: {},
+    riskLevel: "low",
+    userId: user.id,
+  });
+
+  revalidatePath("/app");
   revalidatePath("/settings");
   return { data };
 }

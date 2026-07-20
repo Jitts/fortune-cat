@@ -3,6 +3,7 @@ import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
 import { suggestAccountTag } from "@/lib/email/accountTag";
 import { convertToBase } from "@/lib/fx";
 import { getBaseCurrency } from "@/lib/profile";
+import { extractSenderDomain, getGraduatedDomains } from "@/lib/email/senderSignals";
 import type { FetchedEmail } from "@/lib/email/imapClient";
 
 // Works with both the RLS-scoped server client (manual scans) and the
@@ -116,6 +117,11 @@ export async function processFetchedEmails(
   const blocked = ((blockedRows ?? []) as { pattern: string }[])
     .map((r) => r.pattern.toLowerCase())
     .filter(Boolean);
+  // Domains the collaborative filter has graduated (blocked by enough
+  // distinct OTHER users) — see lib/email/senderSignals.ts. Best-effort and
+  // always resolves (never throws), so a signal-table hiccup never blocks a
+  // scan; it just means nothing graduates that round.
+  const graduated = await getGraduatedDomains();
   // The user's own currency — anything else is "foreign" and routes to review.
   const baseCurrency = await getBaseCurrency(supabase, userId);
 
@@ -146,6 +152,13 @@ export async function processFetchedEmails(
     const trusted = patterns.some((p) => from.includes(p));
     if (!trusted && !reviewReason) reviewReason = "unrecognised sender";
 
+    // A personal "trust" always wins over the collaborative filter — otherwise
+    // trusting a sender would be meaningless the moment enough other users
+    // block that same domain. Personal "block" already short-circuited above.
+    const senderDomain = extractSenderDomain(mail.from);
+    const graduatedCount = !trusted && senderDomain ? graduated.get(senderDomain) : undefined;
+    const filtered = graduatedCount != null;
+
     const autoPost = trusted && !foreign;
 
     candidateRows.push({
@@ -162,9 +175,13 @@ export async function processFetchedEmails(
       account_tag: accountTagger(mail.from, mail.text),
       original_amount: foreign ? parsed.amount : null,
       original_currency: foreign ? parsed.currency : null,
-      review_reason: autoPost ? null : reviewReason,
+      review_reason: autoPost
+        ? null
+        : filtered
+          ? `filtered — blocked by ${graduatedCount} other users as likely unwanted`
+          : reviewReason,
       auto_posted: autoPost,
-      status: autoPost ? "accepted" : "pending",
+      status: autoPost ? "accepted" : filtered ? "filtered" : "pending",
       source,
     });
   }

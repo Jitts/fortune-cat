@@ -29,6 +29,11 @@ export default async function AppPage() {
         .select()
         .eq("status", "pending")
         .order("email_date", { ascending: false }),
+      supabase
+        .from("email_transaction_candidates")
+        .select()
+        .eq("status", "filtered")
+        .order("email_date", { ascending: false }),
       supabase.from("email_connections").select().order("created_at", { ascending: true }),
       supabase
         .from("email_transaction_candidates")
@@ -64,6 +69,7 @@ export default async function AppPage() {
     { data: categories },
     { data: activePayment },
     { data: reviewCandidates },
+    { data: filteredCandidates },
     { data: connections },
     { data: provenanceRows },
     { count: capturedCount },
@@ -116,6 +122,7 @@ export default async function AppPage() {
         userEmail={user.email ?? ""}
         pendingReviewCount={(reviewCandidates ?? []).length}
         reviewCandidates={(reviewCandidates ?? []) as EmailTransactionCandidate[]}
+        filteredCandidates={(filteredCandidates ?? []) as EmailTransactionCandidate[]}
         connections={(connections ?? []) as EmailConnection[]}
         provenance={provenance}
         setup={setup}
