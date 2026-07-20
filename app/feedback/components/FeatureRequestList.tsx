@@ -30,7 +30,7 @@ export default function FeatureRequestList({
               aria-pressed={r.hasVoted}
               className={`flex w-14 shrink-0 flex-col items-center rounded-lg border px-2 py-1.5 transition disabled:opacity-50 ${
                 r.hasVoted
-                  ? "border-amber-400 bg-amber-50 text-amber-700"
+                  ? "border-gold bg-gold-soft text-gold-text"
                   : "border-line text-ink-subtle hover:bg-surface-2"
               }`}
             >

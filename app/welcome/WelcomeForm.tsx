@@ -81,13 +81,9 @@ export default function WelcomeForm() {
           <p className="mt-0.5 text-lg font-semibold text-ink [font-variant-numeric:tabular-nums]">{sample}</p>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-vermilion">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-lg bg-amber-500 px-4 py-3.5 text-[15px] font-bold text-white shadow-sm transition hover:bg-amber-600 disabled:opacity-60"
-        >
+        <button type="submit" disabled={pending} className="btn btn-gold w-full px-4 py-3.5 text-[15px]">
           {pending ? "Setting up…" : "Start tracking →"}
         </button>
       </form>

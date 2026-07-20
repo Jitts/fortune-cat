@@ -25,12 +25,8 @@ export default function GoProButton({ label = "Go Pro" }: { label?: string }) {
 
   return (
     <div className="space-y-3">
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button
-        onClick={handleGoPro}
-        disabled={loading}
-        className="pressable w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
-      >
+      {error && <p className="text-sm text-vermilion">{error}</p>}
+      <button onClick={handleGoPro} disabled={loading} className="btn btn-gold w-full px-4 py-3.5 text-sm">
         {loading ? "Redirecting…" : label}
       </button>
     </div>

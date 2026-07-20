@@ -324,7 +324,7 @@ export default function AppShell({
         {/* ===== CENTRE — swaps with the active tab ===== */}
         <div className="min-w-0 space-y-6">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-ink">{tabTitle[active]}</h2>
+            <h2 className="font-display text-xl font-bold tracking-tight text-ink">{tabTitle[active]}</h2>
             {active === "ledger" && (
               <div className="flex items-center gap-2">
                 {connections.length > 0 && (

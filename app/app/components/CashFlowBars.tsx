@@ -20,7 +20,7 @@ export default function CashFlowBars({ transactions }: { transactions: Transacti
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-sm font-medium text-ink-subtle">Cash flow · {monthLabel}</p>
         <p className="font-mono text-xs [font-variant-numeric:tabular-nums]">
-          <span className="text-emerald-700 dark:text-emerald-400">▲ {format(pulse.inTotal)}</span>
+          <span className="text-jade">▲ {format(pulse.inTotal)}</span>
           <span className="ml-3 text-ink-muted">▼ {format(pulse.outTotal)}</span>
         </p>
       </div>
@@ -36,7 +36,7 @@ export default function CashFlowBars({ transactions }: { transactions: Transacti
               >
                 <div className="flex w-full max-w-[16px] flex-1 items-end justify-center">
                   <div
-                    className="w-full rounded-t-sm bg-emerald-600 dark:bg-emerald-500"
+                    className="w-full rounded-t-sm bg-jade"
                     style={{ height: d.in > 0 ? `${Math.max(6, (d.in / pulse.maxBar) * 100)}%` : 0 }}
                   />
                 </div>
@@ -62,7 +62,7 @@ export default function CashFlowBars({ transactions }: { transactions: Transacti
         {pulse.burnDelta != null && (
           <>
             {" · "}
-            <span className={pulse.burnDelta <= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-ink-muted"}>
+            <span className={pulse.burnDelta <= 0 ? "text-jade" : "text-ink-muted"}>
               {Math.abs(pulse.burnDelta)}% {pulse.burnDelta <= 0 ? "below" : "above"} last month&apos;s pace
             </span>
           </>

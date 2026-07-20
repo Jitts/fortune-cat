@@ -21,7 +21,7 @@ function DeltaTag({ delta, invertGood }: { delta: Delta; invertGood?: boolean })
   // For expenses, "up" is bad; for savings rate, "up" is good.
   const good = invertGood ? delta.direction === "down" : delta.direction === "up";
   return (
-    <span className={`text-[11px] font-medium ${good ? "text-emerald-700" : "text-red-600"}`}>
+    <span className={`text-[11px] font-medium ${good ? "text-jade" : "text-vermilion"}`}>
       {delta.direction === "up" ? "▲" : "▼"} {delta.value.toFixed(1)}
       {invertGood ? "%" : " pts"} vs last period
     </span>
@@ -38,7 +38,7 @@ function MonthlyChart({ monthly }: { monthly: { month: string; income: number; e
     <div>
       <div className="mb-3 flex items-center gap-4 font-mono text-[10px] uppercase tracking-wide text-ink-subtle">
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-600" /> In
+          <span className="h-2 w-2 rounded-full bg-jade" /> In
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-out" /> Out
@@ -49,7 +49,7 @@ function MonthlyChart({ monthly }: { monthly: { month: string; income: number; e
           <div key={m.month} className="flex min-w-[34px] flex-1 flex-col items-center gap-1">
             <div className="flex h-28 w-full items-end justify-center gap-1">
               <div
-                className="w-1/2 max-w-[14px] rounded-t bg-emerald-600"
+                className="w-1/2 max-w-[14px] rounded-t bg-jade"
                 style={{ height: `${(m.income / max) * 100}%` }}
                 title={`${label(m.month)} · in ${format(m.income)}`}
               />
@@ -124,7 +124,7 @@ export default function AnalyticsPanel({
 
   if (!isPro) {
     return (
-      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-8 text-center shadow-sm ring-1 ring-line">
+      <div className="rounded-2xl border-t-2 border-gold bg-surface p-8 text-center shadow-sm ring-1 ring-line">
         <p className="mx-auto max-w-md text-sm text-ink-muted">
           Deep-dive into your prosperity: savings rate and cash flow with period-over-period
           comparison, a category ranking, the months behind the trend, and the few expenses worth
@@ -175,7 +175,7 @@ export default function AnalyticsPanel({
               <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Net cash flow</p>
               <p
                 className={`mt-1 text-2xl font-bold [font-variant-numeric:tabular-nums] ${
-                  a.net >= 0 ? "text-emerald-700" : "text-ink"
+                  a.net >= 0 ? "text-jade" : "text-ink"
                 }`}
               >
                 {a.net >= 0 ? "+" : "−"}
@@ -202,7 +202,7 @@ export default function AnalyticsPanel({
               <ul className="mt-2 space-y-1.5">
                 {a.standouts.map((s, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-ink-muted">
-                    <span className={s.tone === "up" ? "text-emerald-700" : s.tone === "down" ? "text-red-600" : "text-ink-faint"}>
+                    <span className={s.tone === "up" ? "text-jade" : s.tone === "down" ? "text-vermilion" : "text-ink-faint"}>
                       {s.tone === "up" ? "▲" : s.tone === "down" ? "▼" : "•"}
                     </span>
                     {s.text}

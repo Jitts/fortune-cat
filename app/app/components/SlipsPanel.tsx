@@ -43,24 +43,20 @@ export default function SlipsPanel({
       <DailyFortuneSlip todaySlip={todaySlip} slipStreak={slipStreak} />
 
       {attention && (
-        <div className="relative overflow-hidden rounded-2xl border border-dashed border-red-400 bg-paper p-5 shadow-sm">
-          <div className="absolute inset-x-0 top-0 h-1 bg-red-500" />
+        <div className="slip p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-red-700">
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-seal">
                 Needs attention · {attention.word}
               </p>
-              <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-800">
+              <p className="mt-2 text-sm font-medium leading-relaxed text-[#2a1e05]">
                 {attention.headline}
               </p>
               {attention.hint && (
-                <p className="mt-2 text-xs font-medium text-emerald-700">→ {attention.hint}</p>
+                <p className="mt-2 text-xs font-medium text-[#0e6f52]">→ {attention.hint}</p>
               )}
             </div>
-            <span
-              aria-hidden
-              className="flex h-9 w-9 shrink-0 rotate-6 items-center justify-center rounded-md bg-red-600 text-lg font-bold text-white shadow-sm"
-            >
+            <span aria-hidden className="slip-seal text-lg">
               改
             </span>
           </div>

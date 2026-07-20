@@ -62,7 +62,7 @@ export default function AuthForm({
             />
           </div>
 
-          {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+          {state?.error && <p className="text-sm text-vermilion">{state.error}</p>}
 
           <button
             type="submit"

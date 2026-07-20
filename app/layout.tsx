@@ -1,11 +1,31 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
+// Display voice — a contemporary grotesque with a crafted, slightly irregular
+// hand. Carries the wordmark, hero, and big figures; never UI labels.
+const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-jakarta",
+  variable: "--font-bricolage",
+  weight: ["500", "600", "700", "800"],
+});
+
+// Workhorse — a warm humanist grotesque with excellent small-size legibility
+// and tabular figures. Body, UI, labels, and most numbers.
+const hanken = Hanken_Grotesk({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-hanken",
+});
+
+// The "machine capture" texture — SMS/receipt/provenance stamps and data
+// labels. Diegetic (it *is* the forwarded message text), used sparingly.
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains",
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -51,7 +71,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={jakarta.variable} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: NO_FLASH_THEME }} />
       </head>

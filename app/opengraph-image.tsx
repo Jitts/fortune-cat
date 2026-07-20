@@ -16,18 +16,35 @@ export default function OpengraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: 28,
-          background: "linear-gradient(160deg, #14141a 0%, #1d1a24 100%)",
-          color: "#f5f2ea",
+          gap: 30,
+          background: "radial-gradient(120% 120% at 78% 12%, #2a2013 0%, #17130f 55%)",
+          color: "#f7f1e6",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ fontSize: 120 }}>🐱</div>
-        <div style={{ fontSize: 64, fontWeight: 700 }}>Your money logs itself.</div>
-        <div style={{ fontSize: 30, color: "#d4af37", display: "flex", gap: 14 }}>
-          <span>Fortune Cat</span>
-          <span style={{ color: "#8b8696" }}>·</span>
-          <span style={{ color: "#8b8696" }}>no bank login · any currency · $9 once for Pro</span>
+        {/* minted fortune coin */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 132,
+            height: 132,
+            borderRadius: 999,
+            background: "linear-gradient(180deg, #f4d888, #e8bd54)",
+            color: "#2a1e05",
+            fontSize: 60,
+            fontWeight: 800,
+            boxShadow: "0 0 0 6px rgba(237,195,91,0.18)",
+          }}
+        >
+          金
+        </div>
+        <div style={{ fontSize: 66, fontWeight: 800, letterSpacing: -1 }}>Your money logs itself.</div>
+        <div style={{ fontSize: 28, color: "#edc35b", display: "flex", gap: 16, alignItems: "center" }}>
+          <span style={{ fontWeight: 700 }}>Fortune Cat</span>
+          <span style={{ color: "#8f8578" }}>·</span>
+          <span style={{ color: "#c9bfae" }}>no bank login · any currency · $9 once for Pro</span>
         </div>
       </div>
     ),

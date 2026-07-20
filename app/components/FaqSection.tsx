@@ -59,26 +59,26 @@ const FAQ_JSON_LD = {
 export default function FaqSection() {
   return (
     <section className="border-t border-line">
-      <div className="mx-auto max-w-3xl px-6 py-16">
-        <Reveal className="text-center">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-red-700 dark:text-red-400">
-            faq
-          </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+      <div className="mx-auto max-w-3xl px-5 py-20 sm:px-8">
+        <Reveal>
+          <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
             Questions, answered
           </h2>
         </Reveal>
 
-        <Reveal delay={80} className="mt-8 space-y-2">
+        <Reveal delay={80} className="mt-8 space-y-2.5">
           {FAQS.map((f) => (
             <details
               key={f.q}
               className="group rounded-2xl bg-surface shadow-sm ring-1 ring-line open:pb-4"
             >
-              <summary className="cursor-pointer list-none rounded-2xl px-5 py-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-3/60 [&::-webkit-details-marker]:hidden">
+              <summary className="cursor-pointer list-none rounded-2xl px-5 py-4 text-[15px] font-semibold text-ink transition-colors hover:bg-surface-3/60 [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center justify-between gap-3">
                   {f.q}
-                  <span className="text-ink-faint transition-transform group-open:rotate-45" aria-hidden>
+                  <span
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-gold-text ring-1 ring-line transition-transform group-open:rotate-45"
+                    aria-hidden
+                  >
                     ＋
                   </span>
                 </span>

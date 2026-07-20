@@ -9,8 +9,8 @@ import { setBudget, removeBudget } from "../budgetActions";
 // Spend is "out" (ink); attention escalates ink → amber → red, keeping red for
 // the genuine over-budget state per the app's colour rules.
 function stateFor(pct: number) {
-  if (pct >= 100) return { bar: "bg-red-600", chip: "Over", chipCls: "bg-red-50 text-red-700" };
-  if (pct >= 80) return { bar: "bg-amber-500", chip: "Caution", chipCls: "bg-amber-50 text-amber-700" };
+  if (pct >= 100) return { bar: "bg-vermilion", chip: "Over", chipCls: "bg-vermilion-soft text-vermilion" };
+  if (pct >= 80) return { bar: "bg-gold", chip: "Caution", chipCls: "bg-gold-soft text-gold-text" };
   return { bar: "bg-out", chip: null, chipCls: "" };
 }
 
@@ -133,7 +133,7 @@ export default function FortuneBudget({
         )}
       </div>
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-vermilion">{error}</p>}
 
       {items.length > 0 && (
         <div className="mt-3">
@@ -141,13 +141,13 @@ export default function FortuneBudget({
             <span>
               {format(totalSpent)} of {format(totalBudget)} budgeted
             </span>
-            <span className={remaining < 0 ? "font-semibold text-red-600" : "text-ink-subtle"}>
+            <span className={remaining < 0 ? "font-semibold text-vermilion" : "text-ink-subtle"}>
               {remaining < 0 ? `${format(-remaining)} over` : `${format(remaining)} left`}
             </span>
           </div>
           <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-surface-3">
             <div
-              className={`h-full rounded-full ${overallPct >= 100 ? "bg-red-600" : overallPct >= 80 ? "bg-amber-500" : "bg-out"}`}
+              className={`h-full rounded-full ${overallPct >= 100 ? "bg-vermilion" : overallPct >= 80 ? "bg-gold" : "bg-out"}`}
               style={{ width: `${Math.min(100, overallPct)}%` }}
             />
           </div>
@@ -159,7 +159,7 @@ export default function FortuneBudget({
           <select
             value={addCategory}
             onChange={(e) => setAddCategory(e.target.value)}
-            className="rounded-lg border border-line px-2 py-1.5 text-sm focus:border-fortune-400 focus:outline-none"
+            className="rounded-lg border border-line px-2 py-1.5 text-sm focus:border-gold focus:outline-none"
           >
             {budgetable.map((c) => (
               <option key={c.id} value={c.id}>
@@ -175,12 +175,12 @@ export default function FortuneBudget({
             onChange={(e) => setAddValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && saveAdd()}
             placeholder="Monthly limit"
-            className="w-32 rounded-lg border border-line px-2 py-1.5 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+            className="w-32 rounded-lg border border-line px-2 py-1.5 text-sm [font-variant-numeric:tabular-nums] focus:border-gold focus:outline-none"
           />
           <button
             onClick={saveAdd}
             disabled={pending}
-            className="rounded-lg bg-fortune-400 px-3 py-1.5 text-xs font-semibold text-fortune-700 hover:brightness-95 disabled:opacity-50"
+            className="btn btn-gold px-3 py-1.5 text-xs"
           >
             Set
           </button>
@@ -201,7 +201,7 @@ export default function FortuneBudget({
               setAdding(true);
               setAddCategory(budgetable[0]?.id ?? "");
             }}
-            className="mt-3 rounded-lg bg-fortune-400 px-4 py-2 text-sm font-semibold text-fortune-700 hover:brightness-95"
+            className="btn btn-gold mt-3 px-4 py-2 text-sm"
           >
             Set your first budget
           </button>
@@ -244,12 +244,12 @@ export default function FortuneBudget({
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && saveEdit(budget.category_id)}
-                        className="w-24 rounded border border-line px-2 py-0.5 text-xs [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                        className="w-24 rounded border border-line px-2 py-0.5 text-xs [font-variant-numeric:tabular-nums] focus:border-gold focus:outline-none"
                       />
                       <button
                         onClick={() => saveEdit(budget.category_id)}
                         disabled={pending}
-                        className="text-xs font-medium text-fortune-700 hover:underline disabled:opacity-50"
+                        className="text-xs font-medium text-gold-text hover:underline disabled:opacity-50"
                       >
                         Save
                       </button>
@@ -272,7 +272,7 @@ export default function FortuneBudget({
                       <button
                         onClick={() => handleRemove(budget.category_id)}
                         disabled={pending}
-                        className="font-medium text-ink-faint hover:text-red-600 disabled:opacity-50"
+                        className="font-medium text-ink-faint hover:text-vermilion disabled:opacity-50"
                       >
                         Remove
                       </button>

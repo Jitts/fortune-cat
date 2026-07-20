@@ -93,7 +93,7 @@ export default function CountrySelect({
                     >
                       {F && <F title={r.name} className={flagCls} />}
                       {r.name}
-                      {isSel && <span className="ml-auto text-fortune-700" aria-hidden>✓</span>}
+                      {isSel && <span className="ml-auto text-gold-text" aria-hidden>✓</span>}
                     </button>
                   </li>
                 );

@@ -1,22 +1,38 @@
 /**
- * Lantern streak (Direction B): a row of paper lanterns 🏮, the first N marking
- * an N-day streak. Day/night aware — by day the streak lanterns simply hang red
- * ("off"); at night (the Shrine theme) they light up with a warm gold glow. The
- * remaining slots stay dim in both themes. Uses the emoji so the lanterns match
- * the approved mockup.
+ * Capture streak, minted as a string of lucky coins (the square-holed cash coin
+ * of prosperity). The first N coins are struck in gold for an N-day streak; the
+ * remaining slots stay as faint unstruck outlines. Replaces the old lantern
+ * emoji so the streak reads in the same coin language as the fortune medallion.
  */
-function Lantern({ lit }: { lit: boolean }) {
+function Coin({ struck }: { struck: boolean }) {
   return (
-    <span
-      aria-hidden
-      className={`text-lg leading-none ${
-        lit
-          ? "opacity-90 dark:opacity-100 dark:[filter:brightness(1.15)_drop-shadow(0_0_5px_rgba(255,176,32,0.9))]"
-          : "opacity-30 grayscale"
-      }`}
-    >
-      🏮
-    </span>
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden className="shrink-0">
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        fill={struck ? "var(--gold)" : "transparent"}
+        stroke={struck ? "var(--gold-text)" : "var(--line)"}
+        strokeWidth="1.6"
+        opacity={struck ? 1 : 0.7}
+        style={
+          struck
+            ? { filter: "drop-shadow(0 0 3px color-mix(in oklab, var(--gold) 60%, transparent))" }
+            : undefined
+        }
+      />
+      <rect
+        x="9"
+        y="9"
+        width="6"
+        height="6"
+        rx="1"
+        fill="none"
+        stroke={struck ? "var(--on-gold)" : "var(--line)"}
+        strokeWidth="1.4"
+        opacity={struck ? 0.85 : 0.7}
+      />
+    </svg>
   );
 }
 
@@ -29,13 +45,13 @@ export default function LanternStreak({
   total?: number;
   label?: string;
 }) {
-  const lit = Math.max(0, count);
-  const slots = Math.max(total, lit);
+  const struck = Math.max(0, count);
+  const slots = Math.max(total, struck);
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex items-end gap-1">
+    <div className="flex flex-col items-center gap-1.5">
+      <div className="flex items-center gap-1">
         {Array.from({ length: slots }).map((_, i) => (
-          <Lantern key={i} lit={i < lit} />
+          <Coin key={i} struck={i < struck} />
         ))}
       </div>
       {label && (

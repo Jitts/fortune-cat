@@ -89,14 +89,14 @@ export default function PouchSummary({
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
           In your pouch <span className="text-ink-faint/70">· till {monthEnd}</span>
         </p>
-        <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[9px] font-semibold text-fortune-700">
+        <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[9px] font-semibold text-gold-text">
           PRO
         </span>
       </div>
 
       <p
         className={`mt-1 text-3xl font-bold tracking-tight [font-variant-numeric:tabular-nums] ${
-          negative ? "text-red-600 dark:text-red-400" : "text-ink"
+          negative ? "text-vermilion" : "text-ink"
         }`}
       >
         {negative ? "−" : ""}
@@ -127,7 +127,7 @@ export default function PouchSummary({
           {/* pace bar */}
           <div className="relative h-2 w-full overflow-hidden rounded-full bg-surface-3">
             <div
-              className={`h-full rounded-full ${overPace ? "bg-red-500" : "bg-out"}`}
+              className={`h-full rounded-full ${overPace ? "bg-vermilion" : "bg-out"}`}
               style={{ width: `${Math.min(100, Math.round(sts.spentProgress * 100))}%` }}
             />
             <div
@@ -164,7 +164,7 @@ export default function PouchSummary({
                 <button onClick={() => setEditing(false)} className="text-sm text-ink-subtle hover:text-ink">
                   Cancel
                 </button>
-                {error && <p className="w-full text-xs text-red-600">{error}</p>}
+                {error && <p className="w-full text-xs text-vermilion">{error}</p>}
               </div>
             ) : (
               <button

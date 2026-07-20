@@ -46,7 +46,7 @@ export default function EmailCandidateList({
                     {c.email_date ? formatDate(c.email_date.slice(0, 10)) : ""} · {c.from_address}
                   </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 [font-variant-numeric:tabular-nums]">
+                    <span className="inline-flex items-center rounded-full bg-gold-soft px-2 py-0.5 text-xs font-medium text-gold-text [font-variant-numeric:tabular-nums]">
                       {c.suggested_type === "income" ? "+" : "-"}
                       {c.amount !== null ? format(c.amount) : "—"}
                     </span>
@@ -68,7 +68,7 @@ export default function EmailCandidateList({
                     {c.review_reason && (
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                          uncertain ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"
+                          uncertain ? "bg-vermilion-soft text-vermilion" : "bg-gold-soft text-gold-text"
                         }`}
                       >
                         {uncertain ? "⚠ " : ""}
@@ -82,7 +82,7 @@ export default function EmailCandidateList({
                     <button
                       onClick={() => onAccept(c.id)}
                       disabled={pendingId === c.id}
-                      className="text-xs font-medium text-emerald-600 hover:text-emerald-800 disabled:opacity-50"
+                      className="text-xs font-medium text-jade hover:text-jade disabled:opacity-50"
                     >
                       Accept
                     </button>
@@ -98,7 +98,7 @@ export default function EmailCandidateList({
                     <button
                       onClick={() => onTrustSender(c.from_address!)}
                       disabled={pendingId === c.id}
-                      className="rounded-md px-2 py-1 text-[11px] font-medium text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50 disabled:opacity-50"
+                      className="rounded-md px-2 py-1 text-[11px] font-medium text-jade ring-1 ring-jade/40 hover:bg-jade-soft disabled:opacity-50"
                     >
                       Trust sender
                     </button>
@@ -108,7 +108,7 @@ export default function EmailCandidateList({
                       onClick={() => onBlockSender(c.from_address!)}
                       disabled={pendingId === c.id}
                       title="Skip this sender in every future scan and dismiss its pending items"
-                      className="rounded-md px-2 py-1 text-[11px] font-medium text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-50"
+                      className="rounded-md px-2 py-1 text-[11px] font-medium text-vermilion ring-1 ring-vermilion/40 hover:bg-vermilion-soft disabled:opacity-50"
                     >
                       Block sender
                     </button>

@@ -1,17 +1,26 @@
 @import "tailwindcss";
 
-/* Class-based dark ("Shrine") theme. The <html> element gets .dark from the
-   no-flash script in layout.tsx (time-of-day, or the user's saved pick). */
+/* ────────────────────────────────────────────────────────────────────────
+   FORTUNE CAT — "Lacquer & Leaf"
+   A warm-dark fortune house rendered in cinnabar lacquer and gold leaf.
+   Luck is a minted koban coin that fills as you keep more of your income;
+   money-in is celadon jade, money-out is warm ink, attention is vermilion.
+   Night is the signature mode; day is clean rice-paper. WCAG AA in both.
+
+   Theming stays class-based (.dark on <html>) so lib/theme.ts and the
+   no-flash script in layout.tsx keep working untouched.
+   ──────────────────────────────────────────────────────────────────────── */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Plus Jakarta Sans (design/DESIGN.md) is loaded via next/font in layout.tsx
-   and exposed as --font-jakarta; mapping it here makes it Tailwind's font-sans.
-   The semantic color tokens below are `inline` so they resolve to the CSS
-   variables at use-site — that's what lets the .dark override cascade flip the
-   whole app without touching class names. */
 @theme inline {
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  /* Type: Hanken Grotesk carries UI/body & the figures; Bricolage Grotesque is
+     the display voice (wordmark, hero, big numbers); JetBrains Mono is the
+     "machine capture" texture — SMS/receipt/provenance stamps, never chrome. */
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-hanken), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
 
+  /* Surfaces & ink — resolve to the CSS vars below so .dark flips everything. */
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
@@ -21,105 +30,301 @@
   --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
   --color-action: var(--action);
+  --color-on-action: var(--on-action);
   --color-out: var(--out);
   --color-paper: var(--paper);
+
+  /* Brand accents — all theme-flipping, all AA-verified against their pairings.
+     gold = fortune / value / primary action · jade = money-in / positive ·
+     vermilion = attention (reserved) · seal = the vermilion stamp ink. */
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-text: var(--gold-text);
+  --color-on-gold: var(--on-gold);
+  --color-jade: var(--jade);
+  --color-jade-soft: var(--jade-soft);
+  --color-vermilion: var(--vermilion);
+  --color-vermilion-soft: var(--vermilion-soft);
+  --color-seal: var(--seal);
 }
 
-/* Fortune gold — the maneki-neko accent from design/DESIGN.md. Reserved for
-   the cat, streaks, Pro and "lucky" states; never for money amounts
-   (jade = in, ink = out, red = attention only). Static across themes. */
+/* Legacy `fortune-*` scale kept so any untouched call sites stay on-brand.
+   Static across themes: 400 is a fill (pair with on-gold text), 700 is deep
+   gold for text on light, 50 is a pale chip on light. Strong easings, too. */
 @theme {
-  --color-fortune-50: #fff8d6;
-  --color-fortune-400: #ffd700;
-  --color-fortune-700: #705d00;
+  --color-fortune-50: #faedcb;
+  --color-fortune-400: #e8b64a;
+  --color-fortune-700: #7a5600;
 
-  /* Strong easings — built-in CSS curves are too weak to feel intentional. */
-  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
 }
 
-/* ── Day (light) — values equal the previous hardcoded neutrals, so light mode
-   is unchanged after the token migration; only .dark introduces new values. ── */
+/* ── Daylight — rice paper & vermilion (light) ─────────────────────────── */
 :root {
-  --surface: #ffffff; /* was bg-white */
-  --surface-2: #fafafa; /* neutral-50 */
-  --surface-3: #f5f5f5; /* neutral-100 */
-  --ink: #171717; /* neutral-900 */
-  --ink-muted: #525252; /* neutral-600/700 */
-  --ink-subtle: #737373; /* neutral-500 */
-  --ink-faint: #a3a3a3; /* neutral-400 */
-  --line: #e5e5e5; /* neutral-200 */
-  --action: #171717; /* neutral-900 primary buttons */
-  --out: #404040; /* neutral-700 — money-out bars */
-  --paper: #fff8dc; /* fortune-slip chit */
-  --focus-ring: #705d00; /* deep gold — visible on light surfaces */
+  --surface: #ffffff;
+  --surface-2: #f6f5f3;
+  --surface-3: #edeae5;
+  --ink: #1e1913;
+  --ink-muted: #5c5346;
+  --ink-subtle: #73695a;
+  --ink-faint: #9c9384;
+  --line: #e6e1d9;
+  --action: #241d15;
+  --on-action: #faf7f2;
+  --out: #6b6152;
+  --paper: #f6ecd3;
+
+  --gold: #e8b64a;
+  --gold-soft: #f7eccf;
+  --gold-text: #8a5f10;
+  --on-gold: #2a1e05;
+  --jade: #0e6f52;
+  --jade-soft: #dcefe6;
+  --vermilion: #c0361d;
+  --vermilion-soft: #fae8e3;
+  --seal: #b1301b;
+
+  --focus-ring: #8a5f10;
+
+  /* Coin gauge stops (the luck device) — precise metallic leaf. */
+  --leaf-hi: #f6d878;
+  --leaf-lo: #c9902a;
+  --coin-void: #efe7d3;
 }
 
-/* ── Evening (Shrine / dark) — warm near-black lacquer hall. Ink lightens,
-   surfaces darken, money-out bars lighten so they read on dark, and the
-   action token stays dark enough that white button text keeps its contrast. ── */
+/* ── Lacquer hall — gold leaf & cinnabar (dark, the signature) ─────────── */
 .dark {
-  --surface: #14141a;
-  --surface-2: #1b1b23;
-  --surface-3: #24242e;
-  --ink: #f5f5f4;
-  --ink-muted: #b4aea8;
-  --ink-subtle: #8f8880;
-  --ink-faint: #6b645c;
-  --line: #2c2c37;
-  --action: #3a3a46;
-  --out: #8b8b98;
-  --paper: #f6eccf;
-  --focus-ring: #ffd700; /* full gold — visible on lacquer */
+  --surface: #17130f;
+  --surface-2: #1f1a15;
+  --surface-3: #2a231c;
+  --ink: #f7f1e6;
+  --ink-muted: #c9bfae;
+  --ink-subtle: #9d9384;
+  --ink-faint: #776e60;
+  --line: #38302a;
+  --action: #35302a;
+  --on-action: #f7f1e6;
+  --out: #8f8578;
+  --paper: #f6ecd3;
+
+  --gold: #edc35b;
+  --gold-soft: #3a2f18;
+  --gold-text: #edc35b;
+  --on-gold: #2a1e05;
+  --jade: #5ec9a0;
+  --jade-soft: #16352b;
+  --vermilion: #f0795b;
+  --vermilion-soft: #3a201a;
+  --seal: #b1301b;
+
+  --focus-ring: #edc35b;
+
+  --leaf-hi: #f6d878;
+  --leaf-lo: #b9832a;
+  --coin-void: #241d15;
 
   color-scheme: dark;
 }
 
-/* Smooth the flip between themes (respects reduced-motion). */
+/* ── Base ──────────────────────────────────────────────────────────────── */
+body {
+  background-color: var(--surface-2);
+  color: var(--ink);
+  font-feature-settings: "ss01", "cv01";
+}
+::selection {
+  background: color-mix(in oklab, var(--gold) 70%, white);
+  color: #2a1e05;
+}
+h1, h2, h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+}
+p {
+  text-wrap: pretty;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   body {
     transition:
-      background-color 0.35s ease,
-      color 0.35s ease;
+      background-color 0.4s var(--ease-out-quart),
+      color 0.4s var(--ease-out-quart);
   }
 }
 
-/* ── Site-wide interaction affordance & keyboard focus ───────────────────
-   Buttons look pressable, feel pressable, and keyboard focus is always
-   visible in the brand's gold. Inputs keep their own focus border (their
-   focus:outline-none utility outranks this element-level rule). */
+/* ── Interaction affordance & always-visible gold focus ────────────────── */
 button:not(:disabled) {
   cursor: pointer;
-  transition: transform 160ms var(--ease-out-strong);
 }
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+  transition:
+    transform 150ms var(--ease-out-quart),
+    background-color 150ms var(--ease-out-quart),
+    box-shadow 150ms var(--ease-out-quart),
+    filter 150ms var(--ease-out-quart);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 @media (prefers-reduced-motion: no-preference) {
-  button:not(:disabled):active {
+  .btn:not(:disabled):active,
+  .pressable:active {
     transform: scale(0.97);
   }
 }
-
-/* ── Marketing motion system (landing + upgrade) ─────────────────────────
-   transform/opacity only, so everything stays off the main thread. */
-
-/* Press feedback: the interface confirms every tap. */
 .pressable {
-  transition: transform 160ms var(--ease-out-strong);
+  transition: transform 150ms var(--ease-out-quart);
 }
-.pressable:active {
-  transform: scale(0.97);
+
+/* Primary — minted gold. The core-verb button wears this everywhere. */
+.btn-gold {
+  background: linear-gradient(180deg, var(--leaf-hi), var(--gold));
+  color: var(--on-gold);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 6px 18px -8px color-mix(in oklab, var(--gold) 70%, black);
 }
+.btn-gold:not(:disabled):hover {
+  filter: brightness(1.05);
+}
+
+/* Neutral / secondary — solid ink slab (reads on both themes). */
+.btn-ink {
+  background: var(--action);
+  color: var(--on-action);
+}
+.btn-ink:not(:disabled):hover {
+  filter: brightness(1.12);
+}
+
+/* Quiet — hairline ghost. */
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-muted);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.btn-ghost:not(:disabled):hover {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+/* ── Form fields — gold focus ring, correct in both themes ─────────────── */
+.field {
+  width: 100%;
+  border-radius: 0.6rem;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition:
+    border-color 150ms var(--ease-out-quart),
+    box-shadow 150ms var(--ease-out-quart);
+}
+.field::placeholder {
+  color: var(--ink-faint);
+}
+.field:focus,
+.field:focus-visible {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold) 26%, transparent);
+}
+
+/* ── Chips (auto theme-flipping — no dark: variants needed) ────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.chip-gold { background: var(--gold-soft); color: var(--gold-text); }
+.chip-jade { background: var(--jade-soft); color: var(--jade); }
+.chip-verm { background: var(--vermilion-soft); color: var(--vermilion); }
+.chip-mute { background: var(--surface-3); color: var(--ink-subtle); }
+
+/* ── Card lift (pointer devices only) ──────────────────────────────────── */
+@media (hover: hover) and (pointer: fine) {
+  .card-lift {
+    transition:
+      transform 220ms var(--ease-out-quart),
+      box-shadow 220ms var(--ease-out-quart);
+  }
+  .card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 34px -18px color-mix(in oklab, var(--gold) 40%, black);
+  }
+}
+
+/* ── The fortune slip (paper chit) — warm stock, vermilion seal ────────── */
+.slip {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 22px,
+      color-mix(in oklab, var(--seal) 6%, transparent) 22px 23px
+    ),
+    var(--paper);
+  color: #2a1e05;
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.5);
+}
+.slip::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--seal);
+}
+.slip-seal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  rotate: 6deg;
+  border-radius: 0.35rem;
+  background: var(--seal);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px -2px color-mix(in oklab, var(--seal) 70%, black);
+}
+
+/* ── Motion system ─────────────────────────────────────────────────────── */
 
 /* Scroll entrance — Reveal.tsx flips .is-visible once, on first view. */
 .reveal {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(16px);
   transition:
-    opacity 550ms var(--ease-out-strong),
-    transform 550ms var(--ease-out-strong);
+    opacity 620ms var(--ease-out-expo),
+    transform 620ms var(--ease-out-expo);
   transition-delay: var(--reveal-delay, 0ms);
 }
 .reveal.is-visible {
@@ -132,63 +337,59 @@ button:not(:disabled) {
     transition: opacity 200ms ease;
   }
 }
-/* Without JS nothing would ever flip .is-visible — keep content readable. */
+/* Without JS nothing flips .is-visible — keep content visible. */
 @media (scripting: none) {
-  .reveal {
-    opacity: 1;
-    transform: none;
-  }
+  .reveal { opacity: 1; transform: none; }
 }
 
-/* Card hover lift — pointer devices only, so touch taps don't stick. */
-@media (hover: hover) and (pointer: fine) {
-  .card-lift {
-    transition:
-      transform 200ms var(--ease-out-strong),
-      box-shadow 200ms var(--ease-out-strong);
-  }
-  .card-lift:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 28px rgb(0 0 0 / 0.08);
-  }
+/* Receipt "print-in" — a captured row prints onto the ledger. */
+@keyframes print-in {
+  from { opacity: 0; transform: translateY(8px); clip-path: inset(0 0 100% 0); }
+  to   { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
+}
+.print-in {
+  animation: print-in 460ms var(--ease-out-expo) both;
 }
 
-/* Gold highlighter swash under the hero's key phrase (gold = lucky). */
-.gold-swash {
-  background: linear-gradient(to top, rgb(255 215 0 / 0.4) 0 0.26em, transparent 0.26em);
-}
-
-/* FAQ answers ease in instead of popping (native <details> has no motion). */
-details[open] .faq-answer {
-  animation: faq-in 220ms var(--ease-out-strong);
-}
-@keyframes faq-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  details[open] .faq-answer {
-    animation: none;
-  }
-}
-
-/* Shrine night-sky twinkle (ShrineStars). Motion only when welcomed. */
-@keyframes shrine-twinkle {
-  0%,
-  100% {
-    opacity: 0.85;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-.shrine-twinkle {
-  opacity: 0.7;
+/* Seal press — the stamp lands with a quick settle. */
+@keyframes seal-press {
+  0%   { opacity: 0; transform: rotate(6deg) scale(1.6); }
+  60%  { opacity: 1; transform: rotate(6deg) scale(0.92); }
+  100% { transform: rotate(6deg) scale(1); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .shrine-twinkle {
-    animation: shrine-twinkle 4s ease-in-out infinite;
-  }
+  .seal-press { animation: seal-press 420ms var(--ease-spring) both; }
+}
+
+/* Gold leaf sweep — a slow shimmer across the wordmark / coin, opt-in. */
+@keyframes leaf-sweep {
+  from { background-position: -140% 0; }
+  to   { background-position: 240% 0; }
+}
+
+/* FAQ answers ease in (native <details> has no motion). */
+details[open] .faq-answer {
+  animation: faq-in 240ms var(--ease-out-quart);
+}
+@keyframes faq-in {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  details[open] .faq-answer { animation: none; }
+  .print-in { animation: none; }
+}
+
+/* Drifting gold dust (night sky) — replaces the old twinkle. */
+@keyframes dust-drift {
+  0%, 100% { opacity: 0.75; transform: translateY(0); }
+  50%      { opacity: 0.3; transform: translateY(-2px); }
+}
+.gold-dust { opacity: 0.6; }
+@media (prefers-reduced-motion: no-preference) {
+  .gold-dust { animation: dust-drift 5s ease-in-out infinite; }
+}
+
+/* Underline swash beneath a hero phrase — a stroke of gold leaf. */
+.gold-swash {
+  background: linear-gradient(to top, color-mix(in oklab, var(--gold) 55%, transparent) 0 0.26em, transparent 0.26em);
 }

@@ -59,10 +59,10 @@ export default function AutopilotChecklist({
           localStorage.removeItem(HIDE_KEY);
           setCollapsed(false);
         }}
-        className="flex w-full items-center justify-between gap-2 rounded-2xl border-t-2 border-fortune-400 bg-surface px-6 py-3 text-left shadow-sm ring-1 ring-line hover:bg-surface-2"
+        className="flex w-full items-center justify-between gap-2 rounded-2xl border-t-2 border-gold bg-surface px-6 py-3 text-left shadow-sm ring-1 ring-line hover:bg-surface-2"
       >
         <span className="text-sm font-semibold text-ink">
-          🐱 Get to autopilot{" "}
+          Get to autopilot{" "}
           <span className="font-mono text-xs font-normal text-ink-faint">
             {doneCount} of {steps.length}
           </span>
@@ -73,10 +73,10 @@ export default function AutopilotChecklist({
   }
 
   return (
-    <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
+    <div className="rounded-2xl border-t-2 border-gold bg-surface p-6 shadow-sm ring-1 ring-line">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold text-ink">
-          🐱 Get to autopilot{" "}
+          Get to autopilot{" "}
           <span className="font-mono text-xs font-normal text-ink-faint">
             {doneCount} of {steps.length}
           </span>
@@ -93,7 +93,7 @@ export default function AutopilotChecklist({
       </div>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-3">
         <div
-          className="h-full rounded-full bg-fortune-400 transition-all"
+          className="h-full rounded-full bg-gold transition-all"
           style={{ width: `${Math.max(8, (doneCount / steps.length) * 100)}%` }}
         />
       </div>
@@ -101,7 +101,7 @@ export default function AutopilotChecklist({
         {steps.map((step) =>
           step.done ? (
             <li key={step.title} className="flex items-center gap-3 rounded-lg px-2 py-2">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-fortune-400 text-[11px] font-bold text-fortune-700">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-[11px] font-bold text-on-gold">
                 ✓
               </span>
               <span className="text-sm text-ink-faint line-through">{step.title}</span>
@@ -117,7 +117,7 @@ export default function AutopilotChecklist({
                   <span className="block text-sm font-medium text-ink">{step.title}</span>
                   <span className="block truncate text-xs text-ink-subtle">{step.hint}</span>
                 </span>
-                <span className="ml-auto text-fortune-700">›</span>
+                <span className="ml-auto text-gold-text">›</span>
               </Link>
             </li>
           ),

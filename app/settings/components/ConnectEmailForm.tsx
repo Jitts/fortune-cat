@@ -138,7 +138,7 @@ export default function ConnectEmailForm({
         )}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-vermilion">{error}</p>}
 
       <button
         type="submit"

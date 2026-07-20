@@ -25,7 +25,7 @@ export default function ForgotPasswordForm() {
         </div>
 
         {sent ? (
-          <p className="rounded-lg bg-emerald-50 px-4 py-3 text-center text-sm text-emerald-700">
+          <p className="rounded-lg bg-jade-soft px-4 py-3 text-center text-sm text-jade">
             If an account exists for that email, we&apos;ve sent a link to reset your password.
           </p>
         ) : (
@@ -45,7 +45,7 @@ export default function ForgotPasswordForm() {
               />
             </div>
 
-            {state && "error" in state && <p className="text-sm text-red-600">{state.error}</p>}
+            {state && "error" in state && <p className="text-sm text-vermilion">{state.error}</p>}
 
             <button
               type="submit"

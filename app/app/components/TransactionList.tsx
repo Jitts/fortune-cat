@@ -48,10 +48,10 @@ function NetAmount({ value, strong = false }: { value: number; strong?: boolean 
   const positive = value >= 0;
   const cls = positive
     ? strong
-      ? "text-emerald-700 dark:text-emerald-400"
-      : "text-emerald-600 dark:text-emerald-400"
+      ? "text-jade"
+      : "text-jade"
     : strong
-      ? "text-red-600 dark:text-red-400"
+      ? "text-vermilion"
       : "text-ink-faint";
   return (
     <span className={`[font-variant-numeric:tabular-nums] ${cls}`}>
@@ -99,7 +99,7 @@ function TransactionRow({
             <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-ink-subtle">
               <span>{category?.name ?? "Uncategorized"}</span>
               {t.entry_source === "email_auto" && (
-                <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
+                <span className="rounded-full bg-jade-soft px-1.5 py-px font-mono text-[10px] text-jade">
                   ⚡ auto
                 </span>
               )}
@@ -163,7 +163,7 @@ function TransactionRow({
         title="Edit transaction"
       >
         <span
-          className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-emerald-700 dark:text-emerald-400" : "text-ink"}`}
+          className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${isIncome ? "text-jade" : "text-ink"}`}
         >
           {isIncome ? "+" : "-"}
           {format(t.amount)}

@@ -130,8 +130,8 @@ export default function TransactionForm({
             className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium capitalize transition ${
               values.type === type
                 ? type === "expense"
-                  ? "border-red-500 bg-red-50 text-red-700"
-                  : "border-emerald-500 bg-emerald-50 text-emerald-700"
+                  ? "border-vermilion bg-vermilion-soft text-vermilion"
+                  : "border-jade bg-jade-soft text-jade"
                 : "border-line text-ink-subtle hover:bg-surface-2"
             }`}
           >
@@ -149,7 +149,7 @@ export default function TransactionForm({
           value={values.amount}
           onChange={(e) => setValues((v) => ({ ...v, amount: e.target.value }))}
           placeholder="0.00"
-          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
+          className="field mt-1"
         />
       </div>
 
@@ -158,7 +158,7 @@ export default function TransactionForm({
         <select
           value={values.category_id}
           onChange={(e) => setValues((v) => ({ ...v, category_id: e.target.value }))}
-          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
+          className="field mt-1"
         >
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
@@ -174,7 +174,7 @@ export default function TransactionForm({
           type="date"
           value={values.date}
           onChange={(e) => setValues((v) => ({ ...v, date: e.target.value }))}
-          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
+          className="field mt-1"
         />
       </div>
 
@@ -185,7 +185,7 @@ export default function TransactionForm({
           value={values.note}
           onChange={(e) => setValues((v) => ({ ...v, note: e.target.value }))}
           placeholder="Lunch with Alex"
-          className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
+          className="field mt-1"
         />
       </div>
 
@@ -206,7 +206,7 @@ export default function TransactionForm({
               <select
                 value={recurringCadence}
                 onChange={(e) => setRecurringCadence(e.target.value as "monthly" | "weekly")}
-                className="rounded-lg border border-line px-2 py-1 text-xs focus:border-fortune-400 focus:outline-none"
+                className="field w-auto px-2 py-1 text-xs"
               >
                 <option value="monthly">Monthly</option>
                 <option value="weekly">Weekly</option>
@@ -219,7 +219,7 @@ export default function TransactionForm({
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-vermilion">{error}</p>}
 
       <div className="flex items-center gap-2 pt-2">
         {onDelete && (
@@ -227,24 +227,16 @@ export default function TransactionForm({
             type="button"
             onClick={onDelete}
             disabled={deleting || pending}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:hover:bg-red-500/10"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-vermilion hover:bg-vermilion-soft disabled:opacity-50 dark:hover:bg-vermilion/10"
           >
             {deleting ? "Deleting…" : "Delete"}
           </button>
         )}
         <div className="ml-auto flex gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-ink-muted hover:bg-surface-3"
-          >
+          <button type="button" onClick={onCancel} className="btn btn-ghost px-4 py-2 text-sm">
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90 disabled:opacity-50"
-          >
+          <button type="submit" disabled={pending} className="btn btn-gold px-4 py-2 text-sm">
             {pending ? "Saving…" : submitLabel}
           </button>
         </div>

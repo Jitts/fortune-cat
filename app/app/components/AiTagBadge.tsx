@@ -26,14 +26,14 @@ export default function AiTagBadge({
 
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-2">
-      <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+      <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2 py-0.5 text-xs font-medium text-gold-text">
         ✨ Suggested: {suggested?.icon} {transaction.ai_category}
-        <span className="text-violet-400">· {pct}%</span>
+        <span className="text-gold-text/70">· {pct}%</span>
       </span>
       <button
         onClick={() => onAccept(transaction.id)}
         disabled={pending}
-        className="text-xs font-medium text-emerald-600 hover:text-emerald-800 disabled:opacity-50"
+        className="text-xs font-medium text-jade hover:text-jade disabled:opacity-50"
       >
         Accept
       </button>

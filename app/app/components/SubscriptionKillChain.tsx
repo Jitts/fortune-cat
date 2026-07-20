@@ -10,8 +10,8 @@ import type { SubscriptionDecision, SubscriptionStatus, Transaction } from "@/li
 
 const STATUS_META: Record<SubscriptionStatus, { label: string; pill: string }> = {
   keep: { label: "Keeping", pill: "bg-surface-3 text-ink-muted" },
-  cancelling: { label: "Cancelling", pill: "bg-amber-50 text-amber-700" },
-  cancelled: { label: "Cancelled", pill: "bg-emerald-50 text-emerald-700" },
+  cancelling: { label: "Cancelling", pill: "bg-gold-soft text-gold-text" },
+  cancelled: { label: "Cancelled", pill: "bg-jade-soft text-jade" },
 };
 
 function lastChargedLabel(date: string): string {
@@ -51,10 +51,10 @@ export default function SubscriptionKillChain({
   if (!isPro) {
     const annualTotal = subs.reduce((s, x) => s + x.annualAmount, 0);
     return (
-      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
+      <div className="rounded-2xl border-t-2 border-gold bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-medium text-ink-subtle">🗡️ Subscription kill-chain</h2>
-          <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+          <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-gold-text">
             PRO
           </span>
         </div>
@@ -115,12 +115,12 @@ export default function SubscriptionKillChain({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-medium text-ink-subtle">🗡️ Subscription kill-chain</h2>
-          <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+          <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-gold-text">
             PRO
           </span>
         </div>
         {freedAnnual > 0 && (
-          <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 [font-variant-numeric:tabular-nums]">
+          <span className="rounded-full bg-jade-soft px-2.5 py-0.5 text-xs font-semibold text-jade [font-variant-numeric:tabular-nums]">
             freed {format(freedAnnual)}/yr
           </span>
         )}
@@ -199,7 +199,7 @@ export default function SubscriptionKillChain({
                     ))}
                   </ol>
                   {playbook.note && (
-                    <p className="mt-2 text-[11px] text-amber-700">⚠ {playbook.note}</p>
+                    <p className="mt-2 text-[11px] text-gold-text">⚠ {playbook.note}</p>
                   )}
                   {playbook.url && (
                     <a

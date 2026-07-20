@@ -4,13 +4,12 @@ import { useState, useTransition } from "react";
 import { drawDailySlip } from "../slipActions";
 import type { FortuneSlipRow, SlipSeverity } from "@/lib/types";
 
-// Severity → the chit's omen label and red seal (chop) character. Red is the
-// seal ink; the caution chit also tints its rule red (attention).
-const OMEN: Record<SlipSeverity, { label: string; chop: string; caution: boolean }> = {
-  great: { label: "Great omen", chop: "吉", caution: false },
-  good: { label: "Good omen", chop: "吉", caution: false },
-  even: { label: "Steady day", chop: "平", caution: false },
-  caution: { label: "Needs attention", chop: "改", caution: true },
+// Severity → the chit's omen label and vermilion seal (chop) character.
+const OMEN: Record<SlipSeverity, { label: string; chop: string }> = {
+  great: { label: "Great omen", chop: "吉" },
+  good: { label: "Good omen", chop: "吉" },
+  even: { label: "Steady day", chop: "平" },
+  caution: { label: "Needs attention", chop: "改" },
 };
 
 export default function DailyFortuneSlip({
@@ -33,7 +32,6 @@ export default function DailyFortuneSlip({
         setError(result.error ?? "Could not draw your fortune — please try again.");
         return;
       }
-      // Drawing today extends the streak by one only if today wasn't already drawn.
       setStreak((prev) => (slip ? prev : prev + 1));
       setSlip(result.data);
     });
@@ -41,78 +39,56 @@ export default function DailyFortuneSlip({
 
   if (!slip) {
     return (
-      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-5 shadow-sm ring-1 ring-line">
+      <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-ink-subtle">Today&apos;s fortune</p>
-            <p className="mt-0.5 text-sm text-ink-muted">
-              Draw the cat&apos;s reading of your money today.
-            </p>
+            <p className="text-sm font-semibold text-ink">Today&apos;s fortune</p>
+            <p className="mt-0.5 text-sm text-ink-muted">Draw the cat&apos;s reading of your money today.</p>
           </div>
           <div className="flex items-center gap-3">
             {streak >= 1 && (
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-wide text-ink-subtle">
-                🎴 {streak}-day streak
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-wide text-gold-text">
+                {streak}-day streak
               </span>
             )}
-            <button
-              onClick={handleDraw}
-              disabled={pending}
-              className="rounded-lg bg-fortune-400 px-4 py-2 text-sm font-semibold text-fortune-700 shadow-sm transition hover:bg-fortune-400/90 disabled:opacity-60"
-            >
-              {pending ? "Drawing…" : "Draw today's fortune 🎴"}
+            <button onClick={handleDraw} disabled={pending} className="btn btn-gold px-4 py-2 text-sm">
+              {pending ? "Drawing…" : "Draw today's fortune"}
             </button>
           </div>
         </div>
-        {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-xs text-vermilion">{error}</p>}
       </div>
     );
   }
 
   const omen = OMEN[slip.severity];
 
-  // The paper chit — cream stock, red seal. Fixed dark text so it reads the same
-  // whether it floats on the daylight page or the dark Shrine hall.
+  // The paper chit — warm stock, vermilion seal. Dark ink text is fixed so it
+  // reads the same whether it floats on the daylight page or the lacquer hall.
   return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border border-dashed bg-paper p-5 shadow-sm ${
-        omen.caution ? "border-red-400" : "border-red-300"
-      }`}
-    >
-      {/* red rule across the top, like a real fortune slip */}
-      <div className={`absolute inset-x-0 top-0 h-1 ${omen.caution ? "bg-red-500" : "bg-red-400"}`} />
-
+    <div className="slip p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-red-700">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-seal">
             Today&apos;s fortune — {omen.label} · {slip.fortune_word}
           </p>
-          <p className="mt-2 text-sm font-medium leading-relaxed text-neutral-800">{slip.headline}</p>
-          {slip.detail && (
-            <p className="mt-1 text-sm leading-relaxed text-neutral-700">{slip.detail}</p>
-          )}
+          <p className="mt-2 text-sm font-medium leading-relaxed text-[#2a1e05]">{slip.headline}</p>
+          {slip.detail && <p className="mt-1 text-sm leading-relaxed text-[#4a3a1e]">{slip.detail}</p>}
           {slip.recommendation && (
-            <p className="mt-2 text-sm font-medium leading-relaxed text-emerald-700">
-              → {slip.recommendation}
-            </p>
+            <p className="mt-2 text-sm font-medium leading-relaxed text-[#0e6f52]">→ {slip.recommendation}</p>
           )}
           {streak >= 2 && (
-            <p className="mt-3 font-mono text-[10px] font-semibold uppercase tracking-wide text-red-700/70">
-              🎴 {streak}-day fortune streak
+            <p className="mt-3 font-mono text-[10px] font-semibold uppercase tracking-wide text-[#9a5a12]">
+              {streak}-day fortune streak
             </p>
           )}
         </div>
-
-        {/* the seal / chop — solid vermilion stamp, like a real name seal */}
-        <span
-          aria-hidden
-          className="flex h-9 w-9 shrink-0 rotate-6 items-center justify-center rounded-md bg-red-600 text-lg font-bold text-white shadow-sm"
-        >
+        <span aria-hidden className="slip-seal seal-press text-lg">
           {omen.chop}
         </span>
       </div>
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-vermilion">{error}</p>}
     </div>
   );
 }

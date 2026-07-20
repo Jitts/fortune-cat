@@ -57,12 +57,12 @@ export default function MonthlyOverview({ transactions }: { transactions: Transa
             <div className="flex items-baseline justify-between gap-3">
               <span className="w-16 shrink-0 font-mono text-xs text-ink-subtle">
                 {m.label}
-                {m.key === currentKey && <span className="text-emerald-700"> ·</span>}
+                {m.key === currentKey && <span className="text-jade"> ·</span>}
               </span>
               <div className="flex flex-1 flex-col gap-0.5">
                 <div className="h-1.5 w-full overflow-hidden rounded bg-surface-3">
                   <div
-                    className="h-full rounded bg-emerald-600"
+                    className="h-full rounded bg-jade"
                     style={{ width: `${Math.min(100, (m.inTotal / maxBar) * 100)}%` }}
                   />
                 </div>
@@ -75,7 +75,7 @@ export default function MonthlyOverview({ transactions }: { transactions: Transa
               </div>
               <span
                 className={`w-24 shrink-0 text-right text-sm font-semibold [font-variant-numeric:tabular-nums] ${
-                  m.net >= 0 ? "text-emerald-700" : "text-ink"
+                  m.net >= 0 ? "text-jade" : "text-ink"
                 }`}
               >
                 {m.net >= 0 ? "+" : "−"}
@@ -83,7 +83,7 @@ export default function MonthlyOverview({ transactions }: { transactions: Transa
               </span>
             </div>
             <div className="mt-0.5 flex justify-between pl-16 pr-24 font-mono text-[10px] text-ink-faint [font-variant-numeric:tabular-nums]">
-              <span className="text-emerald-700">▲ {format(m.inTotal)}</span>
+              <span className="text-jade">▲ {format(m.inTotal)}</span>
               <span>▼ {format(m.outTotal)}</span>
             </div>
           </li>

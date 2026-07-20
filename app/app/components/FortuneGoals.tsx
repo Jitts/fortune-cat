@@ -74,10 +74,10 @@ export default function FortuneGoals({
   // Free users see a teaser only (consistent with the recurring radar).
   if (!isPro) {
     return (
-      <div className="rounded-2xl border-t-2 border-fortune-400 bg-surface p-6 shadow-sm ring-1 ring-line">
+      <div className="rounded-2xl border-t-2 border-gold bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-medium text-ink-subtle">🎯 Fortune Goals</h2>
-          <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+          <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-gold-text">
             PRO
           </span>
         </div>
@@ -189,7 +189,7 @@ export default function FortuneGoals({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-medium text-ink-subtle">🎯 Fortune Goals</h2>
-          <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+          <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-gold-text">
             PRO
           </span>
         </div>
@@ -201,7 +201,7 @@ export default function FortuneGoals({
         </button>
       </div>
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-vermilion">{error}</p>}
 
       {items.length === 0 ? (
         <div className="mt-4 rounded-xl bg-surface-2 p-5 text-center">
@@ -210,7 +210,7 @@ export default function FortuneGoals({
           </p>
           <button
             onClick={() => openAdd("emergency")}
-            className="mt-3 rounded-lg bg-fortune-400 px-4 py-2 text-sm font-semibold text-fortune-700 hover:brightness-95"
+            className="btn btn-gold mt-3 px-4 py-2 text-sm"
           >
             Start an emergency fund
             {recommendedEmergency > 0 && <> · {format(recommendedEmergency)}</>}
@@ -229,7 +229,7 @@ export default function FortuneGoals({
                     <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
                       {g.kind === "emergency" ? "🛟" : "🎯"} {g.name}
                       {done && (
-                        <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
+                        <span className="rounded-full bg-jade-soft px-1.5 py-px font-mono text-[10px] text-jade">
                           ✓ reached
                         </span>
                       )}
@@ -241,7 +241,7 @@ export default function FortuneGoals({
                       )}
                     </p>
                   </div>
-                  <span className="shrink-0 font-mono text-sm font-semibold text-fortune-700 [font-variant-numeric:tabular-nums]">
+                  <span className="shrink-0 font-mono text-sm font-semibold text-gold-text [font-variant-numeric:tabular-nums]">
                     {Math.round(pct)}%
                   </span>
                 </div>
@@ -259,7 +259,7 @@ export default function FortuneGoals({
                         setBoostId(boostId === g.id ? null : g.id);
                         setBoostAmount("");
                       }}
-                      className="font-medium text-fortune-700 hover:underline"
+                      className="font-medium text-gold-text hover:underline"
                     >
                       Boost
                     </button>
@@ -272,7 +272,7 @@ export default function FortuneGoals({
                     <button
                       onClick={() => handleDelete(g.id)}
                       disabled={pending}
-                      className="font-medium text-ink-faint hover:text-red-600 disabled:opacity-50"
+                      className="font-medium text-ink-faint hover:text-vermilion disabled:opacity-50"
                     >
                       Delete
                     </button>
@@ -290,12 +290,12 @@ export default function FortuneGoals({
                       onChange={(e) => setBoostAmount(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && submitBoost(g.id)}
                       placeholder="100"
-                      className="w-24 rounded-lg border border-line px-2 py-1 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                      className="w-24 rounded-lg border border-line px-2 py-1 text-sm [font-variant-numeric:tabular-nums] focus:border-gold focus:outline-none"
                     />
                     <button
                       onClick={() => submitBoost(g.id)}
                       disabled={pending}
-                      className="rounded-lg bg-fortune-400 px-3 py-1 text-xs font-semibold text-fortune-700 hover:brightness-95 disabled:opacity-50"
+                      className="btn btn-gold px-3 py-1 text-xs"
                     >
                       Save
                     </button>
@@ -316,7 +316,7 @@ export default function FortuneGoals({
       {items.length > 0 && !hasEmergency && (
         <button
           onClick={() => openAdd("emergency")}
-          className="mt-3 text-xs font-medium text-fortune-700 hover:underline"
+          className="mt-3 text-xs font-medium text-gold-text hover:underline"
         >
           + Add an emergency fund{recommendedEmergency > 0 && <> ({format(recommendedEmergency)} recommended)</>}
         </button>
@@ -337,7 +337,7 @@ export default function FortuneGoals({
               </p>
             )}
 
-            {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+            {error && <p className="mt-2 text-xs text-vermilion">{error}</p>}
 
             <div className="mt-4 space-y-3">
               <label className="block">
@@ -346,7 +346,7 @@ export default function FortuneGoals({
                   value={modal.name}
                   onChange={(e) => setModal({ ...modal, name: e.target.value })}
                   placeholder="Orient cruise, home deposit…"
-                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-gold focus:outline-none"
                 />
               </label>
               <label className="block">
@@ -357,7 +357,7 @@ export default function FortuneGoals({
                   value={modal.target_amount}
                   onChange={(e) => setModal({ ...modal, target_amount: e.target.value })}
                   placeholder="15000"
-                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-gold focus:outline-none"
                 />
               </label>
               {!modal.id && (
@@ -369,7 +369,7 @@ export default function FortuneGoals({
                     value={modal.saved_amount}
                     onChange={(e) => setModal({ ...modal, saved_amount: e.target.value })}
                     placeholder="0"
-                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm [font-variant-numeric:tabular-nums] focus:border-gold focus:outline-none"
                   />
                 </label>
               )}
@@ -379,7 +379,7 @@ export default function FortuneGoals({
                   type="date"
                   value={modal.target_date}
                   onChange={(e) => setModal({ ...modal, target_date: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-gold focus:outline-none"
                 />
               </label>
             </div>

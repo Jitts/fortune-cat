@@ -361,7 +361,7 @@ export default function CaptureSettings({
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-medium text-ink-subtle">📧 Email auto-scan</h2>
           {connections.length > 0 && (
-            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
+            <span className="rounded-full bg-jade-soft px-2.5 py-0.5 font-mono text-[10px] font-medium text-jade">
               ON · DAILY 7AM SGT
             </span>
           )}
@@ -375,11 +375,11 @@ export default function CaptureSettings({
               const scanningOlder = busy && busyRef?.id === conn.id && busyRef.kind === "older";
               const disconnecting = busy && busyRef?.id === conn.id && busyRef.kind === "disconnect";
               return (
-                <div key={conn.id} className="rounded-lg bg-emerald-50 px-4 py-3">
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-emerald-800">
+                <div key={conn.id} className="rounded-lg bg-jade-soft px-4 py-3">
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-jade">
                     ✓ Connected as {conn.email}
                     {conn.auth_type === "microsoft" && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 font-mono text-[10px] font-semibold text-ink-muted ring-1 ring-emerald-200">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 font-mono text-[10px] font-semibold text-ink-muted ring-1 ring-jade/40">
                         <svg viewBox="0 0 21 21" width="10" height="10" aria-hidden="true">
                           <rect x="1" y="1" width="9" height="9" fill="#f25022" />
                           <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
@@ -390,7 +390,7 @@ export default function CaptureSettings({
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-emerald-600">
+                  <p className="text-xs text-jade">
                     {conn.last_scanned_at
                       ? `Last scanned ${new Date(conn.last_scanned_at).toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}`
                       : "Never scanned yet"}
@@ -503,14 +503,14 @@ export default function CaptureSettings({
             {trustedSenders.map((t) => (
               <span
                 key={t.id}
-                className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-mono text-xs text-emerald-700"
+                className="inline-flex items-center gap-1.5 rounded-full bg-jade-soft px-3 py-1 font-mono text-xs text-jade"
               >
                 ✓ {t.pattern}
                 <button
                   onClick={() => handleUntrust(t.id)}
                   disabled={pending}
                   title={`Stop auto-posting from ${t.pattern}`}
-                  className="text-emerald-400 hover:text-emerald-800 disabled:opacity-50"
+                  className="text-jade hover:text-jade disabled:opacity-50"
                 >
                   ✕
                 </button>
@@ -547,14 +547,14 @@ export default function CaptureSettings({
             {blockedSenders.map((b) => (
               <span
                 key={b.id}
-                className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 font-mono text-xs text-red-700"
+                className="inline-flex items-center gap-1.5 rounded-full bg-vermilion-soft px-3 py-1 font-mono text-xs text-vermilion"
               >
                 🚫 {b.pattern}
                 <button
                   onClick={() => handleUnblock(b.id)}
                   disabled={pending}
                   title={`Let captures from ${b.pattern} through again`}
-                  className="text-red-400 hover:text-red-800 disabled:opacity-50"
+                  className="text-vermilion hover:text-vermilion disabled:opacity-50"
                 >
                   ✕
                 </button>
@@ -568,7 +568,7 @@ export default function CaptureSettings({
         <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium text-ink-subtle">📄 Statements &amp; receipts</h2>
-            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
+            <span className="rounded-full bg-jade-soft px-2.5 py-0.5 font-mono text-[10px] font-medium text-jade">
               CSV · PDF · SCREENSHOT
             </span>
           </div>
@@ -613,7 +613,7 @@ export default function CaptureSettings({
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium text-ink-subtle">💬 SMS forwarding</h2>
             {smsToken ? (
-              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-medium text-emerald-700">
+              <span className="rounded-full bg-jade-soft px-2.5 py-0.5 font-mono text-[10px] font-medium text-jade">
                 ON
               </span>
             ) : (

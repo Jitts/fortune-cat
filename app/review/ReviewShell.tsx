@@ -169,7 +169,7 @@ export default function ReviewShell({
           <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-line">
             <p className="text-sm text-ink-subtle">
               Connect your inbox or upload a bank statement on the{" "}
-              <Link href="/settings" className="font-medium text-emerald-700 underline">
+              <Link href="/settings" className="font-medium text-jade underline">
                 Capture
               </Link>{" "}
               screen and captured transactions will wait for you here.
@@ -185,7 +185,7 @@ export default function ReviewShell({
             <ul className="divide-y divide-line">
               {autoPosted.map((c) => (
                 <li key={c.id} className="flex items-center gap-3 px-6 py-3">
-                  <span className="rounded-full bg-emerald-50 px-1.5 py-px font-mono text-[10px] text-emerald-700">
+                  <span className="rounded-full bg-jade-soft px-1.5 py-px font-mono text-[10px] text-jade">
                     ⚡
                   </span>
                   <div className="min-w-0 flex-1">
@@ -202,7 +202,7 @@ export default function ReviewShell({
                   <button
                     onClick={() => handleUndo(c.id)}
                     disabled={candidateActionId === c.id}
-                    className="font-mono text-[11px] font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+                    className="font-mono text-[11px] font-medium text-vermilion hover:text-vermilion disabled:opacity-50"
                   >
                     {candidateActionId === c.id ? "…" : "UNDO"}
                   </button>

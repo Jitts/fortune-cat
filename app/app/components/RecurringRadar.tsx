@@ -111,7 +111,7 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
         )}
       </div>
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-vermilion">{error}</p>}
 
       {adding && (
         <div className="mt-3 space-y-2 rounded-lg bg-surface-2 p-3">
@@ -121,7 +121,7 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Home loan, Telco bill"
               autoFocus
-              className="min-w-[160px] flex-1 rounded-lg border border-line px-2 py-1.5 text-sm focus:border-fortune-400 focus:outline-none"
+              className="min-w-[160px] flex-1 rounded-lg border border-line px-2 py-1.5 text-sm focus:border-gold focus:outline-none"
             />
             <input
               type="number"
@@ -129,14 +129,14 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Amount"
-              className="w-28 rounded-lg border border-line px-2 py-1.5 text-sm [font-variant-numeric:tabular-nums] focus:border-fortune-400 focus:outline-none"
+              className="w-28 rounded-lg border border-line px-2 py-1.5 text-sm [font-variant-numeric:tabular-nums] focus:border-gold focus:outline-none"
             />
           </div>
           <div className="flex flex-wrap gap-2">
             <select
               value={cadence}
               onChange={(e) => setCadence(e.target.value as "monthly" | "weekly")}
-              className="rounded-lg border border-line px-2 py-1.5 text-sm focus:border-fortune-400 focus:outline-none"
+              className="rounded-lg border border-line px-2 py-1.5 text-sm focus:border-gold focus:outline-none"
             >
               <option value="monthly">Monthly</option>
               <option value="weekly">Weekly</option>
@@ -145,20 +145,20 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
               type="date"
               value={nextDueDate}
               onChange={(e) => setNextDueDate(e.target.value)}
-              className="rounded-lg border border-line px-2 py-1.5 text-sm focus:border-fortune-400 focus:outline-none"
+              className="rounded-lg border border-line px-2 py-1.5 text-sm focus:border-gold focus:outline-none"
             />
             <input
               value={accountTag}
               onChange={(e) => setAccountTag(e.target.value)}
               placeholder="GIRO / card (optional)"
-              className="min-w-[140px] flex-1 rounded-lg border border-line px-2 py-1.5 text-sm focus:border-fortune-400 focus:outline-none"
+              className="min-w-[140px] flex-1 rounded-lg border border-line px-2 py-1.5 text-sm focus:border-gold focus:outline-none"
             />
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleAdd}
               disabled={pending}
-              className="rounded-lg bg-fortune-400 px-3 py-1.5 text-xs font-semibold text-fortune-700 hover:brightness-95 disabled:opacity-50"
+              className="btn btn-gold px-3 py-1.5 text-xs"
             >
               {pending ? "Saving…" : "Save"}
             </button>
@@ -192,7 +192,7 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
               </div>
               <span
                 className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${
-                  b.type === "income" ? "text-emerald-700" : "text-ink"
+                  b.type === "income" ? "text-jade" : "text-ink"
                 }`}
               >
                 {b.type === "income" ? "+" : "−"}
@@ -201,7 +201,7 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
               <button
                 onClick={() => handleDelete(b.id)}
                 disabled={deletingId === b.id}
-                className="text-xs font-medium text-ink-faint hover:text-red-600 disabled:opacity-50"
+                className="text-xs font-medium text-ink-faint hover:text-vermilion disabled:opacity-50"
               >
                 {deletingId === b.id ? "…" : "Remove"}
               </button>
@@ -249,7 +249,7 @@ export default function RecurringRadar({
             <>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-medium text-ink-subtle">🔭 Recurring radar</h3>
-                <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+                <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-gold-text">
                   PRO
                 </span>
               </div>
@@ -262,7 +262,7 @@ export default function RecurringRadar({
                   <>
                     {" "}
                     and{" "}
-                    <b className="text-red-600">
+                    <b className="text-vermilion">
                       {alerts.length} thing{alerts.length === 1 ? "" : "s"} to check
                     </b>
                   </>
@@ -285,7 +285,7 @@ export default function RecurringRadar({
           <>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-medium text-ink-subtle">🔭 Coming up · next 14 days</h3>
-              <span className="rounded-full bg-fortune-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-fortune-700">
+              <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-gold-text">
                 PRO
               </span>
             </div>
@@ -310,7 +310,7 @@ export default function RecurringRadar({
                     </div>
                     <span
                       className={`text-sm font-semibold [font-variant-numeric:tabular-nums] ${
-                        f.type === "income" ? "text-emerald-700" : "text-ink"
+                        f.type === "income" ? "text-jade" : "text-ink"
                       }`}
                     >
                       {f.type === "income" ? "+" : "−"}~{format(f.expectedAmount)}
@@ -324,13 +324,13 @@ export default function RecurringRadar({
 
             {alerts.length > 0 && (
               <div className="mt-4 border-t border-line pt-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-red-600">
+                <p className="text-xs font-medium uppercase tracking-wide text-vermilion">
                   Needs attention
                 </p>
                 <ul className="mt-1 space-y-1.5">
                   {alerts.map((a, i) => (
                     <li key={i} className="flex items-baseline justify-between gap-3 text-sm">
-                      <span className={a.kind === "new_biller" ? "text-amber-700" : "text-red-600"}>
+                      <span className={a.kind === "new_biller" ? "text-gold-text" : "text-vermilion"}>
                         {a.kind === "new_biller" ? "◍ " : "! "}
                         {a.message}
                       </span>

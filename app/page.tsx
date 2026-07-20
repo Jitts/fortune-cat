@@ -7,6 +7,7 @@ import UspSection from "@/app/components/UspSection";
 import FaqSection from "@/app/components/FaqSection";
 import Reveal from "@/app/components/Reveal";
 import ShrineStars from "@/app/components/ShrineStars";
+import Wordmark from "@/app/components/Wordmark";
 import { FREE_PRO_BETA } from "@/lib/beta";
 
 export const dynamic = "force-dynamic";
@@ -43,27 +44,27 @@ export default async function Home() {
     <main className="relative min-h-screen bg-surface-2">
       {/* Gold night sky in Shrine mode — same field as the signed-in app */}
       <ShrineStars />
-      <header className="sticky top-0 z-40 border-b border-line/60 bg-surface-2/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <span className="text-xl font-bold text-ink">🐱 Fortune Cat</span>
-          <nav className="flex items-center gap-3 text-sm">
+
+      <header className="sticky top-0 z-40 border-b border-line/70 bg-surface-2/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
+          <Link href="/" aria-label="Fortune Cat home">
+            <Wordmark />
+          </Link>
+          <nav className="flex items-center gap-2 text-sm sm:gap-3">
             <ThemeToggle variant="compact" />
             {user ? (
-              <Link
-                href="/app"
-                className="pressable rounded-lg bg-action px-4 py-2 font-semibold text-white hover:bg-action/90"
-              >
+              <Link href="/app" className="btn btn-gold px-4 py-2 text-sm">
                 Open app
               </Link>
             ) : (
               <>
-                <Link href="/login" className="font-medium text-ink-muted hover:text-ink">
+                <Link
+                  href="/login"
+                  className="hidden rounded-lg px-3 py-2 font-medium text-ink-muted hover:text-ink sm:inline-block"
+                >
                   Log in
                 </Link>
-                <Link
-                  href="/signup"
-                  className="pressable rounded-lg bg-action px-4 py-2 font-semibold text-white hover:bg-action/90"
-                >
+                <Link href="/signup" className="btn btn-gold px-4 py-2 text-sm">
                   Get started
                 </Link>
               </>
@@ -72,52 +73,66 @@ export default async function Home() {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-5xl gap-10 px-6 py-16 md:grid-cols-2 md:items-center">
-        <div>
-          <Reveal>
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-red-700 dark:text-red-400">
-              the tracker that fills itself
-            </p>
-          </Reveal>
-          <Reveal delay={60}>
-            <h1 className="mt-4 text-balance text-5xl font-extrabold tracking-tight text-ink sm:text-6xl">
-              Your money <span className="gold-swash">logs itself.</span>
-            </h1>
-          </Reveal>
-          <Reveal delay={120}>
-            <p className="mt-5 text-pretty text-lg text-ink-muted">
-              Fortune Cat reads the SMS, emails, and statements your bank already sends you — no
-              bank login, it only ever sees the notification text — and turns them into a live
-              cash-flow ledger, in your own currency.
-            </p>
-          </Reveal>
-          <Reveal delay={180}>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link
-                href={user ? "/app" : "/signup"}
-                className="pressable rounded-lg bg-amber-500 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-600"
-              >
-                {user ? "Open your app" : "Start tracking — it's free"}
-              </Link>
-              <Link
-                href="/upgrade"
-                className="pressable rounded-lg px-5 py-3 text-sm font-semibold text-ink-muted ring-1 ring-line hover:bg-surface-3"
-              >
-                See Pro
-              </Link>
-            </div>
-          </Reveal>
-          <Reveal delay={240}>
-            <p className="mt-6 font-mono text-xs text-ink-faint">
-              no bank login · free to start · Pro is US$9 once
-            </p>
+      {/* ===== Hero ===== */}
+      <section className="relative overflow-hidden">
+        {/* atmospheric gold arc behind the fold */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-40 -top-24 h-[38rem] w-[38rem] rounded-full opacity-60 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, color-mix(in oklab, var(--gold) 26%, transparent), transparent 62%)",
+          }}
+        />
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-16 sm:px-8 md:grid-cols-[1.05fr_0.95fr] md:items-center md:py-24">
+          <div>
+            <Reveal>
+              <span className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted shadow-sm ring-1 ring-line">
+                <span aria-hidden className="h-2 w-2 rounded-full bg-gold shadow-[0_0_6px_var(--gold)]" />
+                <span className="font-mono uppercase tracking-[0.14em] text-ink-subtle">
+                  the tracker that fills itself
+                </span>
+              </span>
+            </Reveal>
+            <Reveal delay={70}>
+              <h1 className="mt-5 font-display text-[clamp(2.6rem,7vw,4.5rem)] font-extrabold leading-[0.98] tracking-tight text-ink">
+                Your money{" "}
+                <span className="gold-swash whitespace-nowrap">logs itself.</span>
+              </h1>
+            </Reveal>
+            <Reveal delay={130}>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
+                Fortune Cat reads the SMS, emails, and statements your bank already sends you — no
+                bank login, it only ever sees the notification text — and turns them into a live
+                cash-flow ledger, in your own currency.
+              </p>
+            </Reveal>
+            <Reveal delay={190}>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link href={user ? "/app" : "/signup"} className="btn btn-gold px-6 py-3.5 text-sm">
+                  {user ? "Open your app" : "Start tracking — it's free"}
+                </Link>
+                <Link href="/upgrade" className="btn btn-ghost px-6 py-3.5 text-sm">
+                  See Pro — $9 once
+                </Link>
+              </div>
+            </Reveal>
+            <Reveal delay={250}>
+              <p className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-ink-subtle">
+                <span>no bank login</span>
+                <span aria-hidden className="text-gold">·</span>
+                <span>free to start</span>
+                <span aria-hidden className="text-gold">·</span>
+                <span>any currency worldwide</span>
+              </p>
+            </Reveal>
+          </div>
+
+          {/* Live capture-loop demo, entirely client-side */}
+          <Reveal delay={160} className="md:justify-self-end">
+            <LandingDemo />
           </Reveal>
         </div>
-
-        {/* Live capture-loop demo, entirely client-side */}
-        <Reveal delay={150}>
-          <LandingDemo />
-        </Reveal>
       </section>
 
       <UspSection />
@@ -125,16 +140,19 @@ export default async function Home() {
       <FaqSection />
 
       <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-8 text-sm text-ink-faint">
-          <span>🐱 Fortune Cat · your money logs itself</span>
-          <nav className="flex gap-4">
-            <Link href="/upgrade" className="hover:text-ink-muted">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-10 text-sm text-ink-subtle sm:px-8">
+          <div className="flex flex-col gap-1">
+            <Wordmark size="sm" />
+            <span className="font-mono text-xs text-ink-faint">your money logs itself</span>
+          </div>
+          <nav className="flex flex-wrap gap-x-5 gap-y-2">
+            <Link href="/upgrade" className="hover:text-ink">
               {FREE_PRO_BETA ? "Pro — free in beta" : "Pro — $9 once"}
             </Link>
-            <Link href="/signup" className="hover:text-ink-muted">
+            <Link href="/signup" className="hover:text-ink">
               Sign up free
             </Link>
-            <Link href="/login" className="hover:text-ink-muted">
+            <Link href="/login" className="hover:text-ink">
               Log in
             </Link>
           </nav>

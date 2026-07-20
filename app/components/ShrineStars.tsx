@@ -21,8 +21,8 @@ export default function ShrineStars() {
     for (let i = 0; i < 90; i++) {
       const x = Math.round(rand() * 1600);
       const y = Math.round(rand() * 1200);
-      const gold = rand() > 0.5;
-      const color = gold ? "rgba(255,215,0,0.55)" : "rgba(255,255,255,0.5)";
+      const gold = rand() > 0.35;
+      const color = gold ? "rgba(237,195,91,0.5)" : "rgba(246,236,211,0.42)";
       stars.push(`${x}px ${y}px 0 0 ${color}`);
     }
     return stars.join(", ");
@@ -33,10 +33,10 @@ export default function ShrineStars() {
       aria-hidden
       className="pointer-events-none fixed inset-0 z-0 hidden overflow-hidden dark:block"
     >
-      <div className="shrine-twinkle absolute left-0 top-0 h-px w-px rounded-full" style={{ boxShadow }} />
+      <div className="gold-dust absolute left-0 top-0 h-px w-px rounded-full" style={{ boxShadow }} />
       <div
-        className="shrine-twinkle absolute left-0 top-0 h-px w-px rounded-full"
-        style={{ boxShadow, transform: "translate(800px, 600px)", animationDelay: "1.5s" }}
+        className="gold-dust absolute left-0 top-0 h-px w-px rounded-full"
+        style={{ boxShadow, transform: "translate(800px, 600px)", animationDelay: "2s" }}
       />
     </div>
   );

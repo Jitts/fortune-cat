@@ -98,7 +98,7 @@ export default function RegionSettings({
         Changing currency relabels amounts — it doesn&apos;t convert the numbers you&apos;ve already logged. Best set before you record a lot.
       </p>
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-vermilion">{error}</p>}
 
       <div className="mt-4">
         <button

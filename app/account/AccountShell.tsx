@@ -144,7 +144,7 @@ export default function AccountShell({
               ) : (
                 <>
                   Free
-                  <Link href="/upgrade" className="text-fortune-700 underline underline-offset-2 hover:no-underline">
+                  <Link href="/upgrade" className="text-gold-text underline underline-offset-2 hover:no-underline">
                     Go Pro
                   </Link>
                 </>
@@ -175,9 +175,9 @@ export default function AccountShell({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               onKeyDown={(e) => e.key === "Enter" && saveEmail()}
-              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-gold focus:outline-none"
             />
-            {emailError && <p className="text-xs text-red-600">{emailError}</p>}
+            {emailError && <p className="text-xs text-vermilion">{emailError}</p>}
             <button
               onClick={saveEmail}
               disabled={pending}
@@ -195,7 +195,7 @@ export default function AccountShell({
               value={pw}
               onChange={(e) => setPw(e.target.value)}
               placeholder="New password"
-              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-gold focus:outline-none"
             />
             <input
               type="password"
@@ -203,9 +203,9 @@ export default function AccountShell({
               onChange={(e) => setPwConfirm(e.target.value)}
               placeholder="Confirm new password"
               onKeyDown={(e) => e.key === "Enter" && savePassword()}
-              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-fortune-400 focus:outline-none"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-gold focus:outline-none"
             />
-            {pwError && <p className="text-xs text-red-600">{pwError}</p>}
+            {pwError && <p className="text-xs text-vermilion">{pwError}</p>}
             <button
               onClick={savePassword}
               disabled={pending}
@@ -233,17 +233,17 @@ export default function AccountShell({
         <h2 className="text-sm font-medium text-ink-subtle">Privacy &amp; data</h2>
         <ul className="mt-3 space-y-2 text-sm text-ink-muted">
           <li className="flex gap-2">
-            <span className="text-emerald-700">✓</span>
+            <span className="text-jade">✓</span>
             Statements and receipts are read <b>on your device</b> — the image or PDF never leaves it,
             only the text it contains is used.
           </li>
           <li className="flex gap-2">
-            <span className="text-emerald-700">✓</span>
+            <span className="text-jade">✓</span>
             Email and SMS are captured through your own credentials and a token you control — revoke
             them any time from Capture.
           </li>
           <li className="flex gap-2">
-            <span className="text-emerald-700">✓</span>
+            <span className="text-jade">✓</span>
             Your data is yours. We don&apos;t sell it, and you can export or delete everything below.
           </li>
         </ul>
@@ -263,8 +263,8 @@ export default function AccountShell({
       </div>
 
       {/* ===== Danger zone ===== */}
-      <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-red-200">
-        <h2 className="text-sm font-medium text-red-700">Delete account</h2>
+      <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-vermilion/40">
+        <h2 className="text-sm font-medium text-vermilion">Delete account</h2>
         <p className="mt-1 text-sm text-ink-muted">
           Permanently deletes your account and all your data — transactions, goals, budgets, captures
           and connections. This can&apos;t be undone.
@@ -274,7 +274,7 @@ export default function AccountShell({
             value={confirmDelete}
             onChange={(e) => setConfirmDelete(e.target.value)}
             placeholder="Type DELETE"
-            className="w-40 rounded-lg border border-line px-3 py-2 text-sm focus:border-red-400 focus:outline-none"
+            className="w-40 rounded-lg border border-line px-3 py-2 text-sm focus:border-vermilion focus:outline-none"
           />
           <button
             onClick={runDelete}
@@ -284,7 +284,7 @@ export default function AccountShell({
             {pending ? "Deleting…" : "Delete my account"}
           </button>
         </div>
-        {deleteError && <p className="mt-2 text-xs text-red-600">{deleteError}</p>}
+        {deleteError && <p className="mt-2 text-xs text-vermilion">{deleteError}</p>}
       </div>
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
