@@ -5,6 +5,7 @@ import { saveProfile } from "./actions";
 import { regionForCountry, CURRENCIES, DEFAULT_REGION } from "@/lib/regions";
 import { formatCurrency } from "@/lib/format";
 import CountrySelect from "./CountrySelect";
+import FortuneCat from "@/app/app/components/FortuneCat";
 
 /**
  * One-step onboarding: pick your country, and the currency auto-selects (you can
@@ -45,9 +46,11 @@ export default function WelcomeForm() {
         onSubmit={onSubmit}
         className="w-full max-w-md space-y-6 rounded-2xl bg-surface p-8 shadow-sm ring-1 ring-line"
       >
-        <div className="text-center">
-          <p className="text-3xl">🐱</p>
-          <h1 className="mt-2 text-2xl font-bold text-ink">Welcome to Fortune Cat</h1>
+        <div className="flex flex-col items-center text-center">
+          <FortuneCat state="saving" size={56} />
+          <h1 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-ink">
+            Welcome to Fortune Cat
+          </h1>
           <p className="mt-2 text-sm text-ink-subtle">
             Where are you? We&apos;ll show your money the way you expect it.
           </p>

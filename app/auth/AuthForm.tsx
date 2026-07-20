@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import Wordmark from "@/app/components/Wordmark";
 
 type AuthResult = { error: string };
 
@@ -22,11 +23,11 @@ export default function AuthForm({
   return (
     <main className="min-h-screen bg-surface-2 flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-6 rounded-2xl bg-surface p-8 shadow-sm ring-1 ring-line">
-        <div className="text-center">
-          <Link href="/" className="text-2xl font-bold text-ink">
-            🐱 Fortune Cat
+        <div className="flex flex-col items-center text-center">
+          <Link href="/" aria-label="Fortune Cat home">
+            <Wordmark size="lg" />
           </Link>
-          <p className="mt-2 text-sm text-ink-subtle">
+          <p className="mt-3 text-sm text-ink-subtle">
             {isSignup ? "Create your account" : "Welcome back"}
           </p>
         </div>
@@ -42,7 +43,7 @@ export default function AuthForm({
               type="email"
               required
               autoComplete="email"
-              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
+              className="field"
               placeholder="you@example.com"
             />
           </div>
@@ -57,7 +58,7 @@ export default function AuthForm({
               required
               minLength={6}
               autoComplete={isSignup ? "new-password" : "current-password"}
-              className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
+              className="field"
               placeholder="••••••••"
             />
           </div>
@@ -67,7 +68,7 @@ export default function AuthForm({
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-lg bg-action px-4 py-2.5 text-sm font-semibold text-white hover:bg-action/90 disabled:opacity-50"
+            className="btn btn-gold w-full px-4 py-2.5 text-sm"
           >
             {pending ? "Please wait…" : isSignup ? "Create account" : "Log in"}
           </button>

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import Wordmark from "@/app/components/Wordmark";
 import { requestPasswordReset } from "@/app/auth/actions";
 
 type State = { error: string } | { success: true } | null;
@@ -17,11 +18,11 @@ export default function ForgotPasswordForm() {
   return (
     <main className="min-h-screen bg-surface-2 flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-6 rounded-2xl bg-surface p-8 shadow-sm ring-1 ring-line">
-        <div className="text-center">
-          <Link href="/" className="text-2xl font-bold text-ink">
-            🐱 Fortune Cat
+        <div className="flex flex-col items-center text-center">
+          <Link href="/" aria-label="Fortune Cat home">
+            <Wordmark size="lg" />
           </Link>
-          <p className="mt-2 text-sm text-ink-subtle">Reset your password</p>
+          <p className="mt-3 text-sm text-ink-subtle">Reset your password</p>
         </div>
 
         {sent ? (

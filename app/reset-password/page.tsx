@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import Wordmark from "@/app/components/Wordmark";
 import ResetPasswordForm from "./ResetPasswordForm";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +19,11 @@ export default async function ResetPasswordPage() {
   return (
     <main className="min-h-screen bg-surface-2 flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-6 rounded-2xl bg-surface p-8 shadow-sm ring-1 ring-line">
-        <div className="text-center">
-          <Link href="/" className="text-2xl font-bold text-ink">
-            🐱 Fortune Cat
+        <div className="flex flex-col items-center text-center">
+          <Link href="/" aria-label="Fortune Cat home">
+            <Wordmark size="lg" />
           </Link>
-          <p className="mt-2 text-sm text-ink-subtle">Choose a new password</p>
+          <p className="mt-3 text-sm text-ink-subtle">Choose a new password</p>
         </div>
 
         <ResetPasswordForm />
