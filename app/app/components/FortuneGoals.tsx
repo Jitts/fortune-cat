@@ -6,6 +6,7 @@ import { useMoney } from "@/app/components/CurrencyProvider";
 import type { FortuneGoal, Transaction } from "@/lib/types";
 import { createGoal, updateGoal, contributeToGoal, deleteGoal } from "../goalActions";
 import Daruma from "./Daruma";
+import CoinGlyph from "@/app/components/CoinGlyph";
 
 /** Average monthly expense from history — powers the emergency-fund target. */
 function avgMonthlyExpense(transactions: Transaction[]): number {
@@ -77,7 +78,8 @@ export default function FortuneGoals({
     return (
       <div className="rounded-2xl border-t-2 border-gold bg-surface p-6 shadow-sm ring-1 ring-line">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-ink-subtle">🎯 Fortune Goals</h2>
+          <CoinGlyph size={17} />
+          <h2 className="text-sm font-medium text-ink-subtle">Fortune Goals</h2>
           <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-gold-text">
             PRO
           </span>
@@ -189,7 +191,8 @@ export default function FortuneGoals({
     <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-ink-subtle">🎯 Fortune Goals</h2>
+          <CoinGlyph size={17} />
+          <h2 className="text-sm font-medium text-ink-subtle">Fortune Goals</h2>
           <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-gold-text">
             PRO
           </span>
