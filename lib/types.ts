@@ -152,6 +152,20 @@ export type FortuneGoal = {
   created_at: string;
 };
 
+// An immutable record of a Fortune Goal that was met — snapshots the goal at
+// the moment saved first crossed target, so it survives the goal being edited
+// or deleted. Powers the "Fortune wins" year-in-review in the Fortunes tab.
+export type GoalAchievement = {
+  id: string;
+  user_id: string;
+  goal_id: string | null;
+  name: string;
+  kind: FortuneGoalKind;
+  target_amount: number;
+  achieved_at: string;
+  created_at: string;
+};
+
 // A drawn daily fortune slip (one row per user per local date). The face is
 // computed deterministically by lib/fortune.ts and frozen here on draw.
 export type SlipSeverity = "great" | "good" | "even" | "caution";

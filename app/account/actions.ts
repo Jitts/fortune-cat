@@ -127,6 +127,7 @@ const USER_TABLES = [
   "trusted_senders",
   "sms_tokens",
   "category_budgets",
+  "goal_achievements",
   "fortune_goals",
   "payments",
   "audit_logs",

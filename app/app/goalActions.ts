@@ -23,6 +23,38 @@ async function requireUser() {
   return { supabase, user };
 }
 
+/**
+ * Records a durable achievement the first time a goal's saved amount reaches
+ * its target. Idempotent: the partial unique index on goal_id (migration 0026)
+ * plus this existence check mean repeated boosts past 100% never double-record.
+ * Best-effort — a ledger hiccup must never fail the user's save.
+ */
+async function recordAchievementIfMet(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  goal: FortuneGoal,
+) {
+  if (Number(goal.saved_amount) < Number(goal.target_amount)) return;
+  try {
+    const { data: existing } = await supabase
+      .from("goal_achievements")
+      .select("id")
+      .eq("goal_id", goal.id)
+      .maybeSingle();
+    if (existing) return;
+
+    await supabase.from("goal_achievements").insert({
+      user_id: userId,
+      goal_id: goal.id,
+      name: goal.name,
+      kind: goal.kind,
+      target_amount: goal.target_amount,
+    });
+  } catch (err) {
+    console.error("[recordAchievementIfMet]", err);
+  }
+}
+
 export async function createGoal(formData: FormData): Promise<GoalResult> {
   const { supabase, user } = await requireUser();
   if (!user) return { error: "Please log in." };
@@ -70,6 +102,9 @@ export async function createGoal(formData: FormData): Promise<GoalResult> {
     userId: user.id,
   });
 
+  // A goal created already funded (saved ≥ target) counts as met on day one.
+  await recordAchievementIfMet(supabase, user.id, data);
+
   revalidatePath("/app");
   return { data };
 }
@@ -104,6 +139,9 @@ export async function updateGoal(id: string, formData: FormData): Promise<GoalRe
     console.error("[updateGoal]", error);
     return { error: "Could not update the goal — please try again." };
   }
+
+  // Lowering the target below what's already saved meets the goal too.
+  await recordAchievementIfMet(supabase, user.id, data);
 
   revalidatePath("/app");
   return { data };
@@ -147,6 +185,9 @@ export async function contributeToGoal(id: string, amount: number): Promise<Goal
     riskLevel: "low",
     userId: user.id,
   });
+
+  // The usual path to a win: a boost tips saved over the target.
+  await recordAchievementIfMet(supabase, user.id, data);
 
   revalidatePath("/app");
   return { data };

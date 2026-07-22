@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/profile";
-import type { BalanceAnchor, CategoryBudget, EmailConnection, EmailTransactionCandidate, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, TransactionProvenance } from "@/lib/types";
+import type { BalanceAnchor, CategoryBudget, EmailConnection, EmailTransactionCandidate, FortuneGoal, FortuneSlipRow, GoalAchievement, ManualRecurringBill, SubscriptionDecision, TransactionProvenance } from "@/lib/types";
 import AppShell from "./AppShell";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +48,7 @@ export default async function AppPage() {
         .select("id", { count: "exact", head: true })
         .in("source", ["csv", "pdf", "image"]),
       supabase.from("fortune_goals").select().order("created_at", { ascending: true }),
+      supabase.from("goal_achievements").select().order("achieved_at", { ascending: false }),
       supabase.from("category_budgets").select(),
       supabase.from("fortune_slips").select().order("slip_date", { ascending: false }),
       supabase
@@ -76,6 +77,7 @@ export default async function AppPage() {
     { count: trustedCount },
     { count: backfilledCount },
     { data: goals },
+    { data: achievements },
     { data: budgets },
     { data: slips },
     { data: anchor },
@@ -127,6 +129,7 @@ export default async function AppPage() {
         provenance={provenance}
         setup={setup}
         goals={(goals ?? []) as FortuneGoal[]}
+        achievements={(achievements ?? []) as GoalAchievement[]}
         budgets={(budgets ?? []) as CategoryBudget[]}
         todaySlip={todaySlip}
         slipStreak={slipStreak}

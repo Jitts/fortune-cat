@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { BalanceAnchor, Category, CategoryBudget, EmailConnection, EmailTransactionCandidate, FortuneGoal, FortuneSlipRow, ManualRecurringBill, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
+import type { BalanceAnchor, Category, CategoryBudget, EmailConnection, EmailTransactionCandidate, FortuneGoal, FortuneSlipRow, GoalAchievement, ManualRecurringBill, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
 import {
   acceptAiTag,
   addTransaction,
@@ -21,6 +21,7 @@ import BillsDue from "./components/BillsDue";
 import CashFlowBars from "./components/CashFlowBars";
 import SubscriptionKillChain from "./components/SubscriptionKillChain";
 import FortuneGoals from "./components/FortuneGoals";
+import GoalWins from "./components/GoalWins";
 import RecurringRadar from "./components/RecurringRadar";
 import MonthlyOverview from "./components/MonthlyOverview";
 import CategoryBreakdown from "./components/CategoryBreakdown";
@@ -53,6 +54,7 @@ export default function AppShell({
   provenance,
   setup,
   goals,
+  achievements,
   budgets,
   todaySlip,
   slipStreak,
@@ -73,6 +75,7 @@ export default function AppShell({
   provenance: Record<string, TransactionProvenance>;
   setup: { captured: boolean; trusted: boolean; backfilled: boolean };
   goals: FortuneGoal[];
+  achievements: GoalAchievement[];
   budgets: CategoryBudget[];
   todaySlip: FortuneSlipRow | null;
   slipStreak: number;
@@ -386,6 +389,7 @@ export default function AppShell({
               </div>
               <InsightCard transactions={transactions} categories={categories} />
               <AnalyticsPanel transactions={transactions} categories={categories} isPro={isPro} />
+              <GoalWins achievements={achievements} isPro={isPro} />
             </>
           )}
 
