@@ -13,3 +13,7 @@ next-env.d.ts
 .env*
 dev-server.cmd
 supabase/.temp/
+
+# Claude Code local state (transient agent worktrees, personal settings)
+.claude/worktrees/
+.claude/settings.local.json
