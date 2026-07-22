@@ -180,10 +180,10 @@ export default function PrivacyPage() {
       <section>
         <h2>6. Where your data lives</h2>
         <p className="mt-3">
-          Your data is stored on managed cloud infrastructure operated by Supabase (database) and
-          Vercel (application). Depending on your location, this may involve transferring data
-          internationally; our providers rely on standard contractual safeguards for such
-          transfers.
+          Your data is stored in Supabase&rsquo;s Singapore region (AWS ap-southeast-1), with the
+          application hosted on Vercel. If you use Fortune Cat from outside Singapore, your data
+          is transferred to and stored in Singapore; our providers rely on standard contractual
+          safeguards for such international transfers.
         </p>
       </section>
 
