@@ -73,6 +73,20 @@ export default function AuthForm({
             {pending ? "Please wait…" : isSignup ? "Create account" : "Log in"}
           </button>
 
+          {isSignup && (
+            <p className="text-center text-xs leading-relaxed text-ink-faint">
+              By creating an account you agree to the{" "}
+              <Link href="/terms" className="underline underline-offset-2 hover:text-ink-muted">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="underline underline-offset-2 hover:text-ink-muted">
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          )}
+
           {!isSignup && (
             <p className="text-center text-sm">
               <Link href="/forgot-password" className="text-ink-subtle hover:underline">

@@ -155,6 +155,12 @@ export default async function Home() {
             <Link href="/login" className="hover:text-ink">
               Log in
             </Link>
+            <Link href="/privacy" className="hover:text-ink">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-ink">
+              Terms
+            </Link>
           </nav>
         </div>
       </footer>
