@@ -1,3 +1,7 @@
+"use client";
+
+import { useId } from "react";
+
 /**
  * The Daruma — a good-luck talisman for Fortune Goals. A round wish-doll
  * modelled on the tradition: you paint one eye when you SET a wish, the
@@ -5,7 +9,10 @@
  * set) and the right eye fills as `progress` climbs from 0 → 1, fully
  * painted the moment a goal is reached. Body/base use the same --seal and
  * --leaf-hi/--leaf-lo tokens as the seal stamp and the luck coin, so it sits
- * naturally in either theme. Pure SVG, no hooks — safe in server trees too.
+ * naturally in either theme. Gradient/clip ids are made unique per instance
+ * with useId — several dolls share one page (goal rows, the rail, the wins
+ * panel), and reused ids make later instances reference the first definition,
+ * which renders blank when that first one sits in a display:none subtree.
  */
 export default function Daruma({
   progress,
@@ -17,6 +24,11 @@ export default function Daruma({
   size?: number;
   className?: string;
 }) {
+  const uid = useId().replace(/:/g, "");
+  const bodyId = `daruma-body-${uid}`;
+  const sheenId = `daruma-sheen-${uid}`;
+  const clipId = `daruma-clip-${uid}`;
+
   const p = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 0));
   const done = p >= 1;
   // Right pupil grows from nothing to match the left as the wish is fulfilled.
@@ -39,16 +51,16 @@ export default function Daruma({
       }}
     >
       <defs>
-        <linearGradient id="daruma-body" x1="0.15" y1="0" x2="0.85" y2="1">
+        <linearGradient id={bodyId} x1="0.15" y1="0" x2="0.85" y2="1">
           <stop offset="0" style={{ stopColor: "color-mix(in oklab, var(--seal) 55%, white)" }} />
-          <stop offset="0.5" stopColor="var(--seal)" />
+          <stop offset="0.5" style={{ stopColor: "var(--seal)" }} />
           <stop offset="1" style={{ stopColor: "color-mix(in oklab, var(--seal) 80%, black)" }} />
         </linearGradient>
-        <radialGradient id="daruma-sheen" cx="0.32" cy="0.24" r="0.5">
+        <radialGradient id={sheenId} cx="0.32" cy="0.24" r="0.5">
           <stop offset="0" stopColor="white" stopOpacity="0.5" />
           <stop offset="1" stopColor="white" stopOpacity="0" />
         </radialGradient>
-        <clipPath id="daruma-clip">
+        <clipPath id={clipId}>
           <path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z" />
         </clipPath>
       </defs>
@@ -56,15 +68,15 @@ export default function Daruma({
       {/* lacquer body — round, weighted, with a soft glossy sheen */}
       <path
         d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z"
-        fill="url(#daruma-body)"
+        fill={`url(#${bodyId})`}
         style={{ stroke: "color-mix(in oklab, var(--seal) 70%, black)" }}
         strokeWidth="2"
       />
-      <path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z" fill="url(#daruma-sheen)" />
+      <path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z" fill={`url(#${sheenId})`} />
 
       {/* weighted gold base (clipped to the body silhouette) — the same
           metallic-leaf stops as the luck coin, with a small seal medallion */}
-      <g clipPath="url(#daruma-clip)">
+      <g clipPath={`url(#${clipId})`}>
         <rect x="9" y="88" width="82" height="18" fill="var(--leaf-hi)" />
         <rect x="9" y="88" width="82" height="3" fill="var(--leaf-lo)" opacity="0.65" />
         <circle cx="50" cy="97" r="6.5" fill="var(--seal)" opacity="0.9" />
