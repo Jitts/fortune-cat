@@ -39,3 +39,13 @@ create policy "goal_achievements_select" on goal_achievements
 drop policy if exists "goal_achievements_insert" on goal_achievements;
 create policy "goal_achievements_insert" on goal_achievements
   for insert with check (auth.uid() = user_id);
+
+-- Backfill: any goal already at or over its target becomes a win the moment
+-- this migration runs, so goals met before the feature shipped still show up.
+-- The true completion date isn't recorded historically, so achieved_at defaults
+-- to now() (the migration moment). Idempotent via the partial unique index.
+insert into goal_achievements (user_id, goal_id, name, kind, target_amount)
+select user_id, id, name, kind, target_amount
+from fortune_goals
+where saved_amount >= target_amount
+on conflict (goal_id) where goal_id is not null do nothing;

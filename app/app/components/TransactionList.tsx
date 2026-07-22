@@ -6,8 +6,10 @@ import { resolveMerchant } from "@/lib/merchants";
 import type { Category, Transaction, TransactionProvenance } from "@/lib/types";
 import AiTagBadge from "./AiTagBadge";
 
-// Where collapsed-month state lives between visits.
-const COLLAPSED_KEY = "fc-tx-collapsed-months";
+// Where collapsed year/month/day state lives between visits. Bumped to -v2 when
+// day-level folding shipped, so everyone gets the "only today open" default once
+// rather than inheriting a stored set that predates day keys.
+const COLLAPSED_KEY = "fc-tx-collapsed-v2";
 
 // A signed value so income adds and expense subtracts — used for the per-day
 // and per-month net subtotals shown on the group headers.
@@ -269,15 +271,19 @@ export default function TransactionList({
     }));
   }, [transactions]);
 
-  // First-visit default: fold every period except the newest year and, within
-  // it, the newest month — so the ledger opens on "now" and history stays tucked
-  // away (matching the mockup). A stored pick always wins over this.
+  // First-visit default: fold everything except today. Older years and months
+  // stay collapsed, the newest year+month open, and within the open month every
+  // day is folded except today — so the ledger opens on "now" and the rest is
+  // one tap away. A stored pick always wins over this.
   const defaultCollapsed = useMemo(() => {
     const set = new Set<string>();
     years.forEach((y, yi) => {
       if (yi > 0) set.add(y.key);
       y.months.forEach((m, mi) => {
         if (yi > 0 || mi > 0) set.add(m.key);
+        m.days.forEach((d) => {
+          if (!isToday(d.key)) set.add(d.key);
+        });
       });
     });
     return set;
@@ -361,9 +367,16 @@ export default function TransactionList({
                             aria-hidden
                             className="pointer-events-none absolute bottom-3 left-[19px] top-1 w-px bg-line"
                           />
-                          {month.days.map((day) => (
+                          {month.days.map((day) => {
+                            const dayCollapsed = collapsed.has(day.key);
+                            return (
                             <div key={day.key}>
-                              <div className="relative z-10 flex items-center justify-between gap-3 py-1.5 pl-4 pr-2">
+                              <button
+                                type="button"
+                                onClick={() => toggle(day.key)}
+                                aria-expanded={!dayCollapsed}
+                                className="relative z-10 flex w-full items-center justify-between gap-3 rounded-lg py-1.5 pl-4 pr-2 text-left hover:bg-surface-3"
+                              >
                                 <span className="flex items-center gap-2 text-xs font-medium text-ink-subtle">
                                   {/* day bead on the spine — today glows gold, the rest stay quiet */}
                                   <span
@@ -374,27 +387,36 @@ export default function TransactionList({
                                     style={isToday(day.key) ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
                                   />
                                   {dayLabel(day.key)}
+                                  <span
+                                    className={`inline-block text-[9px] leading-none text-ink-faint transition-transform ${dayCollapsed ? "-rotate-90" : ""}`}
+                                    aria-hidden
+                                  >
+                                    ▾
+                                  </span>
                                 </span>
                                 <span className="text-xs">
                                   <NetAmount value={day.net} />
                                 </span>
-                              </div>
-                              <ul className="space-y-2 pb-3 pl-8 pr-1">
-                                {day.items.map((t) => (
-                                  <TransactionRow
-                                    key={t.id}
-                                    t={t}
-                                    categories={categories}
-                                    provenance={provenance}
-                                    onEdit={onEdit}
-                                    onAcceptTag={onAcceptTag}
-                                    onRejectTag={onRejectTag}
-                                    tagPending={tagPending}
-                                  />
-                                ))}
-                              </ul>
+                              </button>
+                              {!dayCollapsed && (
+                                <ul className="space-y-2 pb-3 pl-8 pr-1">
+                                  {day.items.map((t) => (
+                                    <TransactionRow
+                                      key={t.id}
+                                      t={t}
+                                      categories={categories}
+                                      provenance={provenance}
+                                      onEdit={onEdit}
+                                      onAcceptTag={onAcceptTag}
+                                      onRejectTag={onRejectTag}
+                                      tagPending={tagPending}
+                                    />
+                                  ))}
+                                </ul>
+                              )}
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </section>

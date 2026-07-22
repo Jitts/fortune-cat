@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMoney } from "@/app/components/CurrencyProvider";
-import type { FortuneGoal, Transaction } from "@/lib/types";
+import type { FortuneGoal, GoalAchievement, Transaction } from "@/lib/types";
 import { createGoal, updateGoal, contributeToGoal, deleteGoal } from "../goalActions";
 import Daruma from "./Daruma";
 import CoinGlyph from "@/app/components/CoinGlyph";
@@ -55,15 +56,29 @@ const emptyDraft: Draft = {
 
 export default function FortuneGoals({
   goals,
+  achievements,
   transactions,
   isPro,
 }: {
   goals: FortuneGoal[];
+  achievements: GoalAchievement[];
   transactions: Transaction[];
   isPro: boolean;
 }) {
+  const router = useRouter();
   const { format } = useMoney();
   const [items, setItems] = useState(goals);
+  // Reconcile with server data after a router.refresh() — e.g. once a reached
+  // goal has been banked as a win and should drop off the active list.
+  useEffect(() => setItems(goals), [goals]);
+  // Goals already recorded as wins leave the active list (they live in the
+  // Fortune wins panel). Keyed off the achievements ledger, not a raw
+  // saved ≥ target check, so a goal never disappears unless the win truly
+  // recorded — which keeps it safe if the migration hasn't been applied yet.
+  const achievedGoalIds = useMemo(
+    () => new Set(achievements.map((a) => a.goal_id).filter((x): x is string => !!x)),
+    [achievements],
+  );
   const [modal, setModal] = useState<Draft | null>(null);
   const [boostId, setBoostId] = useState<string | null>(null);
   const [boostAmount, setBoostAmount] = useState("");
@@ -152,6 +167,7 @@ export default function FortuneGoals({
         modal.id ? prev.map((g) => (g.id === saved.id ? saved : g)) : [...prev, saved],
       );
       setModal(null);
+      if (saved.saved_amount >= saved.target_amount) router.refresh();
     });
   }
 
@@ -171,6 +187,9 @@ export default function FortuneGoals({
       setItems((prev) => prev.map((g) => (g.id === saved.id ? saved : g)));
       setBoostId(null);
       setBoostAmount("");
+      // Reached the target? Pull fresh server data so the new win records and
+      // the goal moves out of the active list into Fortune wins.
+      if (saved.saved_amount >= saved.target_amount) router.refresh();
     });
   }
 
@@ -186,6 +205,7 @@ export default function FortuneGoals({
   }
 
   const hasEmergency = items.some((g) => g.kind === "emergency");
+  const activeItems = items.filter((g) => !achievedGoalIds.has(g.id));
 
   return (
     <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
@@ -220,9 +240,16 @@ export default function FortuneGoals({
             {recommendedEmergency > 0 && <> · {format(recommendedEmergency)}</>}
           </button>
         </div>
+      ) : activeItems.length === 0 ? (
+        <div className="mt-4 rounded-xl bg-surface-2 p-5 text-center">
+          <p className="text-sm text-ink-muted">
+            🎉 Every goal reached — they&apos;re banked in <b>Fortune wins</b>. Set a new one to
+            keep the momentum going.
+          </p>
+        </div>
       ) : (
         <ul className="mt-3 space-y-4">
-          {items.map((g) => {
+          {activeItems.map((g) => {
             const pct = g.target_amount > 0 ? (g.saved_amount / g.target_amount) * 100 : 0;
             const done = g.saved_amount >= g.target_amount;
             const remaining = Math.max(0, g.target_amount - g.saved_amount);

@@ -384,7 +384,7 @@ export default function AppShell({
                   todaySlip={todaySlip}
                   slipStreak={slipStreak}
                 />
-                <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
+                <FortuneGoals goals={goals} achievements={achievements} transactions={transactions} isPro={isPro} />
                 <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
               </div>
               <InsightCard transactions={transactions} categories={categories} />
@@ -418,7 +418,7 @@ export default function AppShell({
             todaySlip={todaySlip}
             slipStreak={slipStreak}
           />
-          <FortuneGoals goals={goals} transactions={transactions} isPro={isPro} />
+          <FortuneGoals goals={goals} achievements={achievements} transactions={transactions} isPro={isPro} />
           <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} />
         </div>
       </div>
