@@ -26,10 +26,13 @@ function monthNameLabel(key: string) {
 
 // "Today · Sat, 13 Jul" / "Yesterday · …" for the two most recent days, else the
 // weekday + date. Keeps the day headers scannable without repeating the year.
-function isToday(dateKey: string) {
+function todayKey() {
   const now = new Date();
-  const local = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  return dateKey === local;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+function isToday(dateKey: string) {
+  return dateKey === todayKey();
 }
 
 function dayLabel(date: string) {
@@ -203,12 +206,21 @@ export default function TransactionList({
   // the server render) and reconcile after hydration to avoid a mismatch. With
   // no stored pick, apply the "older folded" default instead of showing all.
   useEffect(() => {
+    const next = new Set<string>();
+    // Restore only year/month picks from storage — day folding is recomputed
+    // fresh each load. "Which day is today" changes over time, so a stored day
+    // set goes stale (yesterday's open "today" would stay open, and the real
+    // today would never open).
     try {
       const raw = localStorage.getItem(COLLAPSED_KEY);
-      setCollapsed(raw ? new Set(JSON.parse(raw) as string[]) : defaultCollapsed);
+      const source = raw ? (JSON.parse(raw) as string[]) : [...defaultCollapsed];
+      for (const k of source) if (k.length <= 7) next.add(k);
     } catch {
-      setCollapsed(defaultCollapsed);
+      for (const k of defaultCollapsed) if (k.length <= 7) next.add(k);
     }
+    // Always fold every day except today.
+    for (const k of defaultCollapsed) if (k.length === 10) next.add(k);
+    setCollapsed(next);
     setHydrated(true);
     // Seed once on mount; later data changes shouldn't re-fold what the user opened.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -218,7 +230,9 @@ export default function TransactionList({
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsed]));
+      // Year/month keys only ("2026", "2026-07"); day state is per-session and
+      // today-relative, so it's never persisted.
+      localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsed].filter((k) => k.length <= 7)));
     } catch {
       // ignore quota or unavailable storage
     }
@@ -265,9 +279,35 @@ export default function TransactionList({
       day.net += s;
       day.items.push(t);
     }
-    return [...byYear.values()].map((y) => ({
+    // Always give today a slot so the ledger anchors on "now" even before
+    // anything is logged today — an empty today renders a gentle placeholder
+    // instead of vanishing and leaving yesterday at the top.
+    const tk = todayKey();
+    const tyk = tk.slice(0, 4);
+    const tmk = tk.slice(0, 7);
+    let tYear = byYear.get(tyk);
+    if (!tYear) {
+      tYear = { key: tyk, net: 0, months: new Map() };
+      byYear.set(tyk, tYear);
+    }
+    let tMonth = tYear.months.get(tmk);
+    if (!tMonth) {
+      tMonth = { key: tmk, net: 0, days: new Map() };
+      tYear.months.set(tmk, tMonth);
+    }
+    if (!tMonth.days.has(tk)) {
+      tMonth.days.set(tk, { key: tk, net: 0, items: [] });
+    }
+
+    // Sort every level newest-first by its ISO key, so an injected today (or any
+    // out-of-order insert) always lands in the right place.
+    const desc = (a: { key: string }, b: { key: string }) => (a.key < b.key ? 1 : -1);
+    return [...byYear.values()].sort(desc).map((y) => ({
       ...y,
-      months: [...y.months.values()].map((m) => ({ ...m, days: [...m.days.values()] })),
+      months: [...y.months.values()].sort(desc).map((m) => ({
+        ...m,
+        days: [...m.days.values()].sort(desc),
+      })),
     }));
   }, [transactions]);
 
@@ -395,25 +435,34 @@ export default function TransactionList({
                                   </span>
                                 </span>
                                 <span className="text-xs">
-                                  <NetAmount value={day.net} />
+                                  {day.items.length > 0 ? (
+                                    <NetAmount value={day.net} />
+                                  ) : (
+                                    <span className="text-ink-faint">—</span>
+                                  )}
                                 </span>
                               </button>
-                              {!dayCollapsed && (
-                                <ul className="space-y-2 pb-3 pl-8 pr-1">
-                                  {day.items.map((t) => (
-                                    <TransactionRow
-                                      key={t.id}
-                                      t={t}
-                                      categories={categories}
-                                      provenance={provenance}
-                                      onEdit={onEdit}
-                                      onAcceptTag={onAcceptTag}
-                                      onRejectTag={onRejectTag}
-                                      tagPending={tagPending}
-                                    />
-                                  ))}
-                                </ul>
-                              )}
+                              {!dayCollapsed &&
+                                (day.items.length > 0 ? (
+                                  <ul className="space-y-2 pb-3 pl-8 pr-1">
+                                    {day.items.map((t) => (
+                                      <TransactionRow
+                                        key={t.id}
+                                        t={t}
+                                        categories={categories}
+                                        provenance={provenance}
+                                        onEdit={onEdit}
+                                        onAcceptTag={onAcceptTag}
+                                        onRejectTag={onRejectTag}
+                                        tagPending={tagPending}
+                                      />
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p className="pb-3 pl-8 pr-1 text-xs text-ink-faint">
+                                    Nothing logged today — yet.
+                                  </p>
+                                ))}
                             </div>
                             );
                           })}
