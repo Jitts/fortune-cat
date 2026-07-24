@@ -197,49 +197,6 @@ export default function TransactionList({
   onRejectTag: (id: string) => void;
   tagPending: boolean;
 }) {
-  // Which years/months the user has collapsed, persisted so they stay folded
-  // across reloads. Year keys are "2026"; month keys are "2026-07" — different
-  // shapes, so they share one Set without colliding. Each header still shows its
-  // net, so a collapsed period stays informative.
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const [hydrated, setHydrated] = useState(false);
-
-  // Restore on mount — localStorage is client-only, so we start empty (matching
-  // the server render) and reconcile after hydration to avoid a mismatch. With
-  // no stored pick, apply the "older folded" default instead of showing all.
-  useEffect(() => {
-    const next = new Set<string>();
-    // Restore only year/month picks from storage — day folding is recomputed
-    // fresh each load. "Which day is today" changes over time, so a stored day
-    // set goes stale (yesterday's open "today" would stay open, and the real
-    // today would never open).
-    try {
-      const raw = localStorage.getItem(COLLAPSED_KEY);
-      const source = raw ? (JSON.parse(raw) as string[]) : [...defaultCollapsed];
-      for (const k of source) if (k.length <= 7) next.add(k);
-    } catch {
-      for (const k of defaultCollapsed) if (k.length <= 7) next.add(k);
-    }
-    // Always fold every day except today.
-    for (const k of defaultCollapsed) if (k.length === 10) next.add(k);
-    setCollapsed(next);
-    setHydrated(true);
-    // Seed once on mount; later data changes shouldn't re-fold what the user opened.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Persist after hydration, so the initial empty state never clobbers storage.
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      // Year/month keys only ("2026", "2026-07"); day state is per-session and
-      // today-relative, so it's never persisted.
-      localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsed].filter((k) => k.length <= 7)));
-    } catch {
-      // ignore quota or unavailable storage
-    }
-  }, [collapsed, hydrated]);
-
   // Fold the flat, date-desc list into years → months → days, carrying a running
   // net subtotal at each level. Insertion order stays reverse-chronological
   // because we walk a defensively-sorted copy.
@@ -330,6 +287,47 @@ export default function TransactionList({
     });
     return set;
   }, [years, today]);
+
+  // Seed the collapse state with the default *on first render* — both server and
+  // client (they share the same `today` prop + data, so there's no hydration
+  // mismatch). This makes the fold server-rendered instead of depending on a
+  // post-mount effect. Year keys are "2026", months "2026-07", days
+  // "2026-07-24" — distinct shapes, so they share one Set. Each header still
+  // shows its net, so a folded period stays informative.
+  const [collapsed, setCollapsed] = useState<Set<string>>(defaultCollapsed);
+  const [hydrated, setHydrated] = useState(false);
+
+  // After mount, layer the user's *stored* year/month picks over the default.
+  // Day folding is always recomputed fresh (never restored), since "which day is
+  // today" changes and a stored day set would go stale. No stored picks → keep
+  // the default already rendered.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(COLLAPSED_KEY);
+      if (raw) {
+        const next = new Set<string>();
+        for (const k of JSON.parse(raw) as string[]) if (k.length <= 7) next.add(k);
+        for (const k of defaultCollapsed) if (k.length === 10) next.add(k);
+        setCollapsed(next);
+      }
+    } catch {
+      // ignore malformed/unavailable storage — the default stands
+    }
+    setHydrated(true);
+    // Seed once on mount; later data changes shouldn't re-fold what the user opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist year/month picks only ("2026", "2026-07"); day state is per-session
+  // and today-relative, so it's never persisted.
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsed].filter((k) => k.length <= 7)));
+    } catch {
+      // ignore quota or unavailable storage
+    }
+  }, [collapsed, hydrated]);
 
   if (transactions.length === 0) {
     return (
