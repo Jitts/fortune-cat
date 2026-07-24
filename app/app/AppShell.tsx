@@ -61,6 +61,7 @@ export default function AppShell({
   anchor,
   subscriptionDecisions,
   manualBills: initialManualBills,
+  today,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
@@ -82,6 +83,8 @@ export default function AppShell({
   anchor: BalanceAnchor | null;
   subscriptionDecisions: SubscriptionDecision[];
   manualBills: ManualRecurringBill[];
+  /** The user's local calendar date (YYYY-MM-DD, from their profile timezone). */
+  today: string;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -214,6 +217,7 @@ export default function AppShell({
       transactions={visibleTransactions}
       categories={categories}
       provenance={provenance}
+      today={today}
       onEdit={(t) => setModal(t)}
       onAcceptTag={handleAcceptTag}
       onRejectTag={handleRejectTag}

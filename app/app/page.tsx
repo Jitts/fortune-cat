@@ -136,6 +136,7 @@ export default async function AppPage() {
         anchor={(anchor ?? null) as BalanceAnchor | null}
         subscriptionDecisions={(subscriptionDecisions ?? []) as SubscriptionDecision[]}
         manualBills={(manualBills ?? []) as ManualRecurringBill[]}
+        today={sgToday}
       />
     </Suspense>
   );

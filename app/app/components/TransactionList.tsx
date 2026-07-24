@@ -25,22 +25,21 @@ function monthNameLabel(key: string) {
 }
 
 // "Today · Sat, 13 Jul" / "Yesterday · …" for the two most recent days, else the
-// weekday + date. Keeps the day headers scannable without repeating the year.
-function todayKey() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-}
-
-function isToday(dateKey: string) {
-  return dateKey === todayKey();
-}
-
-function dayLabel(date: string) {
-  const d = new Date(`${date}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((today.getTime() - d.getTime()) / 86_400_000);
-  const stamp = d.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+// weekday + date. "today" is the user's local date (YYYY-MM-DD, from their
+// profile timezone), passed in so the server and client agree — computing it
+// from new Date() would use the server's UTC day during SSR and the browser's
+// local day on the client, mismatching near midnight. All date math is done in
+// UTC on the bare calendar strings so the weekday stamp never drifts by tz.
+function dayLabel(date: string, today: string) {
+  const d = new Date(`${date}T00:00:00Z`);
+  const t = new Date(`${today}T00:00:00Z`);
+  const diffDays = Math.round((t.getTime() - d.getTime()) / 86_400_000);
+  const stamp = d.toLocaleDateString("en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
   if (diffDays === 0) return `Today · ${stamp}`;
   if (diffDays === 1) return `Yesterday · ${stamp}`;
   return stamp;
@@ -182,6 +181,7 @@ export default function TransactionList({
   transactions,
   categories,
   provenance,
+  today,
   onEdit,
   onAcceptTag,
   onRejectTag,
@@ -190,6 +190,8 @@ export default function TransactionList({
   transactions: Transaction[];
   categories: Category[];
   provenance: Record<string, TransactionProvenance>;
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
   onEdit: (t: Transaction) => void;
   onAcceptTag: (id: string) => void;
   onRejectTag: (id: string) => void;
@@ -282,7 +284,7 @@ export default function TransactionList({
     // Always give today a slot so the ledger anchors on "now" even before
     // anything is logged today — an empty today renders a gentle placeholder
     // instead of vanishing and leaving yesterday at the top.
-    const tk = todayKey();
+    const tk = today;
     const tyk = tk.slice(0, 4);
     const tmk = tk.slice(0, 7);
     let tYear = byYear.get(tyk);
@@ -309,7 +311,7 @@ export default function TransactionList({
         days: [...m.days.values()].sort(desc),
       })),
     }));
-  }, [transactions]);
+  }, [transactions, today]);
 
   // First-visit default: fold everything except today. Older years and months
   // stay collapsed, the newest year+month open, and within the open month every
@@ -322,12 +324,12 @@ export default function TransactionList({
       y.months.forEach((m, mi) => {
         if (yi > 0 || mi > 0) set.add(m.key);
         m.days.forEach((d) => {
-          if (!isToday(d.key)) set.add(d.key);
+          if (d.key !== today) set.add(d.key);
         });
       });
     });
     return set;
-  }, [years]);
+  }, [years, today]);
 
   if (transactions.length === 0) {
     return (
@@ -422,11 +424,11 @@ export default function TransactionList({
                                   <span
                                     aria-hidden
                                     className={`inline-block h-2 w-2 rounded-full ${
-                                      isToday(day.key) ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line ring-2 ring-surface-2"
+                                      day.key === today ? "bg-fortune-400 ring-2 ring-fortune-400/30" : "bg-line ring-2 ring-surface-2"
                                     }`}
-                                    style={isToday(day.key) ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
+                                    style={day.key === today ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
                                   />
-                                  {dayLabel(day.key)}
+                                  {dayLabel(day.key, today)}
                                   <span
                                     className={`inline-block text-[9px] leading-none text-ink-faint transition-transform ${dayCollapsed ? "-rotate-90" : ""}`}
                                     aria-hidden
