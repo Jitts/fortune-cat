@@ -34,7 +34,7 @@ const FAQS = [
   },
   {
     q: "Does Fortune Cat work in my country and currency?",
-    a: "Yes — Fortune Cat works worldwide, in your own currency. You pick your country when you sign up (33 countries listed, more added on request), amounts display in your currency, and captures in a foreign currency are converted into it at ECB reference rates.",
+    a: "Yes — Fortune Cat works worldwide, in your own currency. You pick your country when you sign up (33 countries listed, more added on request), amounts display in your currency, and captures in a foreign currency are automatically converted into it at ECB reference rates — so an overseas trip or an online order in USD still lands in your ledger in your money.",
   },
   {
     q: "What is the daily fortune slip?",

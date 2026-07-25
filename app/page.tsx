@@ -104,7 +104,7 @@ export default async function Home() {
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
                 Fortune Cat reads the SMS, emails, and statements your bank already sends you — no
                 bank login, it only ever sees the notification text — and turns them into a live
-                cash-flow ledger, in your own currency.
+                cash-flow ledger in your own currency, with overseas spends converted automatically.
               </p>
             </Reveal>
             <Reveal delay={190}>
