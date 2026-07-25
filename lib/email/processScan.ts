@@ -55,12 +55,30 @@ export async function createTransactionFromCandidate(
 ): Promise<{ id: string } | { error: string }> {
   const categoryId = await lookupCategoryId(supabase, userId, candidate.suggested_category);
 
+  // The ledger holds the user's base currency. If a foreign capture never got
+  // converted (the rate lookup missed at scan time, so the amount is still the
+  // raw foreign figure), retry the conversion now. Guarded to amount ==
+  // original_amount so a value the user already edited, or one converted at
+  // capture, is left untouched.
+  let amount = candidate.amount ?? 0;
+  if (
+    candidate.original_currency &&
+    candidate.original_amount != null &&
+    Number(amount) === Number(candidate.original_amount)
+  ) {
+    const base = await getBaseCurrency(supabase, userId);
+    if (candidate.original_currency !== base) {
+      const fx = await convertToBase(Number(candidate.original_amount), candidate.original_currency, base);
+      if (fx) amount = fx.base;
+    }
+  }
+
   const { data: transaction, error } = await supabase
     .from("transactions")
     .insert({
       user_id: userId,
       type: candidate.suggested_type ?? "expense",
-      amount: candidate.amount ?? 0,
+      amount,
       category_id: categoryId,
       date: (candidate.email_date ?? new Date().toISOString()).slice(0, 10),
       note: candidate.suggested_note,
