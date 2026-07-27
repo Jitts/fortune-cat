@@ -49,12 +49,28 @@ function addDays(date: string, days: number): string {
   return new Date(Date.parse(date) + days * DAY_MS).toISOString().slice(0, 10);
 }
 
+/**
+ * Bank alert subjects name the EVENT, not the payee — every incoming transfer
+ * from anyone arrives as "You've received a transfer", and every card swipe as
+ * "Transaction Alerts". Grouping on one fuses unrelated transactions into an
+ * invented rhythm: an $18 gift, a $409 refund and two $500 transfers once
+ * became a confident "weekly $454.55 salary".
+ *
+ * Known merchants resolve before this ever runs, so the only cost of matching
+ * here is that a genuinely recurring item labelled *solely* by a generic alert
+ * subject goes undetected. That's the right trade: a missed flow is invisible,
+ * an invented one silently corrupts the forecast and safe-to-spend.
+ */
+const GENERIC_ALERT_RE =
+  /\balerts?\b|\bnotifications?\b|\bsuccessful\b|\byou'?ve received\b|\breceived a (transfer|payment|credit|deposit)\b|\b(funds?\s+)?transfer\b|\btransaction (alert|notification)\b/i;
+
 /** Grouping key: resolved merchant when known, else the exact trimmed note. */
 export function flowKey(t: Transaction): string | null {
   const merchant = resolveMerchant(t.note);
   if (merchant) return `m:${merchant.name}:${t.type}`;
   const note = t.note?.trim();
   if (!note) return null;
+  if (GENERIC_ALERT_RE.test(note)) return null;
   // Unresolved notes only group on an exact (case-folded) match — conservative
   // by design so unrelated one-offs never merge into a fake "subscription".
   return `n:${note.toUpperCase()}:${t.type}`;
@@ -113,8 +129,20 @@ export function analyzeRecurring(transactions: Transaction[], today = new Date()
     }
 
     // Known billers earn trust faster (3 charges); unresolved notes need 4.
+    // Counted by DISTINCT DAY, not row: a cycle happens on a day, so two
+    // charges on the same date are one occurrence (or a double charge, which
+    // is its own alert above). Counting rows let same-day duplicates inflate
+    // the count and manufacture a cadence that was never observed.
     const minOccurrences = biller ? 3 : 4;
-    if (list.length < minOccurrences) continue;
+    const distinctDays = new Set(list.map((t) => t.date)).size;
+    if (distinctDays < minOccurrences) continue;
+
+    // Amount spread: a real recurring charge clusters around its median. A
+    // series spanning more than 4× smallest-to-largest isn't one bill drifting
+    // over time, it's unrelated transactions sharing a label.
+    const minAmount = Math.min(...amounts);
+    const maxAmount = Math.max(...amounts);
+    if (minAmount > 0 && maxAmount > minAmount * 4) continue;
 
     const intervals: number[] = [];
     for (let i = 1; i < list.length; i++) {
@@ -194,7 +222,7 @@ export function analyzeRecurring(transactions: Transaction[], today = new Date()
         daysUntil,
         biller,
         accountTag: last.account_tag,
-        occurrences: list.length,
+        occurrences: distinctDays,
       });
     }
   }
