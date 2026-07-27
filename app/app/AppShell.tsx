@@ -20,6 +20,7 @@ import SlipsPanel from "./components/SlipsPanel";
 import BillsDue from "./components/BillsDue";
 import CashFlowBars from "./components/CashFlowBars";
 import SubscriptionKillChain from "./components/SubscriptionKillChain";
+import BalanceForecast from "./components/BalanceForecast";
 import FortuneGoals from "./components/FortuneGoals";
 import GoalWins from "./components/GoalWins";
 import RecurringRadar from "./components/RecurringRadar";
@@ -391,6 +392,12 @@ export default function AppShell({
                 <FortuneGoals goals={goals} achievements={achievements} transactions={transactions} isPro={isPro} />
                 <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
               </div>
+              <BalanceForecast
+                transactions={transactions}
+                manualBills={manualBills}
+                anchor={anchor}
+                isPro={isPro}
+              />
               <InsightCard transactions={transactions} categories={categories} />
               <AnalyticsPanel transactions={transactions} categories={categories} isPro={isPro} />
               <GoalWins achievements={achievements} isPro={isPro} />

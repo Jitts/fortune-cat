@@ -22,6 +22,11 @@ export const PRO_FEATURES: ProFeature[] = [
     desc: "Set savings goals and an emergency fund sized to your real spending, and watch each one fill as you save.",
   },
   {
+    icon: "🔮",
+    title: "The month ahead",
+    desc: "Projects your balance for every day ahead from the bills and paydays it already learned — so you see the leanest day before it arrives, not after.",
+  },
+  {
     icon: "🔭",
     title: "Recurring radar",
     desc: "Learns your regular bills and subscriptions, predicts what's due next, and flags spikes, double charges and new billers.",
