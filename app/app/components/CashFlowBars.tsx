@@ -10,10 +10,21 @@ import type { Transaction } from "@/lib/types";
  * out) with the burn-rate line. Lifted out of the old hero so it can sit atop
  * the Ledger tab while the luck ring lives in the cat rail.
  */
-export default function CashFlowBars({ transactions }: { transactions: Transaction[] }) {
+export default function CashFlowBars({
+  transactions,
+  timezone,
+}: {
+  transactions: Transaction[];
+  /** The user's IANA timezone — keeps "this month" on their calendar, not UTC. */
+  timezone: string;
+}) {
   const { format } = useMoney();
-  const pulse = useMemo(() => monthPulse(transactions), [transactions]);
-  const monthLabel = new Date().toLocaleDateString("en-SG", { month: "long", year: "numeric" });
+  const pulse = useMemo(() => monthPulse(transactions, new Date(), timezone), [transactions, timezone]);
+  const monthLabel = new Date().toLocaleDateString("en-SG", {
+    month: "long",
+    year: "numeric",
+    timeZone: timezone,
+  });
 
   return (
     <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">

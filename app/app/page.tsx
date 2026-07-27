@@ -137,6 +137,7 @@ export default async function AppPage() {
         subscriptionDecisions={(subscriptionDecisions ?? []) as SubscriptionDecision[]}
         manualBills={(manualBills ?? []) as ManualRecurringBill[]}
         today={sgToday}
+        timezone={profile.timezone}
       />
     </Suspense>
   );

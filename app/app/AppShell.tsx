@@ -63,6 +63,7 @@ export default function AppShell({
   subscriptionDecisions,
   manualBills: initialManualBills,
   today,
+  timezone,
 }: {
   initialTransactions: Transaction[];
   categories: Category[];
@@ -86,6 +87,8 @@ export default function AppShell({
   manualBills: ManualRecurringBill[];
   /** The user's local calendar date (YYYY-MM-DD, from their profile timezone). */
   today: string;
+  /** The user's IANA timezone. */
+  timezone: string;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -327,7 +330,7 @@ export default function AppShell({
             into Home and the budget into Fortunes, so tabs open on their own
             content instead of a wall of rails) ===== */}
         <div className="hidden space-y-6 lg:block">
-          <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
+          <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} />
           <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
         </div>
 
@@ -360,10 +363,10 @@ export default function AppShell({
           {active === "home" && (
             <>
               <div className="lg:hidden">
-                <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
+                <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} />
               </div>
               <AutopilotChecklist {...setup} />
-              <CashFlowBars transactions={transactions} />
+              <CashFlowBars transactions={transactions} timezone={timezone} />
               <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
                 <CategoryBreakdown transactions={transactions} categories={categories} />
                 <MonthlyOverview transactions={transactions} />

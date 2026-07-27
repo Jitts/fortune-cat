@@ -18,13 +18,16 @@ export default function CatRail({
   goals,
   anchor,
   isPro,
+  timezone,
 }: {
   transactions: Transaction[];
   goals: FortuneGoal[];
   anchor: BalanceAnchor | null;
   isPro: boolean;
+  /** The user's IANA timezone — keeps the streak on their calendar, not UTC. */
+  timezone: string;
 }) {
-  const pulse = useMemo(() => monthPulse(transactions), [transactions]);
+  const pulse = useMemo(() => monthPulse(transactions, new Date(), timezone), [transactions, timezone]);
   const state = catState(pulse.net, pulse.burnDelta);
   const sr = pulse.savingsRate;
 
