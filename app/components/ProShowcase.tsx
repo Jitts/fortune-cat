@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Reveal from "@/app/components/Reveal";
-import { PRO_FEATURES } from "@/lib/proFeatures";
+import PlanComparison from "@/app/components/PlanComparison";
 import { FREE_PRO_BETA } from "@/lib/beta";
 
 /**
@@ -13,7 +13,7 @@ export default function ProShowcase() {
   return (
     <section className="border-t border-line bg-surface-2">
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-surface p-8 shadow-[0_30px_80px_-50px_rgba(0,0,0,0.5)] ring-1 ring-line sm:p-12">
+        <div className="relative overflow-hidden rounded-3xl bg-surface p-5 shadow-[0_30px_80px_-50px_rgba(0,0,0,0.5)] ring-1 ring-line sm:p-12">
           {/* gold leaf glow, top-right */}
           <div
             aria-hidden
@@ -42,22 +42,7 @@ export default function ProShowcase() {
           </Reveal>
 
           <Reveal delay={80} className="relative mt-10">
-            <ul className="grid gap-x-10 gap-y-5 sm:grid-cols-2">
-              {PRO_FEATURES.map((f) => (
-                <li key={f.title} className="flex gap-3.5">
-                  <span
-                    aria-hidden
-                    className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold-soft text-lg"
-                  >
-                    {f.icon}
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-semibold text-ink">{f.title}</h3>
-                    <p className="mt-0.5 text-sm leading-relaxed text-ink-muted">{f.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <PlanComparison />
           </Reveal>
 
           <Reveal delay={140} className="relative mt-10">

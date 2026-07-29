@@ -10,6 +10,51 @@ export const PRO_PRICE_LABEL = "US$9 one-time";
 
 export const PRO_TAGLINE = "One payment. Every engine unlocked, for good.";
 
+/**
+ * Free vs Pro, as a comparison matrix. Same single-source-of-truth rule as
+ * PRO_FEATURES: every row maps to a real gate in the app, so the marketing
+ * table can't drift from what the product actually does.
+ *
+ * `true` renders as included, `false` as not included, a string as its own
+ * value ("1", "Last 10"). Values are kept SHORT — the two value columns have
+ * to stay narrow enough that the whole table fits a 360px phone with no
+ * horizontal scroll.
+ */
+export type PlanValue = boolean | string;
+export type PlanRow = { label: string; note?: string; free: PlanValue; pro: PlanValue };
+export type PlanGroup = { title: string; rows: PlanRow[] };
+
+export const PLAN_COMPARISON: PlanGroup[] = [
+  {
+    title: "Tracking the money",
+    rows: [
+      { label: "Log expenses and income by hand", free: true, pro: true },
+      { label: "Auto-capture from forwarded SMS and email", free: true, pro: true },
+      { label: "Capture inboxes", free: "1", pro: "3" },
+      { label: "Transaction history", free: "Last 10", pro: "All" },
+      { label: "Daily fortune slip", free: true, pro: true },
+      { label: "Export everything as CSV", free: true, pro: true },
+    ],
+  },
+  {
+    title: "Making it work for you",
+    rows: [
+      { label: "Safe-to-Spend", note: "what's truly yours to spend", free: false, pro: true },
+      { label: "Fortune Goals", note: "savings goals and emergency fund", free: false, pro: true },
+      { label: "The month ahead", note: "your balance, projected daily", free: false, pro: true },
+      { label: "Recurring radar", note: "learns your bills, flags spikes", free: false, pro: true },
+      {
+        label: "Subscription kill-chain",
+        note: "cancel steps, and what you free up",
+        free: false,
+        pro: true,
+      },
+      { label: "Deep analytics", note: "savings rate, trends, categories", free: false, pro: true },
+      { label: "Daily spend target on your slip", free: false, pro: true },
+    ],
+  },
+];
+
 export const PRO_FEATURES: ProFeature[] = [
   {
     icon: "👛",

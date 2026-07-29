@@ -18,7 +18,7 @@ const FAQS = [
   },
   {
     q: "Is my financial data safe?",
-    a: "Fortune Cat is built so there's little to steal: it holds no bank credentials, and every user's data is isolated with database row-level security. You can export your transactions as CSV or permanently delete your account and all its data from Settings at any time.",
+    a: "Fortune Cat never holds your bank login, so there is no key to your accounts for anyone to steal — not even us. What it does store is protected: your transactions are isolated at the database level with row-level security, so no other account can read them, and if you connect an inbox for auto-capture, that app password is encrypted before it is saved. Your data is stored in Singapore (AWS ap-southeast-1). You can export everything as CSV, or permanently delete your account and all its data, from Settings at any time.",
   },
   {
     q: "How much does Fortune Cat cost?",
@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     q: "What's the difference between Free and Pro?",
-    a: "Free includes manual and automatic logging, one capture inbox, and your last 10 transactions of history. Pro unlocks everything: Safe-to-Spend, savings goals, recurring-bill radar, the subscription kill-chain (cancel steps for the subscriptions you no longer want), deep analytics, actionable daily readings, full history, and three capture inboxes.",
+    a: "Free covers tracking: manual and automatic logging, one capture inbox, your daily fortune slip, CSV export, and your last 10 transactions of history. Pro adds the thinking on top — Safe-to-Spend, savings goals, a daily balance forecast for the month ahead, recurring-bill radar, the subscription kill-chain (cancel steps for the subscriptions you no longer want), deep analytics, a daily spend target on your slip, your full history, and three capture inboxes.",
   },
   {
     q: "Does Fortune Cat work in my country and currency?",
