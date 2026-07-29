@@ -422,3 +422,15 @@ details[open] .faq-answer {
 .gold-swash {
   background: linear-gradient(to top, color-mix(in oklab, var(--gold) 55%, transparent) 0 0.26em, transparent 0.26em);
 }
+
+/* Quick-add sheet — rises from the thumb end of the screen. Transform only, so
+   it never reflows the keypad mid-animation. Reduced motion gets the sheet
+   already in place rather than no sheet at all. */
+@keyframes quick-sheet-up {
+  from { transform: translateY(12%); opacity: 0.6; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.quick-sheet { transform: translateY(0); opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .quick-sheet { animation: quick-sheet-up 220ms var(--ease-out-quart) both; }
+}

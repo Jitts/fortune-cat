@@ -30,6 +30,8 @@ import FortuneBudget from "./components/FortuneBudget";
 import InsightCard from "./components/InsightCard";
 import AnalyticsPanel from "./components/AnalyticsPanel";
 import TransactionList from "./components/TransactionList";
+import QuickAddSheet from "./components/QuickAddSheet";
+import { formatCurrency } from "@/lib/format";
 import TransactionForm, {
   emptyFormValues,
   transactionToFormValues,
@@ -96,6 +98,11 @@ export default function AppShell({
   const [manualBills, setManualBills] = useState(initialManualBills);
   const [isPro, setIsPro] = useState(initialIsPro);
   const [modal, setModal] = useState<"add" | Transaction | null>(null);
+  // Mobile quick-add keypad sheet. `quickPrefill` carries the amount across
+  // when someone escapes from the sheet to the full form, so nothing typed
+  // one-handed has to be typed again.
+  const [quickAdd, setQuickAdd] = useState(false);
+  const [quickPrefill, setQuickPrefill] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -241,8 +248,15 @@ export default function AppShell({
       if (result.manualBill) {
         setManualBills((prev) => [...prev, result.manualBill!]);
         setToast(`Added — and tracking "${result.manualBill.name}" in Bills 📌`);
+      } else if (quickAdd) {
+        // The sheet has no ledger behind it on mobile, so confirm the save.
+        setToast(
+          `Added ${created.type === "income" ? "+" : ""}${formatCurrency(created.amount, currency, locale)} ✓`,
+        );
       }
       setModal(null);
+      setQuickAdd(false);
+      setQuickPrefill("");
     });
   }
 
@@ -318,7 +332,11 @@ export default function AppShell({
     <ShrineChrome
       active={active}
       onTab={setTab}
-      onAdd={() => setModal("add")}
+      onAdd={() => {
+        setQuickPrefill("");
+        setModal("add");
+      }}
+      onQuickAdd={() => setQuickAdd(true)}
       userEmail={userEmail}
       isPro={isPro}
       pendingReviewCount={pendingReviewCount}
@@ -445,7 +463,11 @@ export default function AppShell({
             </h3>
             <TransactionForm
               categories={categories}
-              initial={modal === "add" ? emptyFormValues(categories) : transactionToFormValues(modal)}
+              initial={
+                modal === "add"
+                  ? { ...emptyFormValues(categories), date: today, amount: quickPrefill }
+                  : transactionToFormValues(modal)
+              }
               submitLabel={modal === "add" ? "Add" : "Save"}
               pending={pending}
               showReceiptScan={modal === "add"}
@@ -466,6 +488,22 @@ export default function AppShell({
             />
           </div>
         </div>
+      )}
+
+      {quickAdd && (
+        <QuickAddSheet
+          categories={categories}
+          transactions={transactions}
+          today={today}
+          pending={pending}
+          onSubmit={handleAdd}
+          onClose={() => setQuickAdd(false)}
+          onMoreOptions={(amount) => {
+            setQuickPrefill(amount);
+            setQuickAdd(false);
+            setModal("add");
+          }}
+        />
       )}
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
