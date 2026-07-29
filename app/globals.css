@@ -92,6 +92,11 @@
   --leaf-hi: #f6d878;
   --leaf-lo: #c9902a;
   --coin-void: #efe7d3;
+
+  /* Stated rather than left `normal`, so native controls (select popups, date
+     pickers, scrollbars) get an explicit scheme in BOTH themes — the .dark
+     block sets its own. */
+  color-scheme: light;
 }
 
 /* ── Midnight hall — gold leaf on deep night blue (dark, the signature) ──
@@ -135,6 +140,18 @@ body {
   background-color: var(--surface-2);
   color: var(--ink);
   font-feature-settings: "ss01", "cv01";
+}
+
+/* A native <select>'s option list is drawn by the OS, not by us. `color-scheme`
+   above gets it right on desktop, but Android paints the popup as a system
+   dialog whose surface follows the PHONE's theme — which is independent of the
+   theme this app is pinned to. Options inherit .field's ink but had no
+   background of their own, so a dark-mode app on a light-mode phone rendered
+   the category list as light ink on a light system surface. Giving every option
+   an explicit surface makes the popup follow the app's theme either way. */
+option {
+  background-color: var(--surface);
+  color: var(--ink);
 }
 ::selection {
   background: color-mix(in oklab, var(--gold) 70%, white);
