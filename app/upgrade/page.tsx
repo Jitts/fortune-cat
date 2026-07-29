@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PRO_FEATURES, PRO_PRICE, PRO_TAGLINE } from "@/lib/proFeatures";
+import PlanComparison from "@/app/components/PlanComparison";
 import { FREE_PRO_BETA } from "@/lib/beta";
 import GoProButton from "./GoProButton";
 
@@ -25,7 +26,7 @@ export default async function UpgradePage() {
 
   return (
     <main className="min-h-screen bg-surface-2 px-5 py-12 sm:px-6">
-      <div className="mx-auto w-full max-w-lg space-y-6 overflow-hidden rounded-3xl bg-surface p-8 shadow-[0_30px_80px_-50px_rgba(0,0,0,0.5)] ring-1 ring-line">
+      <div className="mx-auto w-full max-w-lg space-y-6 overflow-hidden rounded-3xl bg-surface p-6 shadow-[0_30px_80px_-50px_rgba(0,0,0,0.5)] ring-1 ring-line sm:p-8">
         <div className="text-center">
           <span className="chip chip-gold text-[11px]">Fortune Cat Pro</span>
           <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink">
@@ -52,22 +53,41 @@ export default async function UpgradePage() {
           )}
         </div>
 
-        <ul className="grid gap-4 border-y border-line py-6">
-          {PRO_FEATURES.map((f) => (
-            <li key={f.title} className="flex gap-3.5">
+        {/* The same at-a-glance matrix as the landing page, then the detail on
+            demand — someone who has already clicked through to /upgrade wants
+            to see the difference first and read what each engine does second. */}
+        <div className="space-y-4 border-y border-line py-6">
+          <PlanComparison />
+
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-1 py-1.5 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
+              What each Pro engine does
               <span
                 aria-hidden
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold-soft text-lg"
+                className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-gold-text ring-1 ring-line transition-transform group-open:rotate-45"
               >
-                {f.icon}
+                ＋
               </span>
-              <span>
-                <span className="block text-sm font-semibold text-ink">{f.title}</span>
-                <span className="block text-xs leading-relaxed text-ink-muted">{f.desc}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
+            </summary>
+
+            <ul className="mt-4 grid gap-4">
+              {PRO_FEATURES.map((f) => (
+                <li key={f.title} className="flex gap-3.5">
+                  <span
+                    aria-hidden
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold-soft text-lg"
+                  >
+                    {f.icon}
+                  </span>
+                  <span>
+                    <span className="block text-sm font-semibold text-ink">{f.title}</span>
+                    <span className="block text-xs leading-relaxed text-ink-muted">{f.desc}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </div>
 
         {isPro ? (
           <p className="rounded-xl bg-gold-soft px-4 py-3 text-center text-sm font-semibold text-gold-text">
