@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 import Link from "next/link";
 import { computeForecast } from "@/lib/forecast";
 import { useMoney } from "@/app/components/CurrencyProvider";
@@ -37,6 +37,14 @@ export default function BalanceForecast({
   isPro: boolean;
 }) {
   const { format } = useMoney();
+
+  // Per-instance gradient id. Only one forecast renders today, so a fixed id
+  // would still work — but the responsive layout duplicates organs between the
+  // desktop rails and the mobile folds as a matter of course, and a shared id
+  // makes url(#…) resolve to whichever copy comes first in the document, even
+  // a display:none one. That has already cost us the Daruma and the cat; this
+  // keeps the chart from being the third.
+  const fillId = `fc-forecast-fill-${useId().replace(/:/g, "")}`;
 
   const f = useMemo(
     () => computeForecast({ transactions, manualBills, anchor }),
@@ -136,7 +144,7 @@ export default function BalanceForecast({
               : "Projected balance"
           }>
             <defs>
-              <linearGradient id="fc-forecast-fill" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stopColor="var(--gold)" stopOpacity="0.28" />
                 <stop offset="1" stopColor="var(--gold)" stopOpacity="0" />
               </linearGradient>
@@ -153,7 +161,7 @@ export default function BalanceForecast({
                 opacity="0.5"
               />
             )}
-            <path d={area} fill="url(#fc-forecast-fill)" />
+            <path d={area} fill={`url(#${fillId})`} />
             <path d={line} fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinejoin="round" />
             {lowIdx > 0 && f.lowest && (
               <circle
