@@ -30,7 +30,7 @@ import FortuneBudget from "./components/FortuneBudget";
 import InsightCard from "./components/InsightCard";
 import AnalyticsPanel from "./components/AnalyticsPanel";
 import TransactionList from "./components/TransactionList";
-import QuickAddSheet from "./components/QuickAddSheet";
+import EntrySheet from "./components/EntrySheet";
 import { formatCurrency } from "@/lib/format";
 import TransactionForm, {
   emptyFormValues,
@@ -98,11 +98,15 @@ export default function AppShell({
   const [manualBills, setManualBills] = useState(initialManualBills);
   const [isPro, setIsPro] = useState(initialIsPro);
   const [modal, setModal] = useState<"add" | Transaction | null>(null);
-  // Mobile quick-add keypad sheet. `quickPrefill` carries the amount across
-  // when someone escapes from the sheet to the full form, so nothing typed
-  // one-handed has to be typed again.
-  const [quickAdd, setQuickAdd] = useState(false);
+  // Add and edit share ONE piece of state. Which surface renders it is decided
+  // by CSS, not by measuring the viewport: mobile gets the EntrySheet, desktop
+  // gets the modal form. `fullForm` is the single exception — it only flips
+  // when someone explicitly taps "More options", which forces the full form up
+  // on mobile too. `quickPrefill` carries the typed amount across that hop so
+  // nothing entered one-handed has to be entered again.
+  const [fullForm, setFullForm] = useState(false);
   const [quickPrefill, setQuickPrefill] = useState("");
+  const sheetOpen = modal !== null && !fullForm;
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -229,7 +233,11 @@ export default function AppShell({
       categories={categories}
       provenance={provenance}
       today={today}
-      onEdit={(t) => setModal(t)}
+      onEdit={(t) => {
+        setQuickPrefill("");
+        setFullForm(false);
+        setModal(t);
+      }}
       onAcceptTag={handleAcceptTag}
       onRejectTag={handleRejectTag}
       tagPending={pending}
@@ -248,16 +256,21 @@ export default function AppShell({
       if (result.manualBill) {
         setManualBills((prev) => [...prev, result.manualBill!]);
         setToast(`Added — and tracking "${result.manualBill.name}" in Bills 📌`);
-      } else if (quickAdd) {
-        // The sheet has no ledger behind it on mobile, so confirm the save.
+      } else if (sheetOpen) {
+        // The sheet covers the ledger on mobile, so confirm the save in words.
         setToast(
           `Added ${created.type === "income" ? "+" : ""}${formatCurrency(created.amount, currency, locale)} ✓`,
         );
       }
-      setModal(null);
-      setQuickAdd(false);
-      setQuickPrefill("");
+      closeEntry();
     });
+  }
+
+  /** Dismiss whichever surface is open and forget the hand-off state. */
+  function closeEntry() {
+    setModal(null);
+    setFullForm(false);
+    setQuickPrefill("");
   }
 
   function handleEdit(id: string, formData: FormData) {
@@ -269,7 +282,12 @@ export default function AppShell({
       }
       const updated = result.data;
       setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)));
-      setModal(null);
+      if (sheetOpen) {
+        setToast(
+          `Saved ${updated.type === "income" ? "+" : ""}${formatCurrency(updated.amount, currency, locale)} ✓`,
+        );
+      }
+      closeEntry();
     });
   }
 
@@ -334,9 +352,9 @@ export default function AppShell({
       onTab={setTab}
       onAdd={() => {
         setQuickPrefill("");
+        setFullForm(false);
         setModal("add");
       }}
-      onQuickAdd={() => setQuickAdd(true)}
       userEmail={userEmail}
       isPro={isPro}
       pendingReviewCount={pendingReviewCount}
@@ -455,8 +473,16 @@ export default function AppShell({
         </div>
       </div>
 
+      {/* Adding and editing are the same job, so they share one state and one
+          look per device. The modal is desktop-only UNLESS someone explicitly
+          asked for every field via "More options" — then it comes up on mobile
+          too, which is the only case where JS, not CSS, decides. */}
       {modal && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
+        <div
+          className={`fixed inset-0 z-40 items-center justify-center bg-black/30 p-4 ${
+            fullForm ? "flex" : "hidden lg:flex"
+          }`}
+        >
           <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
             <h3 className="mb-4 text-lg font-semibold text-ink">
               {modal === "add" ? "Add Transaction" : "Edit Transaction"}
@@ -466,12 +492,17 @@ export default function AppShell({
               initial={
                 modal === "add"
                   ? { ...emptyFormValues(categories), date: today, amount: quickPrefill }
-                  : transactionToFormValues(modal)
+                  : // Carry a keypad amount across on the EDIT hop as well, or
+                    // "More options" would silently discard what was just typed.
+                    {
+                      ...transactionToFormValues(modal),
+                      ...(quickPrefill ? { amount: quickPrefill } : {}),
+                    }
               }
               submitLabel={modal === "add" ? "Add" : "Save"}
               pending={pending}
               showReceiptScan={modal === "add"}
-              onCancel={() => setModal(null)}
+              onCancel={closeEntry}
               onSubmit={(formData) =>
                 modal === "add" ? handleAdd(formData) : handleEdit(modal.id, formData)
               }
@@ -479,9 +510,8 @@ export default function AppShell({
                 modal === "add"
                   ? undefined
                   : () => {
-                      const id = modal.id;
-                      handleDelete(id);
-                      setModal(null);
+                      handleDelete(modal.id);
+                      closeEntry();
                     }
               }
               deleting={modal !== "add" && deletingId === modal.id}
@@ -490,18 +520,29 @@ export default function AppShell({
         </div>
       )}
 
-      {quickAdd && (
-        <QuickAddSheet
+      {sheetOpen && (
+        <EntrySheet
+          editing={modal === "add" ? null : modal}
           categories={categories}
           transactions={transactions}
           today={today}
           pending={pending}
-          onSubmit={handleAdd}
-          onClose={() => setQuickAdd(false)}
+          deleting={modal !== "add" && deletingId === modal.id}
+          onSubmit={(formData) =>
+            modal === "add" ? handleAdd(formData) : handleEdit(modal.id, formData)
+          }
+          onDelete={
+            modal === "add"
+              ? undefined
+              : () => {
+                  handleDelete(modal.id);
+                  closeEntry();
+                }
+          }
+          onClose={closeEntry}
           onMoreOptions={(amount) => {
             setQuickPrefill(amount);
-            setQuickAdd(false);
-            setModal("add");
+            setFullForm(true);
           }}
         />
       )}

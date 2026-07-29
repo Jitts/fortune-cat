@@ -75,7 +75,6 @@ export default function ShrineChrome({
   active,
   onTab,
   onAdd,
-  onQuickAdd,
   userEmail,
   isPro,
   pendingReviewCount,
@@ -83,12 +82,9 @@ export default function ShrineChrome({
 }: {
   active: ShrineTab;
   onTab: (t: ShrineTab) => void;
-  /** Desktop header "＋ Log" — opens the full form in a modal. */
+  /** Opens the entry UI. Which one appears is decided by CSS downstream — the
+   *  keypad sheet on mobile, the full form modal on desktop. */
   onAdd: () => void;
-  /** Mobile bottom-nav ＋ — opens the thumb-reach keypad sheet instead. The
-   *  split is by call site rather than by measuring the viewport in JS, so the
-   *  same CSS breakpoint that hides one control picks the handler. */
-  onQuickAdd: () => void;
   userEmail: string;
   isPro: boolean;
   pendingReviewCount: number;
@@ -217,7 +213,7 @@ export default function ShrineChrome({
             onClick={() => onTab(t.id)}
           />
         ))}
-        <button onClick={onQuickAdd} className="flex flex-1 flex-col items-center gap-1 pt-2" aria-label="Log a transaction">
+        <button onClick={onAdd} className="flex flex-1 flex-col items-center gap-1 pt-2" aria-label="Log a transaction">
           <span className="btn-gold pressable -mt-5 flex h-12 w-12 items-center justify-center rounded-full text-2xl font-bold ring-4 ring-surface">
             ＋
           </span>

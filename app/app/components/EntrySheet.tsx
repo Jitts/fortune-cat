@@ -7,49 +7,57 @@ import Keypad from "./Keypad";
 import type { Category, Transaction, TransactionType } from "@/lib/types";
 
 /**
- * Thumb-reach quick add — the mobile path for logging by hand.
+ * The mobile money sheet — one UI for BOTH adding and editing a transaction.
  *
- * The full TransactionForm asks for type, amount, category, date, merchant and
- * note. That is the right shape on a desktop modal and the wrong shape at a
- * hawker stall with one hand on the phone. This sheet collapses the same action
- * to: type the amount, tap a category, done — everything else is inferred.
+ * The full TransactionForm asks for type, amount, category, date and note. That
+ * is the right shape in a desktop modal and the wrong shape one-handed on a
+ * phone, so on mobile both paths collapse to the same thing: read the amount,
+ * tap a category, done. Editing used to drop into the boxed form with a
+ * different keypad on top of it; now tapping a ledger row opens this same
+ * sheet, pre-filled.
  *
- * Two inferences do that work, and both come from the user's own history rather
- * than a guess:
- *  - Chip ORDER is by how often they use each category, so the likely one is
- *    already under the thumb.
+ * Two inferences do the work in ADD mode, both from the user's own history:
+ *  - Chip ORDER is by how often they use each category.
  *  - DIRECTION (expense vs income) is per-category, from how that category has
- *    actually been used. Categories carry no type in the schema, so a keypad
+ *    actually been used — categories carry no type in the schema, so a keypad
  *    that always posted expenses would file "Salary" as spending. When the
- *    inference says income the sheet says so on screen — it is never silent.
+ *    inference says income the sheet says so on screen; it is never silent.
  *
- * Escape hatch: "More options" hands off to the full form with the amount kept.
- * The keypad and its calculator live in Keypad/lib/calc, shared with the edit
- * form's amount field.
+ * In EDIT mode the row's OWN direction, date and note are carried through
+ * untouched. Re-deriving direction from the category would let re-categorising
+ * an old row silently flip it from income to expense, and omitting date/note
+ * from the payload would wipe them — this sheet only ever changes the two
+ * things it actually shows.
  */
-
-export default function QuickAddSheet({
+export default function EntrySheet({
+  editing,
   categories,
   transactions,
   today,
   pending,
+  deleting = false,
   onSubmit,
+  onDelete,
   onClose,
   onMoreOptions,
 }: {
+  /** null = add a new row; a Transaction = edit that row. */
+  editing: Transaction | null;
   categories: Category[];
   transactions: Transaction[];
   /** Server-computed date in the user's timezone — never a bare new Date(). */
   today: string;
   pending: boolean;
+  deleting?: boolean;
   onSubmit: (formData: FormData) => void;
+  onDelete?: () => void;
   onClose: () => void;
   onMoreOptions: (amount: string) => void;
 }) {
   const { format } = useMoney();
-  const [expr, setExpr] = useState("");
+  const isEdit = editing !== null;
+  const [expr, setExpr] = useState(() => (editing ? String(editing.amount) : ""));
 
-  // Category order + per-category direction, both learned from real history.
   const { ordered, typeOf } = useMemo(() => {
     const uses = new Map<string, { total: number; income: number }>();
     for (const t of transactions) {
@@ -66,17 +74,19 @@ export default function QuickAddSheet({
     });
     const typeOf = (id: string): TransactionType => {
       const u = uses.get(id);
-      // Majority of that category's own rows; unused categories default to
-      // expense, which is what an unseen category almost always is.
       return u && u.income * 2 > u.total ? "income" : "expense";
     };
     return { ordered, typeOf };
   }, [categories, transactions]);
 
-  const [categoryId, setCategoryId] = useState(() => ordered[0]?.id ?? "");
+  const [categoryId, setCategoryId] = useState(
+    () => editing?.category_id ?? ordered[0]?.id ?? "",
+  );
+
   const amount = evaluateExpression(expr);
-  const type = categoryId ? typeOf(categoryId) : "expense";
-  const canSubmit = amount > 0 && !!categoryId && !pending;
+  // Editing keeps the row's own direction; adding infers it from the category.
+  const type: TransactionType = isEdit ? editing.type : categoryId ? typeOf(categoryId) : "expense";
+  const canSubmit = amount > 0 && !!categoryId && !pending && !deleting;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -92,7 +102,10 @@ export default function QuickAddSheet({
     fd.set("type", type);
     fd.set("amount", String(amount));
     fd.set("category_id", categoryId);
-    fd.set("date", today);
+    // Editing preserves the row's date and note — this sheet doesn't show them,
+    // so it must not silently blank them either.
+    fd.set("date", editing?.date ?? today);
+    if (editing?.note) fd.set("note", editing.note);
     onSubmit(fd);
   }
 
@@ -101,21 +114,24 @@ export default function QuickAddSheet({
       className="fixed inset-0 z-50 flex flex-col justify-end lg:hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Quick add a transaction"
+      aria-label={isEdit ? "Edit transaction" : "Quick add a transaction"}
     >
       <button
         className="absolute inset-0 h-full w-full cursor-default bg-black/40"
         onClick={onClose}
-        aria-label="Close quick add"
+        aria-label="Close"
         tabIndex={-1}
       />
 
       <div className="quick-sheet relative max-h-[92dvh] overflow-y-auto rounded-t-3xl border-t border-line bg-surface px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-20px_60px_-30px_rgba(0,0,0,0.6)]">
-        {/* grab handle */}
         <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
 
-        {/* amount */}
         <div className="text-center">
+          {isEdit && (
+            <p className="font-mono text-[11px] uppercase tracking-wide text-ink-faint">
+              Editing · {editing.date}
+            </p>
+          )}
           <p
             className={`font-display text-4xl font-extrabold tabular-nums ${
               type === "income" ? "text-jade" : "text-ink"
@@ -126,11 +142,10 @@ export default function QuickAddSheet({
           </p>
           <p className="mt-1 h-4 font-mono text-[11px] text-ink-faint">{displayExpression(expr)}</p>
           {type === "income" && (
-            <p className="mt-0.5 text-xs font-medium text-jade">money in — {categoryName(ordered, categoryId)}</p>
+            <p className="mt-0.5 text-xs font-medium text-jade">money in</p>
           )}
         </div>
 
-        {/* categories, most-used first */}
         <div className="-mx-4 mt-3 overflow-x-auto px-4 pb-1">
           <div className="flex w-max gap-2">
             {ordered.map((c) => {
@@ -141,9 +156,7 @@ export default function QuickAddSheet({
                   onClick={() => setCategoryId(c.id)}
                   aria-pressed={on}
                   className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                    on
-                      ? "bg-gold-soft text-gold-text ring-1 ring-gold"
-                      : "bg-surface-3 text-ink-muted"
+                    on ? "bg-gold-soft text-gold-text ring-1 ring-gold" : "bg-surface-3 text-ink-muted"
                   }`}
                 >
                   {c.icon && <span aria-hidden>{c.icon} </span>}
@@ -158,13 +171,24 @@ export default function QuickAddSheet({
           <Keypad
             onPush={(ch) => setExpr((p) => pushKey(p, ch))}
             onBackspace={() => setExpr((p) => p.slice(0, -1))}
-            primaryLabel={pending ? "…" : "Add ✓"}
+            primaryLabel={pending ? "…" : isEdit ? "Save ✓" : "Add ✓"}
             onPrimary={submit}
             primaryDisabled={!canSubmit}
           />
         </div>
 
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex items-center justify-between gap-3">
+          {isEdit && onDelete ? (
+            <button
+              onClick={onDelete}
+              disabled={deleting}
+              className="text-[13px] font-medium text-vermilion disabled:opacity-50"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </button>
+          ) : (
+            <span />
+          )}
           <button
             onClick={() => onMoreOptions(amount > 0 ? String(amount) : "")}
             className="text-[11px] font-medium text-gold-text underline underline-offset-2"
@@ -175,8 +199,4 @@ export default function QuickAddSheet({
       </div>
     </div>
   );
-}
-
-function categoryName(categories: Category[], id: string): string {
-  return categories.find((c) => c.id === id)?.name ?? "";
 }
