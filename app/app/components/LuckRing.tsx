@@ -1,4 +1,5 @@
-import FortuneCat, { type CatState } from "./FortuneCat";
+import FortuneCat from "./FortuneCat";
+import type { CatState } from "@/lib/catState";
 
 /**
  * The fortune coin — the luck device. The cat is struck into a minted medallion

@@ -1,18 +1,21 @@
+"use client";
+
+import { useId } from "react";
+import type { CatState } from "@/lib/catState";
+
 /**
  * The fortune cat — a minted maneki-neko whose expression is a pure function of
  * this month's cash flow. No AI, no randomness: saving = content (eyes closed,
  * calm), even = watchful, burning = alert. Gold leaf on a lacquer outline; the
  * one mark used everywhere from the 22px wordmark to the dashboard hero, so it
  * stays crisp at any size. Red is never used here — attention lives elsewhere.
+ *
+ * Client component purely so `useId` can give each instance its own gradient
+ * id. The mood logic itself lives in `lib/catState` so the server can still
+ * import it. See the gradient note below for why the id must be per-instance.
  */
 
-export type CatState = "saving" | "even" | "burning";
-
-export function catState(net: number, burnDelta: number | null): CatState {
-  if (net < 0 || (burnDelta != null && burnDelta > 30)) return "burning";
-  if (net > 0) return "saving";
-  return "even";
-}
+export type { CatState };
 
 // Fixed leaf tones — read cleanly on both rice-paper light and lacquer dark.
 const GOLD = "#e8bd54";
@@ -30,6 +33,15 @@ export default function FortuneCat({
   size?: number;
   className?: string;
 }) {
+  // Per-instance gradient id. The dashboard renders this cat more than once
+  // (the desktop rail and the mobile fold both mount one, and only one of the
+  // pair is displayed at a time). A shared id like `fc-leaf-saving` makes every
+  // `url(#…)` resolve to the FIRST match in the document — which on a phone is
+  // the copy inside the `display:none` desktop rail — so the visible cat's
+  // fills silently never paint and it renders as a bare outline.
+  const uid = useId().replace(/:/g, "");
+  const leafId = `fc-leaf-${uid}`;
+
   const alarmed = state === "burning";
   const label =
     state === "saving"
@@ -49,7 +61,7 @@ export default function FortuneCat({
       style={{ overflow: "visible" }}
     >
       <defs>
-        <linearGradient id={`fc-leaf-${state}`} x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={leafId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={GOLD_HI} />
           <stop offset="1" stopColor={GOLD} />
         </linearGradient>
@@ -58,13 +70,13 @@ export default function FortuneCat({
       {/* ears */}
       {alarmed ? (
         <>
-          <path d="M22 42 L20 20 L41 33 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
-          <path d="M78 42 L80 20 L59 33 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M22 42 L20 20 L41 33 Z" fill={`url(#${leafId})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M78 42 L80 20 L59 33 Z" fill={`url(#${leafId})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
         </>
       ) : (
         <>
-          <path d="M27 38 L30 15 L46 31 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
-          <path d="M73 38 L70 15 L54 31 Z" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M27 38 L30 15 L46 31 Z" fill={`url(#${leafId})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M73 38 L70 15 L54 31 Z" fill={`url(#${leafId})`} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
           <path d="M31 33 L33 22 L41 30 Z" fill={CREAM} />
           <path d="M69 33 L67 22 L59 30 Z" fill={CREAM} />
         </>
@@ -73,18 +85,18 @@ export default function FortuneCat({
       {/* body */}
       <path
         d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z"
-        fill={`url(#fc-leaf-${state})`}
+        fill={`url(#${leafId})`}
         stroke={LINE}
         strokeWidth="2"
         strokeLinejoin="round"
       />
       {/* raised beckoning paw */}
-      <circle cx="78" cy="55" r="8" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" />
+      <circle cx="78" cy="55" r="8" fill={`url(#${leafId})`} stroke={LINE} strokeWidth="2" />
       {/* resting paw */}
       <ellipse cx="34" cy="82" rx="7" ry="5" fill={CREAM} stroke={LINE} strokeWidth="1.4" />
 
       {/* head */}
-      <circle cx="50" cy="46" r="27" fill={`url(#fc-leaf-${state})`} stroke={LINE} strokeWidth="2" />
+      <circle cx="50" cy="46" r="27" fill={`url(#${leafId})`} stroke={LINE} strokeWidth="2" />
       <ellipse cx="50" cy="52" rx="13" ry="9" fill={CREAM} />
 
       {/* eyes */}

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { monthPulse } from "@/lib/monthPulse";
-import { catState } from "./FortuneCat";
+import { catState } from "@/lib/catState";
 import LuckRing from "./LuckRing";
 import LanternStreak from "./LanternStreak";
 import PouchSummary from "./PouchSummary";

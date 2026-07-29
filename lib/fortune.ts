@@ -1,6 +1,6 @@
 import { analyzeRecurring } from "@/lib/recurring";
 import { computeSafeToSpend } from "@/lib/safeToSpend";
-import { catState, type CatState } from "@/app/app/components/FortuneCat";
+import { catState, type CatState } from "@/lib/catState";
 import { formatCurrency as fmtCurrency, DEFAULT_CURRENCY, DEFAULT_LOCALE } from "@/lib/format";
 import type { BalanceAnchor, Category, FortuneGoal, SlipSeverity, Transaction } from "@/lib/types";
 
