@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMoney } from "@/app/components/CurrencyProvider";
+import { displayExpression, evaluateExpression, pushKey } from "@/lib/calc";
+import Keypad from "./Keypad";
 import type { Category, Transaction, TransactionType } from "@/lib/types";
 
 /**
@@ -22,25 +24,9 @@ import type { Category, Transaction, TransactionType } from "@/lib/types";
  *    inference says income the sheet says so on screen — it is never silent.
  *
  * Escape hatch: "More options" hands off to the full form with the amount kept.
+ * The keypad and its calculator live in Keypad/lib/calc, shared with the edit
+ * form's amount field.
  */
-
-/** Left-to-right +/− chain. No precedence to worry about with only two ops. */
-export function evaluateExpression(expr: string): number {
-  if (!expr) return 0;
-  const parts = expr.match(/[+-]?[^+-]+/g) ?? [];
-  let total = 0;
-  for (const part of parts) {
-    const n = Number(part);
-    if (!Number.isNaN(n)) total += n;
-  }
-  // Round at the end: 4.20 + 4.30 must be 8.50, not 8.499999999999998.
-  return Math.round(total * 100) / 100;
-}
-
-/** True when the expression is mid-entry (ends on an operator or a bare dot). */
-function isIncomplete(expr: string): boolean {
-  return /[+\-.]$/.test(expr);
-}
 
 export default function QuickAddSheet({
   categories,
@@ -100,20 +86,6 @@ export default function QuickAddSheet({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  function push(ch: string) {
-    setExpr((prev) => {
-      if (/[0-9]/.test(ch)) return prev + ch;
-      if (ch === ".") {
-        const current = prev.split(/[+-]/).pop() ?? "";
-        if (current.includes(".")) return prev; // one dot per operand
-        return prev === "" || /[+-]$/.test(prev) ? prev + "0." : prev + ".";
-      }
-      // operator
-      if (prev === "") return prev;
-      return /[+\-.]$/.test(prev) ? prev.slice(0, -1) + ch : prev + ch;
-    });
-  }
-
   function submit() {
     if (!canSubmit) return;
     const fd = new FormData();
@@ -123,9 +95,6 @@ export default function QuickAddSheet({
     fd.set("date", today);
     onSubmit(fd);
   }
-
-  const key =
-    "flex items-center justify-center rounded-xl py-4 text-xl font-semibold tabular-nums transition-colors active:scale-[.97]";
 
   return (
     <div
@@ -155,9 +124,7 @@ export default function QuickAddSheet({
             {type === "income" && amount > 0 ? "+" : ""}
             {format(amount)}
           </p>
-          <p className="mt-1 h-4 font-mono text-[11px] text-ink-faint">
-            {expr && (isIncomplete(expr) || /[+-]/.test(expr)) ? expr.replace(/([+-])/g, " $1 ") : ""}
-          </p>
+          <p className="mt-1 h-4 font-mono text-[11px] text-ink-faint">{displayExpression(expr)}</p>
           {type === "income" && (
             <p className="mt-0.5 text-xs font-medium text-jade">money in — {categoryName(ordered, categoryId)}</p>
           )}
@@ -187,67 +154,20 @@ export default function QuickAddSheet({
           </div>
         </div>
 
-        {/* keypad */}
-        <div className="mt-3 grid grid-cols-4 gap-2">
-          {["1", "2", "3"].map((d) => (
-            <button key={d} onClick={() => push(d)} className={`${key} bg-surface-3 text-ink`}>
-              {d}
-            </button>
-          ))}
-          <button
-            onClick={() => push("+")}
-            aria-label="Plus"
-            className={`${key} bg-gold-soft text-gold-text`}
-          >
-            +
-          </button>
-
-          {["4", "5", "6"].map((d) => (
-            <button key={d} onClick={() => push(d)} className={`${key} bg-surface-3 text-ink`}>
-              {d}
-            </button>
-          ))}
-          <button
-            onClick={() => push("-")}
-            aria-label="Minus"
-            className={`${key} bg-gold-soft text-gold-text`}
-          >
-            −
-          </button>
-
-          {["7", "8", "9"].map((d) => (
-            <button key={d} onClick={() => push(d)} className={`${key} bg-surface-3 text-ink`}>
-              {d}
-            </button>
-          ))}
-          <button
-            onClick={submit}
-            disabled={!canSubmit}
-            className={`${key} row-span-2 bg-gold text-on-gold disabled:opacity-40`}
-          >
-            {pending ? "…" : "Add ✓"}
-          </button>
-
-          <button onClick={() => push(".")} className={`${key} bg-surface-3 text-ink`}>
-            .
-          </button>
-          <button onClick={() => push("0")} className={`${key} bg-surface-3 text-ink`}>
-            0
-          </button>
-          <button
-            onClick={() => setExpr((p) => p.slice(0, -1))}
-            aria-label="Delete last entry"
-            className={`${key} bg-surface-3 text-ink-muted`}
-          >
-            ⌫
-          </button>
+        <div className="mt-3">
+          <Keypad
+            onPush={(ch) => setExpr((p) => pushKey(p, ch))}
+            onBackspace={() => setExpr((p) => p.slice(0, -1))}
+            primaryLabel={pending ? "…" : "Add ✓"}
+            onPrimary={submit}
+            primaryDisabled={!canSubmit}
+          />
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-ink-faint">
-          <span>calculator built in — “4.20 + 4.30” just works</span>
+        <div className="mt-3 flex justify-end">
           <button
             onClick={() => onMoreOptions(amount > 0 ? String(amount) : "")}
-            className="shrink-0 font-medium text-gold-text underline underline-offset-2"
+            className="text-[11px] font-medium text-gold-text underline underline-offset-2"
           >
             More options
           </button>

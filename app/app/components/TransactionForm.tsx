@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Category, Transaction, TransactionType } from "@/lib/types";
 import { suggestCategory } from "@/lib/tagger";
 import ReceiptScanButton from "./ReceiptScanButton";
+import AmountKeypadSheet from "./AmountKeypadSheet";
 import type { ReceiptParse } from "@/lib/receipt/parseReceipt";
 
 export type TransactionFormValues = {
@@ -62,6 +63,7 @@ export default function TransactionForm({
 }) {
   const [values, setValues] = useState(initial);
   const [error, setError] = useState<string | null>(null);
+  const [keypadOpen, setKeypadOpen] = useState(false);
   const [markRecurring, setMarkRecurring] = useState(false);
   const [recurringCadence, setRecurringCadence] = useState<"monthly" | "weekly">("monthly");
 
@@ -142,16 +144,41 @@ export default function TransactionForm({
 
       <div>
         <label className="block text-sm font-medium text-ink-muted">Amount</label>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={values.amount}
-          onChange={(e) => setValues((v) => ({ ...v, amount: e.target.value }))}
-          placeholder="0.00"
-          className="field mt-1"
-        />
+        {/* On a phone, tapping the amount opens the keypad with the calculator
+            rather than the OS number pad — correcting a captured row is usually
+            done against a receipt with several lines on it. The overlay is
+            lg:hidden, so the split is CSS-driven: desktop keeps a plain typable
+            input and never mounts the sheet. */}
+        <div className="relative mt-1">
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            inputMode="decimal"
+            value={values.amount}
+            onChange={(e) => setValues((v) => ({ ...v, amount: e.target.value }))}
+            placeholder="0.00"
+            className="field"
+          />
+          <button
+            type="button"
+            onClick={() => setKeypadOpen(true)}
+            aria-label="Open the calculator keypad to set the amount"
+            className="absolute inset-0 lg:hidden"
+          />
+        </div>
       </div>
+
+      {keypadOpen && (
+        <AmountKeypadSheet
+          initial={values.amount}
+          onClose={() => setKeypadOpen(false)}
+          onDone={(amount) => {
+            setValues((v) => ({ ...v, amount }));
+            setKeypadOpen(false);
+          }}
+        />
+      )}
 
       <div>
         <label className="block text-sm font-medium text-ink-muted">Category</label>
