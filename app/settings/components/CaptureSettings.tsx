@@ -185,19 +185,35 @@ export default function CaptureSettings({
   useEffect(() => {
     const id = TASK_SECTIONS[searchParams.get("task") ?? ""];
     if (!id) return;
-    // rAF so the section is laid out before we measure it.
-    const frame = requestAnimationFrame(() => {
-      // Instant, NOT smooth. A smooth scroll is still animating when the URL
-      // cleanup below lands, and the navigation cancels it mid-flight — which
-      // dumped the reader back at the top of the page, i.e. precisely the
-      // failure this deep link exists to prevent. Landing directly is also
-      // the right behaviour for anyone with prefers-reduced-motion.
-      document.getElementById(id)?.scrollIntoView({ block: "start" });
-      setHighlight(id);
-    });
+    // Instant, NOT smooth: a smooth scroll is still animating when the URL
+    // cleanup below lands, and the navigation cancels it mid-flight, dumping
+    // the reader back at the top — precisely the failure this deep link
+    // exists to prevent. Landing directly is also the right behaviour for
+    // anyone with prefers-reduced-motion.
+    //
+    // Re-scroll until the target's offset stops moving, rather than trusting
+    // one frame: the sections above this one are still being laid out on
+    // first paint, so a single early scroll lands at an offset that is
+    // correct at that instant and wrong a moment later.
+    let frame = 0;
+    let lastTop = -1;
+    let tries = 0;
+    const settle = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        const top = Math.round(el.getBoundingClientRect().top + window.scrollY);
+        if (top !== lastTop) {
+          lastTop = top;
+          el.scrollIntoView({ block: "start" });
+        }
+      }
+      if (++tries < 20) frame = requestAnimationFrame(settle);
+    };
+    frame = requestAnimationFrame(settle);
+    setHighlight(id);
     // Clean the URL so a refresh doesn't re-scroll — same move the OAuth
-    // handler above makes, but held back until the scroll has landed.
-    const cleanUrl = setTimeout(() => router.replace("/settings", { scroll: false }), 400);
+    // handler above makes, but held back until the scroll has settled.
+    const cleanUrl = setTimeout(() => router.replace("/settings", { scroll: false }), 700);
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(cleanUrl);
