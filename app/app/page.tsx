@@ -107,6 +107,11 @@ export default async function AppPage() {
   }
 
   const setup = {
+    // Anything at all in the ledger — a hand-typed entry counts. Deliberately
+    // separate from `captured`, which still means auto-capture specifically:
+    // the fix for "the ＋ button earns nothing" is a step that button can
+    // satisfy, not a looser definition of a flag that means something else.
+    logged: (transactions ?? []).length > 0,
     captured:
       (capturedCount ?? 0) > 0 || (transactions ?? []).some((t) => t.entry_source !== "manual"),
     trusted: (trustedCount ?? 0) > 0,

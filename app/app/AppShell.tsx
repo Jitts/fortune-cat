@@ -78,7 +78,7 @@ export default function AppShell({
   filteredCandidates: EmailTransactionCandidate[];
   connections: EmailConnection[];
   provenance: Record<string, TransactionProvenance>;
-  setup: { captured: boolean; trusted: boolean; backfilled: boolean };
+  setup: { logged: boolean; captured: boolean; trusted: boolean; backfilled: boolean };
   goals: FortuneGoal[];
   achievements: GoalAchievement[];
   budgets: CategoryBudget[];
@@ -398,10 +398,23 @@ export default function AppShell({
 
           {active === "home" && (
             <>
+              {/* Ahead of the cat rail on mobile. On a phone that rail is a
+                  ~400px block holding a luck ring with nothing yet to report
+                  and a Go Pro button, and burying the first-run guidance under
+                  it is a large part of why new users asked what they were
+                  meant to do here. Desktop is unaffected — the rail lives in
+                  the left column there, not in this stack. */}
+              <AutopilotChecklist
+                {...setup}
+                onLogFirst={() => {
+                  setQuickPrefill("");
+                  setFullForm(false);
+                  setModal("add");
+                }}
+              />
               <div className="lg:hidden">
                 <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} />
               </div>
-              <AutopilotChecklist {...setup} />
               <CashFlowBars transactions={transactions} timezone={timezone} />
               <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
                 <CategoryBreakdown transactions={transactions} categories={categories} />

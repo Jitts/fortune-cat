@@ -47,6 +47,21 @@ function MicrosoftConnectButton() {
   );
 }
 
+// ?task= values the autopilot card links with → the section that completes it.
+const TASK_SECTIONS: Record<string, string> = {
+  email: "capture-email",
+  statements: "capture-statements",
+  sms: "capture-sms",
+};
+
+// scroll-mt clears the sticky chrome so a deep-linked section isn't tucked
+// under the header it scrolls to.
+function sectionClass(id: string, highlight: string | null): string {
+  return `scroll-mt-24 rounded-2xl bg-surface p-6 shadow-sm ring-1 transition-shadow ${
+    highlight === id ? "ring-2 ring-gold" : "ring-line"
+  }`;
+}
+
 // vercel.json schedules the inbox scan at "0 23 * * *" — 23:00 UTC. That is
 // 7am in Singapore and nowhere else, so the badge renders it in the reader's
 // own clock rather than asserting a timezone they don't live in.
@@ -125,6 +140,8 @@ export default function CaptureSettings({
   // window.location isn't available during SSR — start empty (matching the
   // server render) and fill in after mount, same pattern as ThemeToggle.
   const [origin, setOrigin] = useState("");
+  // Which section a ?task= deep link sent us to, ringed for a moment on arrival.
+  const [highlight, setHighlight] = useState<string | null>(null);
   useEffect(() => setOrigin(window.location.origin), []);
 
   const maxInboxes = inboxLimit(isPro);
@@ -158,6 +175,23 @@ export default function CaptureSettings({
       setToast(errorMessages[error] ?? "Could not connect — please try again.");
     }
     router.replace("/settings", { scroll: false });
+  }, [searchParams, router]);
+
+  // Deep links from the autopilot card (/settings?task=email) land ON the
+  // section that completes the step, briefly ringed so it's obvious which one
+  // you were sent to. Arriving at the top of a long settings page that doesn't
+  // visibly contain the thing you just tapped reads as "wrong page" — beta
+  // testers went back and tapped again rather than scrolling.
+  useEffect(() => {
+    const id = TASK_SECTIONS[searchParams.get("task") ?? ""];
+    if (!id) return;
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setHighlight(id);
+    const timer = setTimeout(() => setHighlight(null), 2600);
+    // Clean the URL so a refresh doesn't re-scroll — same move the OAuth
+    // handler above makes.
+    router.replace("/settings", { scroll: false });
+    return () => clearTimeout(timer);
   }, [searchParams, router]);
 
   function scanToast(result: { found: number; autoPosted: number; scanned: number }, older = false) {
@@ -400,7 +434,7 @@ export default function CaptureSettings({
     <>
       <h1 className="text-lg font-semibold text-ink">📡 Capture</h1>
 
-      <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+      <div id="capture-email" className={sectionClass("capture-email", highlight)}>
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-medium text-ink-subtle">📧 Email auto-scan</h2>
           {connections.length > 0 && (
@@ -608,7 +642,7 @@ export default function CaptureSettings({
       )}
 
       <div className="space-y-3 pb-4">
-        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+        <div id="capture-statements" className={sectionClass("capture-statements", highlight)}>
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium text-ink-subtle">📄 Statements &amp; receipts</h2>
             <span className="rounded-full bg-jade-soft px-2.5 py-0.5 font-mono text-[10px] font-medium text-jade">
@@ -652,7 +686,7 @@ export default function CaptureSettings({
             </label>
           </div>
         </div>
-        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
+        <div id="capture-sms" className={sectionClass("capture-sms", highlight)}>
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium text-ink-subtle">💬 SMS forwarding</h2>
             {smsToken ? (
