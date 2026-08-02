@@ -185,14 +185,33 @@ export default function CaptureSettings({
   useEffect(() => {
     const id = TASK_SECTIONS[searchParams.get("task") ?? ""];
     if (!id) return;
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setHighlight(id);
-    const timer = setTimeout(() => setHighlight(null), 2600);
+    // rAF so the section is laid out before we measure it.
+    const frame = requestAnimationFrame(() => {
+      // Instant, NOT smooth. A smooth scroll is still animating when the URL
+      // cleanup below lands, and the navigation cancels it mid-flight — which
+      // dumped the reader back at the top of the page, i.e. precisely the
+      // failure this deep link exists to prevent. Landing directly is also
+      // the right behaviour for anyone with prefers-reduced-motion.
+      document.getElementById(id)?.scrollIntoView({ block: "start" });
+      setHighlight(id);
+    });
     // Clean the URL so a refresh doesn't re-scroll — same move the OAuth
-    // handler above makes.
-    router.replace("/settings", { scroll: false });
-    return () => clearTimeout(timer);
+    // handler above makes, but held back until the scroll has landed.
+    const cleanUrl = setTimeout(() => router.replace("/settings", { scroll: false }), 400);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(cleanUrl);
+    };
   }, [searchParams, router]);
+
+  // The ring fades on its own timer, keyed to the highlight rather than to the
+  // search params — otherwise the URL cleanup above re-runs the effect that
+  // owns the timer, and the ring never clears.
+  useEffect(() => {
+    if (!highlight) return;
+    const timer = setTimeout(() => setHighlight(null), 2600);
+    return () => clearTimeout(timer);
+  }, [highlight]);
 
   function scanToast(result: { found: number; autoPosted: number; scanned: number }, older = false) {
     const where = older ? "older emails" : "emails";
@@ -564,7 +583,7 @@ export default function CaptureSettings({
         <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
           <h2 className="text-sm font-medium text-ink-subtle">⚡ Trusted senders</h2>
           <p className="mt-1 text-xs text-ink-faint">
-            SGD transactions from these senders post straight to your ledger (with one-tap undo).
+            {currency} transactions from these senders post straight to your ledger (with one-tap undo).
             Everything else — including all foreign currency — waits in{" "}
             <Link href="/review" className="underline hover:text-ink-muted">
               Review
