@@ -946,7 +946,11 @@ export async function importDocument(formData: FormData): Promise<ImportResult> 
 
   // Single-receipt fallback — same rule-based heuristic the email scanner
   // uses, so a PDF invoice or a photo of one receipt still becomes a capture.
-  const receipt = parseEmailForTransaction(meta.fileLabel, text);
+  const receipt = parseEmailForTransaction(
+    meta.fileLabel,
+    text,
+    await getBaseCurrency(supabase, user.id),
+  );
   const single = statement.rows[0] ??
     (receipt
       ? {

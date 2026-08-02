@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
 import { suggestAccountTag } from "@/lib/email/accountTag";
 import { convertToBase } from "@/lib/fx";
-import { getBaseCurrency } from "@/lib/profile";
+import { getBaseCurrency, getProfileByUserId } from "@/lib/profile";
 import { extractSenderDomain, getGraduatedDomains } from "@/lib/email/senderSignals";
 import type { FetchedEmail } from "@/lib/email/imapClient";
 
@@ -109,7 +109,11 @@ export async function createTransactionFromCandidate(
 export type ProcessOptions = {
   // Channel-specific parsing/tagging — email is the default; the SMS inbound
   // route supplies its own (bank SMS wording differs from email alerts).
-  parser?: (subject: string, text: string) => ReturnType<typeof parseEmailForTransaction>;
+  parser?: (
+    subject: string,
+    text: string,
+    defaultCurrency: string,
+  ) => ReturnType<typeof parseEmailForTransaction>;
   accountTagger?: (from: string, text: string) => string | null;
   source?: "email" | "sms";
 };
@@ -141,14 +145,19 @@ export async function processFetchedEmails(
   // scan; it just means nothing graduates that round.
   const graduated = await getGraduatedDomains();
   // The user's own currency — anything else is "foreign" and routes to review.
-  const baseCurrency = await getBaseCurrency(supabase, userId);
+  // Their locale comes along because the review text quotes the foreign amount
+  // back to them, and it should read the way their own money does.
+  const { currency: baseCurrency, locale: baseLocale } = await getProfileByUserId(
+    supabase,
+    userId,
+  );
 
   const candidateRows = [];
   for (const mail of emails) {
     const from = mail.from.toLowerCase();
     if (blocked.some((p) => from.includes(p))) continue;
 
-    const parsed = parser(mail.subject, mail.text);
+    const parsed = parser(mail.subject, mail.text, baseCurrency);
     if (!parsed) continue;
 
     const foreign = parsed.currency !== baseCurrency;
@@ -161,9 +170,9 @@ export async function processFetchedEmails(
       const fx = await convertToBase(parsed.amount, parsed.currency, baseCurrency);
       if (fx) {
         amount = fx.base;
-        reviewReason = `${parsed.currency} ${parsed.amount.toLocaleString("en-SG")} @ ${fx.rate.toFixed(4)} — confirm the rate`;
+        reviewReason = `${parsed.currency} ${parsed.amount.toLocaleString(baseLocale)} @ ${fx.rate.toFixed(4)} — confirm the rate`;
       } else {
-        reviewReason = `${parsed.currency} ${parsed.amount.toLocaleString("en-SG")} — rate unavailable, edit the ${baseCurrency} amount`;
+        reviewReason = `${parsed.currency} ${parsed.amount.toLocaleString(baseLocale)} — rate unavailable, edit the ${baseCurrency} amount`;
       }
     }
 

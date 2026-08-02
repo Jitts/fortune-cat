@@ -34,6 +34,8 @@ export default function SettingsShell({
   initialRequests,
   country,
   currency,
+  locale,
+  timezone,
 }: {
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
@@ -46,6 +48,8 @@ export default function SettingsShell({
   initialRequests: FeatureRequest[];
   country: string | null;
   currency: string;
+  locale: string;
+  timezone: string;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -82,6 +86,9 @@ export default function SettingsShell({
             initialSmsToken={initialSmsToken}
             isPro={isPro}
             msOAuthAvailable={msOAuthAvailable}
+            currency={currency}
+            locale={locale}
+            timezone={timezone}
           />
         )}
         {active === "account" && (

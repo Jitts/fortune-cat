@@ -1,11 +1,11 @@
-import { CURRENCY_PATTERN, CURRENCY_TOKEN_TO_ISO, type ParsedCandidate } from "@/lib/email/parseCandidate";
+import { CURRENCY_PATTERN, resolveCurrencyToken, type ParsedCandidate } from "@/lib/email/parseCandidate";
 import { suggestCategory } from "@/lib/tagger";
 
 /**
- * Rule-based parser for SG bank transaction SMS — the wording differs from
- * email alerts ("Your card ending 3059 was used for SGD5.96 at ...") so the
- * email heuristic misses them. Same philosophy: an amount plus transaction
- * wording, or it isn't a capture; OTPs and marketing never get through.
+ * Rule-based parser for bank transaction SMS — the wording differs from email
+ * alerts ("Your card ending 3059 was used for SGD5.96 at ...") so the email
+ * heuristic misses them. Same philosophy: an amount plus transaction wording,
+ * or it isn't a capture; OTPs and marketing never get through.
  */
 
 // A transaction SMS says money moved. OTPs, logins and promos don't.
@@ -27,6 +27,11 @@ const MERCHANT_TO_RE = /\bto\s+([^.,\n]+?)(?=\s+on\s+\d|\s+via\s|[.,\n]|$)/i;
 
 const CARD_TAG_RE = /(?:card|a\/c|acct|account)(?:\s*(?:no\.?|number))?\D{0,10}(\d{4})/i;
 
+/**
+ * Best-effort account label. The named banks are a recognition bonus for the
+ * home market, not a requirement — the card-digit fallback works for any bank
+ * anywhere, and a null just means the capture carries no account tag.
+ */
 export function suggestSmsAccountTag(from: string, body: string): string | null {
   const combined = `${from} ${body}`.toLowerCase();
   if (combined.includes("paylah")) return "PayLah";
@@ -40,8 +45,15 @@ export function suggestSmsAccountTag(from: string, body: string): string | null 
   return null;
 }
 
-/** Returns a candidate or null — null means "not a transaction SMS", which the caller ignores silently. */
-export function parseSmsTransaction(body: string): ParsedCandidate | null {
+/**
+ * Returns a candidate or null — null means "not a transaction SMS", which the
+ * caller ignores silently. `defaultCurrency` is the user's own base currency,
+ * used for amounts the SMS wrote without a currency marker.
+ */
+export function parseSmsTransaction(
+  body: string,
+  defaultCurrency: string,
+): ParsedCandidate | null {
   const text = body.replace(/\s+/g, " ").trim();
   if (!text || SMS_IGNORE_RE.test(text)) return null;
   if (!SMS_TRANSACTION_RE.test(text)) return null;
@@ -50,7 +62,7 @@ export function parseSmsTransaction(body: string): ParsedCandidate | null {
   if (!match) return null;
   const amount = parseFloat(match[2].replace(/,/g, ""));
   if (!amount || amount <= 0) return null;
-  const currency = (match[1] && CURRENCY_TOKEN_TO_ISO[match[1]]) || "SGD";
+  const currency = resolveCurrencyToken(match[1], defaultCurrency);
 
   const type = SMS_INCOME_RE.test(text) ? ("income" as const) : ("expense" as const);
 

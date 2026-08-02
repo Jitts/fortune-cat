@@ -47,6 +47,38 @@ function MicrosoftConnectButton() {
   );
 }
 
+// vercel.json schedules the inbox scan at "0 23 * * *" — 23:00 UTC. That is
+// 7am in Singapore and nowhere else, so the badge renders it in the reader's
+// own clock rather than asserting a timezone they don't live in.
+const SCAN_CRON_UTC_HOUR = 23;
+
+function dailyScanLabel(locale: string, timezone: string): string {
+  const at = new Date();
+  at.setUTCHours(SCAN_CRON_UTC_HOUR, 0, 0, 0);
+  // timeStyle rather than hour/minute so 24-hour locales zero-pad — otherwise
+  // a London reader sees "0:00" where their clock says "00:00".
+  const opts: Intl.DateTimeFormatOptions = { timeStyle: "short" };
+  try {
+    return at.toLocaleTimeString(locale, { ...opts, timeZone: timezone });
+  } catch {
+    // A malformed locale/timezone in the profile must never blank the card.
+    return at.toLocaleTimeString(undefined, opts);
+  }
+}
+
+/** The symbol a currency is actually written with — SGD → "S$", GBP → "£". */
+function currencySymbol(currency: string, locale: string): string {
+  try {
+    const parts = new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).formatToParts(0);
+    return parts.find((p) => p.type === "currency")?.value ?? currency;
+  } catch {
+    return currency;
+  }
+}
+
 export default function CaptureSettings({
   initialConnections,
   initialTrustedSenders,
@@ -54,6 +86,9 @@ export default function CaptureSettings({
   initialSmsToken,
   isPro,
   msOAuthAvailable,
+  currency,
+  locale,
+  timezone,
 }: {
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
@@ -61,6 +96,11 @@ export default function CaptureSettings({
   initialSmsToken: SmsTokenInfo | null;
   isPro: boolean;
   msOAuthAvailable: boolean;
+  /** The reader's own money and clock. This card's copy is full of currency
+   *  codes and times, and every one of them used to hardcode Singapore. */
+  currency: string;
+  locale: string;
+  timezone: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -353,6 +393,9 @@ export default function CaptureSettings({
     });
   }
 
+  // Written form of the reader's own currency, for the SMS filter instructions.
+  const symbol = currencySymbol(currency, locale);
+
   return (
     <>
       <h1 className="text-lg font-semibold text-ink">📡 Capture</h1>
@@ -362,7 +405,7 @@ export default function CaptureSettings({
           <h2 className="text-sm font-medium text-ink-subtle">📧 Email auto-scan</h2>
           {connections.length > 0 && (
             <span className="rounded-full bg-jade-soft px-2.5 py-0.5 font-mono text-[10px] font-medium text-jade">
-              ON · DAILY 7AM SGT
+              ON · DAILY {dailyScanLabel(locale, timezone).toUpperCase()}
             </span>
           )}
         </div>
@@ -623,9 +666,9 @@ export default function CaptureSettings({
             )}
           </div>
           <p className="mt-1 text-xs text-ink-faint">
-            SG banks SMS every card transaction. A one-time phone shortcut forwards them here in
-            real time — the widest net, catching swipes that never email you. OTPs and promos are
-            recognised and dropped; captures follow the same rules as email (trusted senders
+            Most banks SMS every card transaction. A one-time phone shortcut forwards them here
+            in real time — the widest net, catching swipes that never email you. OTPs and promos
+            are recognised and dropped; captures follow the same rules as email (trusted senders
             auto-post, everything else waits in review).
           </p>
 
@@ -644,7 +687,7 @@ export default function CaptureSettings({
                 <p className="break-all font-mono text-xs text-ink-muted">{smsToken.token}</p>
                 <p className="mt-2 font-mono text-[10px] text-ink-faint">
                   {smsToken.last_received_at
-                    ? `last SMS received ${new Date(smsToken.last_received_at).toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}`
+                    ? `last SMS received ${new Date(smsToken.last_received_at).toLocaleString(locale, { timeZone: timezone })}`
                     : "no SMS received yet"}
                 </p>
               </div>
@@ -662,7 +705,7 @@ export default function CaptureSettings({
                     <li>Open the <b>Shortcuts</b> app (pre-installed — swipe down on the home screen and search for it)</li>
                     <li>Tap <b>Automation</b> at the bottom, then <b>+</b> at the top right</li>
                     <li>Scroll down and pick <b>Message</b></li>
-                    <li>Tap <b>Message Contains</b> and type <span className="font-mono">SGD</span> (leave Sender empty)</li>
+                    <li>Tap <b>Message Contains</b> and type <span className="font-mono">{currency}</span> (leave Sender empty)</li>
                     <li>Below that, pick <b>Run Immediately</b>, then tap <b>Next</b></li>
                     <li>Tap <b>New Blank Automation</b>, then <b>Add Action</b></li>
                     <li>Search for <b>Get Contents of URL</b> and tap it</li>
@@ -672,11 +715,14 @@ export default function CaptureSettings({
                     <li>Tap <b>Add new field</b> → <b>Text</b> again. Type <span className="font-mono">body</span> as the key, then tap the value box and pick the blue <b>Shortcut Input</b> chip that appears above the keyboard</li>
                     <li>Tap <b>Done</b> — the next bank SMS will appear in Review within seconds</li>
                   </ol>
-                  <p className="mt-1 text-ink-subtle">
-                    If your bank writes amounts as <span className="font-mono">S$</span> instead of{" "}
-                    <span className="font-mono">SGD</span>, repeat steps 2–12 once more with “Message
-                    Contains” = <span className="font-mono">S$</span>.
-                  </p>
+                  {symbol !== currency && (
+                    <p className="mt-1 text-ink-subtle">
+                      If your bank writes amounts as <span className="font-mono">{symbol}</span>{" "}
+                      instead of <span className="font-mono">{currency}</span>, repeat steps 2–12
+                      once more with “Message Contains” ={" "}
+                      <span className="font-mono">{symbol}</span>.
+                    </p>
+                  )}
                   <p className="mt-2 font-semibold text-ink">Android (MacroDroid / Tasker)</p>
                   <ol className="mt-1 list-decimal space-y-1 pl-4">
                     <li>Trigger: SMS received (optionally filter sender to your banks)</li>

@@ -67,6 +67,8 @@ export default async function SettingsPage() {
       initialRequests={requestsWithVoteState}
       country={profile.country}
       currency={profile.currency}
+      locale={profile.locale}
+      timezone={profile.timezone}
     />
   );
 }

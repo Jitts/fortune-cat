@@ -19,7 +19,8 @@ const PROMOTIONAL_SUBJECT_RE = /\b(redemption|redeem)\b[^\n]*\bvoucher/i;
 
 // Common currency symbols/codes — not just USD/$, so receipts and bank
 // alerts in other currencies (SGD, MYR, EUR, GBP, THB, ...) are still picked
-// up. The token is captured so foreign amounts can be converted to SGD.
+// up. The token is captured so foreign amounts can be converted to the
+// reader's own base currency.
 // Exported for the SMS parser, which shares the same money grammar.
 export const CURRENCY_PATTERN =
   "(USD|US\\$|SGD|S\\$|MYR|RM|EUR|GBP|INR|AUD|CAD|JPY|CNY|HKD|THB|\\$|€|£|¥|₹|฿)";
@@ -37,12 +38,13 @@ const AMOUNT_WITH_LABEL_RE = new RegExp(
   "i",
 );
 
-// Symbol/token → ISO code. A bare "$" is treated as SGD: this is an
-// SGD-primary app for the Singapore market, and local receipts (AXS, hawker
-// POS, telco bills) write plain "$" meaning Singapore dollars.
+// Symbol/token → ISO code. A bare "$" is deliberately ABSENT here: eight of
+// the currencies this app supports write it (USD, SGD, AUD, CAD, NZD, HKD,
+// TWD, MXN), so the character alone cannot settle it. resolveCurrencyToken()
+// resolves it against the reader's own currency instead.
 export const CURRENCY_TOKEN_TO_ISO: Record<string, string> = {
   "USD": "USD", "US$": "USD",
-  "SGD": "SGD", "S$": "SGD", "$": "SGD",
+  "SGD": "SGD", "S$": "SGD",
   "MYR": "MYR", "RM": "MYR",
   "EUR": "EUR", "€": "EUR",
   "GBP": "GBP", "£": "GBP",
@@ -52,6 +54,31 @@ export const CURRENCY_TOKEN_TO_ISO: Record<string, string> = {
   "CNY": "CNY", "HKD": "HKD",
   "THB": "THB", "฿": "THB",
 };
+
+// Currencies whose everyday written form is a bare "$".
+const DOLLAR_CURRENCIES = new Set(["USD", "SGD", "AUD", "CAD", "NZD", "HKD", "TWD", "MXN"]);
+
+/**
+ * Resolve a matched currency token to an ISO code.
+ *
+ * `defaultCurrency` is the reader's own base currency and it settles the two
+ * ambiguous cases: no token at all ("Total: 42.99"), and a bare "$". This is
+ * not cosmetic — the amount is FX-converted on the way into the ledger, so a
+ * US user's "$45.20" booked as SGD lands at roughly a third of what they
+ * actually spent.
+ */
+export function resolveCurrencyToken(
+  token: string | undefined,
+  defaultCurrency: string,
+): string {
+  if (!token) return defaultCurrency;
+  const iso = CURRENCY_TOKEN_TO_ISO[token];
+  if (iso) return iso;
+  // A bare "$" means the reader's own dollar when they have one. Someone
+  // banking in EUR who sees a "$" amount is genuinely looking at USD.
+  if (token === "$") return DOLLAR_CURRENCIES.has(defaultCurrency) ? defaultCurrency : "USD";
+  return defaultCurrency;
+}
 
 // Non-breaking space, zero-width space/joiner/BOM, and other exotic Unicode
 // whitespace that HTML-table-to-text conversion of bank email templates
@@ -66,8 +93,8 @@ const EXOTIC_WHITESPACE_RE = new RegExp(
 
 export type ParsedCandidate = {
   amount: number;
-  // ISO code of the currency the amount was written in — SGD for local
-  // receipts; the caller converts anything else before it can enter the ledger.
+  // ISO code of the currency the amount was written in. Anything other than
+  // the reader's base currency is converted before it can enter the ledger.
   currency: string;
   type: TransactionType;
   category: string | null;
@@ -78,8 +105,18 @@ function normalizeWhitespace(text: string): string {
   return text.replace(EXOTIC_WHITESPACE_RE, " ");
 }
 
-/** Rule-based (no LLM) heuristic — same "no external API" approach as lib/tagger.ts. */
-export function parseEmailForTransaction(subject: string, bodyText: string): ParsedCandidate | null {
+/**
+ * Rule-based (no LLM) heuristic — same "no external API" approach as lib/tagger.ts.
+ *
+ * `defaultCurrency` is required rather than defaulted: a silent fallback is
+ * exactly what booked every unmarked amount as SGD regardless of who the user
+ * was, so the type now forces each call site to say whose money this is.
+ */
+export function parseEmailForTransaction(
+  subject: string,
+  bodyText: string,
+  defaultCurrency: string,
+): ParsedCandidate | null {
   if (PROMOTIONAL_SUBJECT_RE.test(subject)) return null;
 
   const combined = normalizeWhitespace(`${subject}\n${bodyText}`);
@@ -95,7 +132,7 @@ export function parseEmailForTransaction(subject: string, bodyText: string): Par
   const amount = parseFloat(match[2].replace(/,/g, ""));
   if (!amount || amount <= 0) return null;
 
-  const currency = (match[1] && CURRENCY_TOKEN_TO_ISO[match[1]]) || "SGD";
+  const currency = resolveCurrencyToken(match[1], defaultCurrency);
 
   const type: TransactionType = INCOME_KEYWORDS.test(combined) ? "income" : "expense";
   // Category keywords (merchant names, etc.) often live in the body rather

@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     ],
     (trusted ?? []).map((t) => t.pattern),
     {
-      parser: (_subject, text) => parseSmsTransaction(text),
+      parser: (_subject, text, defaultCurrency) => parseSmsTransaction(text, defaultCurrency),
       accountTagger: (fromAddr, text) => suggestSmsAccountTag(fromAddr, text),
       source: "sms",
     },

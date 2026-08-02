@@ -70,24 +70,52 @@ export async function getUserProfile(supabase: SupabaseClient): Promise<UserProf
   };
 }
 
+/** The subset of a profile that server-side capture paths need. */
+export type CaptureProfile = {
+  currency: string;
+  locale: string;
+  timezone: string;
+};
+
 /**
- * Just the base currency for a specific user, by explicit id — for server paths
- * that run with a service-role client (email/cron scans) where RLS can't scope
- * the row for us. Degrades to SGD when the table/row is absent.
+ * Profile settings for a specific user, by explicit id — for server paths that
+ * run with a service-role client (email/cron scans, the SMS webhook) where RLS
+ * can't scope the row for us. Degrades to the home-market defaults when the
+ * table/row is absent.
+ *
+ * Capture needs all three: currency decides how an unmarked amount is booked,
+ * and locale/timezone decide how the resulting review text reads back.
  */
+export async function getProfileByUserId(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<CaptureProfile> {
+  const fallback: CaptureProfile = {
+    currency: DEFAULT_REGION.currency,
+    locale: DEFAULT_REGION.locale,
+    timezone: DEFAULT_REGION.timezone,
+  };
+  try {
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .select("base_currency, locale, timezone")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data) return fallback;
+    return {
+      currency: (data.base_currency as string) ?? fallback.currency,
+      locale: (data.locale as string) ?? fallback.locale,
+      timezone: (data.timezone as string) ?? fallback.timezone,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+/** Just the base currency for a specific user. See getProfileByUserId. */
 export async function getBaseCurrency(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<string> {
-  try {
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("base_currency")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (error || !data?.base_currency) return DEFAULT_REGION.currency;
-    return data.base_currency as string;
-  } catch {
-    return DEFAULT_REGION.currency;
-  }
+  return (await getProfileByUserId(supabase, userId)).currency;
 }
