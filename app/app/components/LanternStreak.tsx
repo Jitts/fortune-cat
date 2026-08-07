@@ -27,7 +27,9 @@ function Lantern({ lit }: { lit: boolean }) {
       <path
         d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z"
         fill={lit ? "var(--seal)" : "var(--line)"}
-        opacity={lit ? 1 : 0.4}
+        // Unlit slots carry the whole zero state now, so they have to be
+        // legible as empty lanterns rather than reading as faint dots.
+        opacity={lit ? 1 : 0.55}
       />
       {/* rib lines */}
       <g stroke={lit ? "var(--leaf-lo)" : "var(--surface)"} strokeWidth="0.7" opacity={lit ? 0.55 : 0.3}>

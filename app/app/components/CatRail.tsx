@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { monthPulse } from "@/lib/monthPulse";
 import { catState } from "@/lib/catState";
+import { useMoney } from "@/app/components/CurrencyProvider";
 import LuckRing from "./LuckRing";
 import LanternStreak from "./LanternStreak";
 import PouchSummary from "./PouchSummary";
@@ -27,6 +28,7 @@ export default function CatRail({
   /** The user's IANA timezone — keeps the streak on their calendar, not UTC. */
   timezone: string;
 }) {
+  const { locale } = useMoney();
   const pulse = useMemo(() => monthPulse(transactions, new Date(), timezone), [transactions, timezone]);
   const state = catState(pulse.net, pulse.burnDelta);
   const sr = pulse.savingsRate;
@@ -37,7 +39,8 @@ export default function CatRail({
       : state === "even"
         ? "Watchful · luck holds steady"
         : "Ears back · luck is thin";
-  const monthName = new Date().toLocaleDateString("en-SG", { month: "long" });
+  // The reader's own locale and calendar — not Singapore's.
+  const monthName = new Date().toLocaleDateString(locale, { month: "long", timeZone: timezone });
   const ringNote =
     sr != null && sr > 0
       ? `the ring is your savings pace — saving ${sr}% of ${monthName}'s income`
@@ -48,9 +51,18 @@ export default function CatRail({
   return (
     <div className="rounded-2xl border border-line bg-surface p-5">
       <div className="flex flex-col items-center gap-4">
-        {pulse.streak >= 1 && (
-          <LanternStreak count={pulse.streak} label={`${pulse.streak}-night capture streak`} />
-        )}
+        {/* Rendered at zero too. Hiding the whole row when the streak lapsed
+            made a feature that was there yesterday simply vanish, which reads
+            as broken rather than as "your streak ended" — six unlit lanterns
+            and an invitation say the true thing. */}
+        <LanternStreak
+          count={pulse.streak}
+          label={
+            pulse.streak >= 1
+              ? `${pulse.streak}-night streak`
+              : "no streak yet · log something today"
+          }
+        />
 
         <LuckRing savingsRate={sr} state={state} size={150} />
 

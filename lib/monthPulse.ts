@@ -25,8 +25,18 @@ export type MonthPulse = {
   burnPerDay: number;
   burnDelta: number | null; // % vs last month's daily pace
   savingsRate: number | null; // whole-percent net/income
-  streak: number; // consecutive capture days ending today/yesterday
+  streak: number; // consecutive days the USER logged something, ending today/yesterday
 };
+
+/**
+ * Entry sources the machine creates with nobody present. Everything else —
+ * `manual`, plus the `email_review` / `csv` / `sms` accepts — happens because
+ * the user pressed something, so it counts toward the streak.
+ *
+ * If you add another source that posts without a user action, add it here, or
+ * the streak silently goes back to crediting the scanner.
+ */
+const AUTO_ENTRY_SOURCES = new Set(["email_auto"]);
 
 /** The calendar day `d` falls on, in `timezone` (falls back to the runtime's). */
 function dayIn(d: Date, timezone?: string): string {
@@ -83,10 +93,18 @@ export function monthPulse(
   const net = inTotal - outTotal;
   const savingsRate = inTotal > 0 ? Math.round((net / inTotal) * 100) : null;
 
-  // Capture streak: consecutive days (ending today or yesterday) with a row,
-  // both sides resolved in the user's own calendar.
+  // Logging streak: consecutive days (ending today or yesterday) on which the
+  // USER put something in the ledger, both sides resolved in their calendar.
+  //
+  // Auto-posted rows are excluded deliberately. The scan cron fires at 23:00
+  // UTC, so an auto-capture lands at ~07:41 the NEXT morning in Singapore —
+  // which meant this counted whether the user's bank had emailed them
+  // overnight, not whether the user had shown up. A streak the scanner earns
+  // on your behalf isn't a streak.
   const daysWithRows = new Set(
-    transactions.map((t) => dayIn(new Date(t.created_at), timezone)),
+    transactions
+      .filter((t) => !AUTO_ENTRY_SOURCES.has(String(t.entry_source ?? "manual")))
+      .map((t) => dayIn(new Date(t.created_at), timezone)),
   );
   let cursor = todayStr;
   if (!daysWithRows.has(cursor)) cursor = prevDay(cursor);
