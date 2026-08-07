@@ -243,13 +243,24 @@ export default function CaptureSettings({
     };
   }, [searchParams]);
 
-  // The ring fades on its own timer, keyed to the highlight rather than to the
-  // search params, so nothing that re-runs the effect above can cancel it
-  // mid-flight and leave the ring stuck on.
+  // The ring stays until the reader scrolls away, rather than fading on a
+  // timer. It answers "which one was I sent to?", and a question you might
+  // still be asking shouldn't have its answer time out from under you.
+  //
+  // Deliberate input only — NOT the "scroll" event. The hold above scrolls
+  // programmatically, and a scroll listener fires on that too, so the ring
+  // would clear itself in the same frame it appeared.
   useEffect(() => {
     if (!highlight) return;
-    const timer = setTimeout(() => setHighlight(null), 2600);
-    return () => clearTimeout(timer);
+    const clear = () => setHighlight(null);
+    window.addEventListener("wheel", clear, { passive: true });
+    window.addEventListener("touchstart", clear, { passive: true });
+    window.addEventListener("keydown", clear);
+    return () => {
+      window.removeEventListener("wheel", clear);
+      window.removeEventListener("touchstart", clear);
+      window.removeEventListener("keydown", clear);
+    };
   }, [highlight]);
 
   function scanToast(result: { found: number; autoPosted: number; scanned: number }, older = false) {
