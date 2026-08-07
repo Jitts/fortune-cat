@@ -102,10 +102,23 @@ export default function ConnectEmailForm({
           autoComplete="off"
           className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-line focus:outline-none"
         />
+        {/* The honest version. Testers read "app password", heard "my email
+            password", and stopped — and the old copy answered that by saying
+            what WE do, which is a claim about our code, not about the
+            credential they are handing over. Say what it can reach, then hand
+            back the one reassurance that doesn't require trusting us. */}
         <p className="mt-1 text-xs text-ink-faint">
-          Use an app-specific password, not your regular login password — most providers (Gmail,
-          Outlook, Yahoo, iCloud) require one for IMAP access when 2FA is on. We only ever read
-          your inbox, never send, delete, or modify anything.
+          An app password is a separate password your provider generates for one app — not your
+          normal login, and deleting it later doesn&rsquo;t affect your account. It is not, however,
+          limited to what Fortune Cat does with it: providers issue one credential that can reach
+          any folder and send mail as you. Fortune Cat only ever reads — never sends, deletes or
+          modifies — and encrypts it before storing it.
+        </p>
+        <p className="mt-1.5 text-xs text-ink-faint">
+          You can delete this password from your provider&rsquo;s own settings at any time and it
+          stops working immediately, whether or not we cooperate. Rather not hand one over? SMS
+          forwarding and statement upload catch most of the same transactions and need no access to
+          your email at all.
         </p>
         <button
           type="button"

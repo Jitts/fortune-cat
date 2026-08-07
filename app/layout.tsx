@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     template: "%s · Fortune Cat",
   },
   description:
-    "Fortune Cat turns the SMS and emails your bank already sends into a live expense tracker — no bank login, it only ever sees the notification text you forward. Free to start, US$9 once for Pro, works in any currency worldwide.",
+    "Fortune Cat turns the SMS and emails your bank already sends into a live expense tracker — no bank login, and you choose how much access to give. Free to start, US$9 once for Pro, works in any currency worldwide.",
   applicationName: "Fortune Cat",
   alternates: { canonical: "/" },
   openGraph: {

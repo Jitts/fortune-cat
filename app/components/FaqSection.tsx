@@ -10,15 +10,23 @@ import { FREE_PRO_BETA } from "@/lib/beta";
 const FAQS = [
   {
     q: "How does Fortune Cat log transactions automatically?",
-    a: "You forward the transaction SMS or emails your bank already sends you, and Fortune Cat parses them into ledger entries — it never asks for a bank login and only sees the message text you forward. The first message from a new sender waits in a review queue for your approval; once you trust the sender, later transactions post themselves.",
+    a: "Three ways, and you pick which. Upload a statement, a PDF receipt, or a photo of one — those are read on your device before anything is sent. Forward your bank's SMS using a one-time shortcut on your phone. Or connect an email inbox and let Fortune Cat scan it for receipts. None of them involve a bank login. The first message from a new sender waits in a review queue for your approval; once you trust that sender, later ones post themselves.",
   },
   {
     q: "Do I need to connect my bank account?",
-    a: "No — Fortune Cat never asks for a bank login, and there is no account linking or screen-scraping. It only ever sees the notification text you choose to forward.",
+    a: "No — Fortune Cat never asks for a bank login, and there is no account linking or screen-scraping. It works from what your bank already sends you: the SMS alerts you forward, the statements you upload, or the receipt emails sitting in an inbox you choose to connect.",
+  },
+  {
+    q: "What can Fortune Cat see if I connect my email?",
+    a: "More than you might assume, so here it is plainly. Fortune Cat signs in to that inbox and reads your recent messages looking for transaction receipts. Anything that isn't a transaction is discarded the moment it has been checked — never stored, never logged. What gets kept is only what matched: the sender, subject, date, amount, and a snippet of up to 200 characters. The app password you provide is a credential your email provider doesn't let anyone narrow: it can reach any folder and send mail as you. Fortune Cat only ever reads, and it is encrypted before it is stored. But you shouldn't have to take that on trust — you can delete that password from your own provider's settings at any time, and it stops working immediately, whether or not we cooperate. If that's more access than you want to give, you don't have to give it: SMS forwarding and statement upload need no access to your email at all.",
+  },
+  {
+    q: "Will it catch everything I spend?",
+    a: "Not quite everything, and it's worth knowing where the gaps are. Your bank's own alerts are the backbone — they see every card transaction, so that is what SMS forwarding and inbox scanning mostly work from. Cash is never captured; nothing outside your bank sees it. Some banks don't alert on small amounts, direct debits or standing orders, and those slip past too. Receipts from shops and services add useful detail, but they aren't needed for the amount to land, because the bank alert already covered that purchase. Anything missed takes a few seconds to add by hand, and one statement upload backfills a whole month at once.",
   },
   {
     q: "Is my financial data safe?",
-    a: "Fortune Cat never holds your bank login, so there is no key to your accounts for anyone to steal — not even us. What it does store is protected: your transactions are isolated at the database level with row-level security, so no other account can read them, and if you connect an inbox for auto-capture, that app password is encrypted before it is saved. Your data is stored in Singapore (AWS ap-southeast-1). You can export everything as CSV, or permanently delete your account and all its data, from Settings at any time.",
+    a: "Your transactions are isolated at the database level with row-level security, so no other account can read them. If you connect an inbox, that app password is encrypted with AES-256-GCM before it is saved, and you can revoke it from your provider's settings without going through us. Your data is stored in Singapore (AWS ap-southeast-1). You can export everything as CSV, or permanently delete your account and all its data, from Settings at any time.",
   },
   {
     q: "How much does Fortune Cat cost?",

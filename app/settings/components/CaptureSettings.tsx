@@ -353,7 +353,7 @@ export default function CaptureSettings({
       setTrustedSenders((prev) =>
         prev.some((t) => t.id === added.id) ? prev : [...prev, added].sort((a, b) => a.pattern.localeCompare(b.pattern)),
       );
-      setToast(`Trusted ${added.pattern} — future SGD captures from it post automatically.`);
+      setToast(`Trusted ${added.pattern} — future ${currency} captures from it post automatically.`);
     });
   }
 
@@ -538,7 +538,7 @@ export default function CaptureSettings({
                   </p>
                   <p className="text-xs text-jade">
                     {conn.last_scanned_at
-                      ? `Last scanned ${new Date(conn.last_scanned_at).toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}`
+                      ? `Last scanned ${new Date(conn.last_scanned_at).toLocaleString(locale, { timeZone: timezone })}`
                       : "Never scanned yet"}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -719,7 +719,7 @@ export default function CaptureSettings({
             </span>
           </div>
           <p className="mt-1 text-xs text-ink-faint">
-            Upload a DBS / POSB / OCBC / UOB statement (CSV or PDF e-statement), a PDF receipt, or a
+            Upload your bank&rsquo;s statement (CSV or PDF e-statement), a PDF receipt, or a
             screenshot of either — screenshots are read on your device and never uploaded. Every row
             lands in{" "}
             <Link href="/review" className="underline hover:text-ink-muted">

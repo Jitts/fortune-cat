@@ -235,7 +235,7 @@ const USPS: Usp[] = [
     kicker: "capture",
     title: "Your money logs itself",
     story:
-      "Trackers die because typing every coffee is a chore. Fortune Cat reads the SMS and emails your bank already sends — no bank login, and it only ever sees the message text you forward. Travel or shop overseas? Foreign-currency charges land in your own currency, converted at ECB reference rates.",
+      "Trackers die because typing every coffee is a chore. Fortune Cat reads the SMS and emails your bank already sends — no bank login, and you choose how much access to give. Travel or shop overseas? Foreign-currency charges land in your own currency, converted at ECB reference rates.",
     demo: <CaptureIllustration />,
   },
   {

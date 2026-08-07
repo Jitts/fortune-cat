@@ -22,7 +22,7 @@ const APP_JSON_LD = {
   applicationCategory: "FinanceApplication",
   operatingSystem: "Web",
   description:
-    "A personal expense tracker that fills itself: forward the SMS and emails your bank already sends and they become a live cash-flow ledger. No bank login — it only ever sees the notification text you forward. Works in any currency worldwide.",
+    "A personal expense tracker that fills itself: the SMS and emails your bank already sends become a live cash-flow ledger. No bank login, and you choose how much access to give. Works in any currency worldwide.",
   offers: [
     { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free tier" },
     {
@@ -103,7 +103,7 @@ export default async function Home() {
             <Reveal delay={130}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
                 Fortune Cat reads the SMS, emails, and statements your bank already sends you — no
-                bank login, it only ever sees the notification text — and turns them into a live
+                bank login, and you choose how much access to give — and turns them into a live
                 cash-flow ledger in your own currency, with overseas spends converted automatically.
               </p>
             </Reveal>
