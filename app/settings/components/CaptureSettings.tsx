@@ -185,44 +185,67 @@ export default function CaptureSettings({
   useEffect(() => {
     const id = TASK_SECTIONS[searchParams.get("task") ?? ""];
     if (!id) return;
-    // Instant, NOT smooth: a smooth scroll is still animating when the URL
-    // cleanup below lands, and the navigation cancels it mid-flight, dumping
-    // the reader back at the top — precisely the failure this deep link
-    // exists to prevent. Landing directly is also the right behaviour for
-    // anyone with prefers-reduced-motion.
+    setHighlight(id);
+
+    // Instant, not smooth — landing directly is the point here, and it's the
+    // right behaviour under prefers-reduced-motion.
     //
-    // Re-scroll until the target's offset stops moving, rather than trusting
-    // one frame: the sections above this one are still being laid out on
-    // first paint, so a single early scroll lands at an offset that is
-    // correct at that instant and wrong a moment later.
+    // Then HOLD the position for a beat, because arrival is contested: the
+    // cards above are still being laid out on first paint, and the browser's
+    // own scroll restoration can land late. The previous version compared the
+    // target's ABSOLUTE offset (rect.top + scrollY) — which does not change
+    // when something resets scrollTop, so it was blind to exactly the jump it
+    // existed to prevent. The comparison is now against where the element
+    // actually came to rest in the VIEWPORT, which catches both causes.
+    //
+    // That resting position is NOT zero: these cards carry scroll-mt-24, and
+    // scrollIntoView honours scroll-margin-top, so the element settles ~96px
+    // down. Recording the achieved value rather than assuming 0 also handles
+    // the last card on the page, which can't reach the top at all.
     let frame = 0;
-    let lastTop = -1;
-    let tries = 0;
-    const settle = () => {
+    let restingTop: number | null = null;
+    let released = false;
+    const release = () => {
+      released = true;
+    };
+    const startedAt = performance.now();
+    const hold = () => {
+      if (released) return;
       const el = document.getElementById(id);
       if (el) {
-        const top = Math.round(el.getBoundingClientRect().top + window.scrollY);
-        if (top !== lastTop) {
-          lastTop = top;
+        const top = el.getBoundingClientRect().top;
+        if (restingTop === null || Math.abs(top - restingTop) > 4) {
           el.scrollIntoView({ block: "start" });
+          restingTop = el.getBoundingClientRect().top;
         }
       }
-      if (++tries < 20) frame = requestAnimationFrame(settle);
+      if (performance.now() - startedAt < 1500) frame = requestAnimationFrame(hold);
     };
-    frame = requestAnimationFrame(settle);
-    setHighlight(id);
-    // Clean the URL so a refresh doesn't re-scroll — same move the OAuth
-    // handler above makes, but held back until the scroll has settled.
-    const cleanUrl = setTimeout(() => router.replace("/settings", { scroll: false }), 700);
+    frame = requestAnimationFrame(hold);
+
+    // Any deliberate scroll ends the hold at once. It corrects the page, never
+    // the reader.
+    window.addEventListener("wheel", release, { passive: true });
+    window.addEventListener("touchstart", release, { passive: true });
+    window.addEventListener("keydown", release);
+
+    // The ?task= param is deliberately LEFT in the URL. Replacing it is what
+    // yanked the page back to the top: even with scroll:false, that soft
+    // navigation reset the scroll position about 700ms after arrival, well
+    // after the old settle loop had given up. Leaving it costs nothing — this
+    // effect is keyed to the param, so it doesn't re-fire, and a refresh
+    // simply returns you to the same section.
     return () => {
       cancelAnimationFrame(frame);
-      clearTimeout(cleanUrl);
+      window.removeEventListener("wheel", release);
+      window.removeEventListener("touchstart", release);
+      window.removeEventListener("keydown", release);
     };
-  }, [searchParams, router]);
+  }, [searchParams]);
 
   // The ring fades on its own timer, keyed to the highlight rather than to the
-  // search params — otherwise the URL cleanup above re-runs the effect that
-  // owns the timer, and the ring never clears.
+  // search params, so nothing that re-runs the effect above can cancel it
+  // mid-flight and leave the ring stuck on.
   useEffect(() => {
     if (!highlight) return;
     const timer = setTimeout(() => setHighlight(null), 2600);
