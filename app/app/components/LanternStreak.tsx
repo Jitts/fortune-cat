@@ -6,10 +6,13 @@
  * candle were lit inside. Unstruck slots stay dim/unpainted in both themes.
  */
 function Lantern({ lit }: { lit: boolean }) {
+  // Drawn 1:1 with the viewBox — at the old 16x21 the art was downscaled and
+  // the rib lines and caps blurred into a dot. Six of these plus gaps is
+  // ~140px, comfortable in the 270px rail.
   return (
     <svg
-      width="16"
-      height="21"
+      width="20"
+      height="26"
       viewBox="0 0 20 26"
       aria-hidden
       className="shrink-0"
