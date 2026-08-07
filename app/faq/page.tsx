@@ -43,7 +43,9 @@ export default async function FaqPage() {
           the two renders a doubled 2px rule. */}
       <header>
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-5 sm:px-8">
-          <Link href={back.href} aria-label="Fortune Cat home">
+          {/* Wordmark goes to the public site, matching the app chrome; the
+              explicit back link beside it is the one that follows who you are. */}
+          <Link href="/" aria-label="Fortune Cat home">
             <Wordmark size="sm" />
           </Link>
           <Link href={back.href} className="text-sm text-ink-subtle hover:text-ink">

@@ -93,7 +93,12 @@ export default function AppChrome({
       {/* ===== Desktop top bar ===== */}
       <header className="sticky top-0 z-30 hidden border-b border-line bg-surface-2/85 backdrop-blur sm:block">
         <div className="mx-auto flex w-full max-w-[1200px] items-center gap-4 px-5 py-3">
-          <Link href="/app" aria-label="Fortune Cat home">
+          {/* The wordmark leaves the app for the public site. Against the usual
+              logo-to-dashboard convention, but deliberate: a beta tester went
+              looking for the FAQ and found no way out of the app at all. The
+              dashboard is already one tap away via the Home nav item at both
+              breakpoints, so nothing is lost by spending the logo here. */}
+          <Link href="/" aria-label="Fortune Cat home">
             <Wordmark size="sm" />
           </Link>
           {isPro && <ProBadge />}
@@ -119,7 +124,7 @@ export default function AppChrome({
 
       {/* ===== Mobile header ===== */}
       <header className="flex items-center justify-between gap-3 px-5 pt-5 sm:hidden">
-        <Link href="/app" aria-label="Fortune Cat home">
+        <Link href="/" aria-label="Fortune Cat home">
           <Wordmark size="sm" />
         </Link>
         <div className="flex items-center gap-2">
