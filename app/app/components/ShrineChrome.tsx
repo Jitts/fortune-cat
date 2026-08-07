@@ -6,6 +6,7 @@ import { signOutAction } from "@/app/auth/actions";
 import ProBadge from "./ProBadge";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import SettingsGear from "@/app/components/SettingsGear";
+import HelpLink from "@/app/components/HelpLink";
 import ShrineStars from "@/app/components/ShrineStars";
 import Wordmark from "@/app/components/Wordmark";
 
@@ -131,6 +132,7 @@ export default function ShrineChrome({
             <button onClick={onAdd} className="btn btn-gold px-4 py-2 text-sm">
               <span aria-hidden className="text-base leading-none">＋</span> Log
             </button>
+            <HelpLink />
             <SettingsGear />
             <ThemeToggle variant="compact" />
           </div>
@@ -166,6 +168,14 @@ export default function ShrineChrome({
             >
               <span className="w-5 text-center">⚙</span>
               Settings
+            </Link>
+            <Link
+              href="/faq"
+              onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-ink-muted hover:bg-surface-3"
+            >
+              <span className="w-5 text-center">?</span>
+              Help &amp; FAQ
             </Link>
             {!isPro && (
               <Link

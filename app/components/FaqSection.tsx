@@ -56,9 +56,16 @@ const FAQ_JSON_LD = {
   })),
 };
 
-export default function FaqSection() {
+export default function FaqSection({
+  /** Off on /faq: two pages emitting identical FAQPage schema is a duplicate
+   *  signal, so the landing page keeps it and the help page borrows the copy. */
+  jsonLd = true,
+}: {
+  jsonLd?: boolean;
+} = {}) {
   return (
-    <section className="border-t border-line">
+    // Anchored so /#faq lands here from anywhere.
+    <section id="faq" className="scroll-mt-16 border-t border-line">
       <div className="mx-auto max-w-3xl px-5 py-20 sm:px-8">
         <Reveal>
           <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
@@ -89,10 +96,12 @@ export default function FaqSection() {
         </Reveal>
       </div>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
-      />
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+        />
+      )}
     </section>
   );
 }
