@@ -251,5 +251,60 @@ for (const text of bothWays) {
   );
 }
 
+console.log("\nPrecision — a price in an advert is not a charge");
+
+// Verbatim subjects from a beta tester's review queue: fifteen adverts and two
+// real receipts. Every advert carried a price and some word like "order" or
+// "payment" in its footer, which was all the old gate asked for. Being made to
+// judge fifteen adverts to find two receipts teaches people the queue is noise.
+const ADVERTS: [string, string][] = [
+  ["💖 Tried, tested & top-rated 💯", "Community favourites, revealed. Shop from $10."],
+  ["Free Soap Dish? Don't Mind If We Do 💅🏼", "Build your shower routine — bundles from $35."],
+  ["Fancy 10% off? Join our SMS list", "Join and save. Items from £60. Click here to unsubscribe."],
+  ["🧳 More ways to wear your faves 💯", "Discover your new travel staples from $10."],
+  ["25% off | This Rioja red | This vintage rates better", "Was $30.75, now less. Order today."],
+  ["“I Got a Hair Transplant at 31😅”", "Turns out there's an easier place to start. From $35."],
+  ["In the Mood for Fall Hues 🍷🍂", "Get up to 20% off our National Day Treat. From $10."],
+  ["FWD: please stop the LAST CALL sale reminders", "She's sent 31 reminder emails. Bundles $35."],
+  ["online exclusive: Ready To Rally? 🎾", "27% Off Back-to-School Essentials. Save 20%. From $35."],
+  ["Back by demand: Save 47% on Galius Grand Cru! 🍷", "48 Hours Promo. Was $47.20."],
+  ["Don’t Miss the National Day Sale", "Crocs Singapore. Styles from $180."],
+  ["🎲8.8 SHOPATHON Online SALE+$0.88 Sure-Win Gachapon!", "$1 Steals, up to $59 OFF promo codes."],
+  ["The Secret to Packing Light 🎒✈️", "Enjoy up to 20% off our National Day Exclusive treat. From $10."],
+  ["Because self-care shouldn't break the bank. 💆", "Save with GrabUnlimited. $8/month."],
+];
+for (const [subject, body] of ADVERTS) {
+  check(
+    `rejected: ${subject.slice(0, 44)}`,
+    parseEmailForTransaction(subject, body, "SGD") === null,
+  );
+}
+
+console.log("\n…while every real receipt still captures");
+// The two genuine ones from that same queue, plus the shapes already in the
+// live ledger. Losing any of these would be a worse failure than the noise.
+const RECEIPTS: [string, string][] = [
+  ["Your payment has been confirmed", "Your payment of SGD 11.01 has been confirmed."],
+  ["Your Grab E-Receipt", "Total SGD 7.88 for your ride on 8 Aug."],
+  ["Transaction Alerts", "You have made a payment of SGD 2.00 to KOPI STALL on 10 Aug 2026."],
+  ["Your receipt from Anthropic, PBC #2932-6788-2138", "Total: USD 149.99"],
+  ["Your FairPrice Group app receipt", "Amount paid SGD 41.42"],
+  ["Your Max subscription is confirmed", "You were charged SGD 13.86."],
+  ["Yay! Overseas transaction successful 😁", "Charged SGD 130.72."],
+  ["Card Transaction Alert", "Your card was used for SGD 156.00 at a merchant."],
+  // Plural "Alerts" and the word "transfer" both had to be added: this exact
+  // subject was rejected on the first run of the gate above.
+  ["digibank Alerts - You've received a transfer", "You've received a transfer of SGD 21.00."],
+  // A receipt is allowed to mention a discount. The promotional check only
+  // applies when the subject makes no receipt claim at all.
+  ["Your order is confirmed — 20% discount applied", "Total: SGD 24.90"],
+];
+for (const [subject, body] of RECEIPTS) {
+  check(
+    `captured: ${subject.slice(0, 44)}`,
+    parseEmailForTransaction(subject, body, "SGD") !== null,
+  );
+}
+
 console.log(`\n${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

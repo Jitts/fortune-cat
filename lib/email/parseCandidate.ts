@@ -81,6 +81,26 @@ const PROMOTIONAL_SUBJECT_RE = /\b(redemption|redeem)\b[^\n]*\bvoucher/i;
  */
 const ADVERTISEMENT_PREFIX_RE = /(?:^|\s)[<[(]\s*ad(?:v|vert|vertisement)?\s*[>\])]/i;
 
+/**
+ * A subject line that claims a transaction happened.
+ *
+ * This is the positive signal, and it does most of the work below. Real
+ * receipts announce themselves: "Your Grab E-Receipt", "Your payment has been
+ * confirmed", "Transaction Alerts". Marketing announces a feeling: "Fancy 10%
+ * off?", "Don't Miss the National Day Sale", "I Got a Hair Transplant at 31".
+ */
+const RECEIPT_SUBJECT_RE =
+  /\b(receipts?|invoices?|orders?|transactions?|payments?|paid|charged|bills?|billed|statements?|confirm(?:ed|ation)|alerts?|debit(?:ed)?|credit(?:ed)?|txn|purchases?|subscriptions?|renewals?|transfers?|transferred|top[- ]?ups?)\b/i;
+
+/**
+ * Discount language. A price in an advert is an invitation, not a charge.
+ *
+ * Only consulted when the subject makes no receipt claim, so a genuine receipt
+ * that mentions a discount applied at checkout is unaffected.
+ */
+const PROMOTIONAL_TONE_RE =
+  /\d+\s*%\s*off|\bup to\b[^.\n]{0,20}\boff\b|\bsale\b|\bdeals?\b|\bpromo(?:tion|code)?\b|\bvouchers?\b|\bdiscount|\bfree\b|\bsave (?:up to |big|\$|\d)|\bgiveaway\b|\bwin\b|\bexclusive\b|\bunsubscribe\b/i;
+
 // Common currency symbols/codes — not just USD/$, so receipts and bank
 // alerts in other currencies (SGD, MYR, EUR, GBP, THB, ...) are still picked
 // up. The token is captured so foreign amounts can be converted to the
@@ -205,8 +225,29 @@ export function parseEmailForTransaction(
   // with a per-night rate on every line) contain several currency-tagged
   // numbers, and only the one next to "Total"/"Amount paid"/etc. is the real
   // charge — the bare currency match would otherwise grab the first line item.
-  const match = combined.match(AMOUNT_WITH_LABEL_RE) ?? combined.match(AMOUNT_WITH_CURRENCY_RE);
+  // A labelled amount ("Total: 24.90", "charged SGD 5.96") is evidence in
+  // itself. A bare currency match anywhere in the text is not — it is equally
+  // happy to find "$35" in "27% Off Back-to-School Essentials".
+  const labelled = combined.match(AMOUNT_WITH_LABEL_RE);
+  const match = labelled ?? combined.match(AMOUNT_WITH_CURRENCY_RE);
   if (!match) return null;
+
+  // Precision gate. A beta tester's review queue held fifteen adverts and two
+  // real receipts — Love Bonito, KITSCH, Crocs, Watsons, Vivino, all carrying a
+  // price and a word like "order" or "payment" somewhere in their footer,
+  // which was all the old gate asked for. Being asked to judge fifteen adverts
+  // to find two receipts is worse than missing a capture: it teaches people
+  // that the queue is noise and to stop reading it.
+  //
+  // The subject decides. Receipts say what they are; adverts sell.
+  const looksLikeReceipt = RECEIPT_SUBJECT_RE.test(subject);
+  if (!looksLikeReceipt) {
+    // No receipt claim AND the price was found loose in the prose: nothing
+    // here says a transaction happened.
+    if (!labelled) return null;
+    // No receipt claim AND discount language: an offer, whatever the labels.
+    if (PROMOTIONAL_TONE_RE.test(subject)) return null;
+  }
 
   const amount = parseFloat(match[2].replace(/,/g, ""));
   if (!amount || amount <= 0) return null;
