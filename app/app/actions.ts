@@ -272,6 +272,35 @@ export async function deleteTransaction(id: string): Promise<{ error?: string }>
 
   const { data: before } = await supabase.from("transactions").select().eq("id", id).single();
 
+  // Release the capture BEFORE the row goes. These are two writes with no
+  // transaction around them, so the order decides which way a partial failure
+  // breaks. This way round it converges: if the release fails nothing is
+  // deleted, and if the release succeeds but the delete fails, retrying
+  // reaches the intended state. The other order strands a candidate pointing
+  // at an id that no longer exists, and no retry can repair it.
+  //
+  // Deleting a transaction used to leave its candidate saying `accepted` and
+  // linked to an id that no longer existed. Ten of those had accumulated in a
+  // single real ledger, because deleting a bad auto-posted capture is exactly
+  // how people clean up after a mis-parse — the workflow that produces the
+  // orphan is the same one the feature is for. The cost: an inflated
+  // "captured" count, and an Undo that would try to remove a row that isn't
+  // there.
+  //
+  // `dismissed` rather than deleted. The capture did happen, and keeping it
+  // means the message stays deduplicated: without the row, the next scan that
+  // reaches that message would import it all over again, and a capture the
+  // reader has already thrown away would come back.
+  const { error: releaseError } = await supabase
+    .from("email_transaction_candidates")
+    .update({ status: "dismissed", transaction_id: null, auto_posted: false })
+    .eq("user_id", user.id)
+    .eq("transaction_id", id);
+  if (releaseError) {
+    console.error("[deleteTransaction] release capture", releaseError);
+    return { error: "Could not delete — please try again." };
+  }
+
   const { error } = await supabase.from("transactions").delete().eq("id", id);
 
   if (error) {
