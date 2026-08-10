@@ -15,6 +15,7 @@ import { scanEmailInbox } from "@/app/settings/actions";
 import ReviewQueue from "./components/ReviewQueue";
 import ShrineChrome, { type ShrineTab } from "./components/ShrineChrome";
 import AutopilotChecklist from "./components/AutopilotChecklist";
+import type { PendingSender } from "@/lib/email/pendingSenders";
 import CatRail from "./components/CatRail";
 import SlipsPanel from "./components/SlipsPanel";
 import BillsDue from "./components/BillsDue";
@@ -56,6 +57,7 @@ export default function AppShell({
   connections,
   provenance,
   setup,
+  pendingSenders,
   goals,
   achievements,
   budgets,
@@ -79,6 +81,8 @@ export default function AppShell({
   connections: EmailConnection[];
   provenance: Record<string, TransactionProvenance>;
   setup: { logged: boolean; captured: boolean; trusted: boolean; backfilled: boolean };
+  /** Senders the envelope pass saw that nobody has decided about yet. */
+  pendingSenders: PendingSender[];
   goals: FortuneGoal[];
   achievements: GoalAchievement[];
   budgets: CategoryBudget[];
@@ -426,7 +430,11 @@ export default function AppShell({
           {active === "ledger" && (
             <>
               {freeNote}
-              <ReviewQueue initialCandidates={reviewCandidates} initialFiltered={filteredCandidates} />
+              <ReviewQueue
+                initialCandidates={reviewCandidates}
+                initialFiltered={filteredCandidates}
+                pendingSenders={pendingSenders}
+              />
               {ledger}
             </>
           )}

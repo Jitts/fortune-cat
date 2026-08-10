@@ -367,6 +367,52 @@ async function main() {
       const anonBlocked = await anon.from("blocked_senders").select("*").eq("id", aBlocked?.id ?? "");
       check("Anonymous caller cannot read a blocked sender", (anonBlocked.data?.length ?? 0) === 0);
 
+      // Sender rules — which senders a scan may OPEN. Leaking or, far worse,
+      // WRITING one of these across users would let someone widen another
+      // person's mailbox exposure, so update is checked as well as read.
+      const { data: aRule } = await clientA
+        .from("sender_rules")
+        .insert({ user_id: userA.id, pattern: `scope-${stamp}.example`, opened: true, source: "user" })
+        .select()
+        .single();
+      check("User A can create its own sender rule", !!aRule);
+
+      const bReadRule = await clientB.from("sender_rules").select("*").eq("id", aRule?.id ?? "");
+      check("User B cannot read User A's sender rule", (bReadRule.data?.length ?? 0) === 0,
+        `rows returned=${bReadRule.data?.length ?? 0}`);
+
+      const bFlipRule = await clientB
+        .from("sender_rules").update({ opened: false }).eq("id", aRule?.id ?? "").select();
+      check("User B cannot flip User A's sender rule", (bFlipRule.data?.length ?? 0) === 0);
+
+      const bDelRule = await clientB.from("sender_rules").delete().eq("id", aRule?.id ?? "").select();
+      check("User B cannot delete User A's sender rule", (bDelRule.data?.length ?? 0) === 0);
+
+      const anonRule = await anon.from("sender_rules").select("*").eq("id", aRule?.id ?? "");
+      check("Anonymous caller cannot read a sender rule", (anonRule.data?.length ?? 0) === 0);
+
+      // Sender discoveries — who has been writing to you, and a subject line.
+      // Never body text, but still a map of your correspondents.
+      const { data: aDisc } = await clientA
+        .from("sender_discoveries")
+        .insert({
+          user_id: userA.id,
+          pattern: `seen-${stamp}.example`,
+          addresses: [`x@seen-${stamp}.example`],
+          message_count: 1,
+          sample_subject: `SECRET_SUBJECT_${stamp}`,
+        })
+        .select()
+        .single();
+      check("User A can create its own sender discovery", !!aDisc);
+
+      const bReadDisc = await clientB.from("sender_discoveries").select("*").eq("id", aDisc?.id ?? "");
+      check("User B cannot read User A's sender discovery", (bReadDisc.data?.length ?? 0) === 0,
+        `rows returned=${bReadDisc.data?.length ?? 0}`);
+
+      const anonDisc = await anon.from("sender_discoveries").select("*").eq("id", aDisc?.id ?? "");
+      check("Anonymous caller cannot read a sender discovery", (anonDisc.data?.length ?? 0) === 0);
+
       // Sender signals — anonymous global aggregate: RLS with no policies, so
       // NOBODY below service role can read or write it, signed in or not.
       const userReadSignals = await clientA.from("sender_signals").select("*").limit(1);

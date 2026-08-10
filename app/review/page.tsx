@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/profile";
+import { loadPendingSenders } from "@/lib/email/pendingSenders";
 import ReviewShell from "./ReviewShell";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,10 @@ export default async function ReviewPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
 
-  const profile = await getUserProfile(supabase);
+  const [profile, pendingSenders] = await Promise.all([
+    getUserProfile(supabase),
+    loadPendingSenders(supabase, user.id),
+  ]);
 
   const [{ data: connection }, { data: candidates }, { data: autoPosted }, { data: activePayment }] =
     await Promise.all([
@@ -46,6 +50,7 @@ export default async function ReviewPage() {
       isPro={!!activePayment}
       currency={profile.currency}
       locale={profile.locale}
+      pendingSenders={pendingSenders}
     />
   );
 }

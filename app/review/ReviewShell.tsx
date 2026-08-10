@@ -15,6 +15,8 @@ import {
 import EmailCandidateList from "@/app/settings/components/EmailCandidateList";
 import AppChrome from "@/app/components/AppChrome";
 import Toast from "@/app/app/components/Toast";
+import SenderPrompt from "@/app/app/components/SenderPrompt";
+import type { PendingSender } from "@/lib/email/pendingSenders";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { CurrencyProvider } from "@/app/components/CurrencyProvider";
 
@@ -26,6 +28,7 @@ export default function ReviewShell({
   isPro,
   currency,
   locale,
+  pendingSenders = [],
 }: {
   hasConnection: boolean;
   initialCandidates: EmailTransactionCandidate[];
@@ -34,6 +37,8 @@ export default function ReviewShell({
   isPro: boolean;
   currency: string;
   locale: string;
+  /** Senders the envelope pass saw that nobody has decided about yet. */
+  pendingSenders?: PendingSender[];
 }) {
   const router = useRouter();
   const [candidates, setCandidates] = useState(initialCandidates);
@@ -141,6 +146,9 @@ export default function ReviewShell({
     <CurrencyProvider currency={currency} locale={locale}>
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={candidates.length}>
       <div className="space-y-3">
+        {/* Ahead of the captures: an unopened sender can't produce one. */}
+        <SenderPrompt senders={pendingSenders} />
+
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-lg font-semibold text-ink">
             👀 Review{candidates.length > 0 ? ` · ${candidates.length}` : ""}

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/profile";
+import { loadPendingSenders } from "@/lib/email/pendingSenders";
 import type { BalanceAnchor, CategoryBudget, EmailConnection, EmailTransactionCandidate, FortuneGoal, FortuneSlipRow, GoalAchievement, ManualRecurringBill, SubscriptionDecision, TransactionProvenance } from "@/lib/types";
 import AppShell from "./AppShell";
 
@@ -18,8 +19,9 @@ export default async function AppPage() {
   // Profile (currency/locale/timezone) resolves in parallel with the data. It
   // degrades to SG defaults when the table isn't there yet, so this is safe to
   // deploy before migration 0021 is applied.
-  const [profile, bundle] = await Promise.all([
+  const [profile, pendingSenders, bundle] = await Promise.all([
     getUserProfile(supabase),
+    loadPendingSenders(supabase, user.id),
     Promise.all([
       supabase.from("transactions").select().order("date", { ascending: false }).order("created_at", { ascending: false }),
       supabase.from("categories").select().order("name"),
@@ -133,6 +135,7 @@ export default async function AppPage() {
         connections={(connections ?? []) as EmailConnection[]}
         provenance={provenance}
         setup={setup}
+        pendingSenders={pendingSenders}
         goals={(goals ?? []) as FortuneGoal[]}
         achievements={(achievements ?? []) as GoalAchievement[]}
         budgets={(budgets ?? []) as CategoryBudget[]}

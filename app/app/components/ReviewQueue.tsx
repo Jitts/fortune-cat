@@ -14,6 +14,8 @@ import {
   trustSender,
 } from "@/app/settings/actions";
 import EmailCandidateList from "@/app/settings/components/EmailCandidateList";
+import SenderPrompt from "./SenderPrompt";
+import type { PendingSender } from "@/lib/email/pendingSenders";
 import Toast from "./Toast";
 
 /**
@@ -24,9 +26,12 @@ import Toast from "./Toast";
 export default function ReviewQueue({
   initialCandidates,
   initialFiltered = [],
+  pendingSenders = [],
 }: {
   initialCandidates: EmailTransactionCandidate[];
   initialFiltered?: EmailTransactionCandidate[];
+  /** Senders seen by the envelope pass that nobody has decided about yet. */
+  pendingSenders?: PendingSender[];
 }) {
   const router = useRouter();
   const { format } = useMoney();
@@ -152,6 +157,10 @@ export default function ReviewQueue({
 
   return (
     <div className="space-y-3">
+      {/* Above the captures: a sender we haven't opened can't produce a
+          capture, so deciding about it is upstream of everything below. */}
+      <SenderPrompt senders={pendingSenders} />
+
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-base font-semibold text-ink">
           👀 Review{candidates.length > 0 ? ` · ${candidates.length}` : ""}
