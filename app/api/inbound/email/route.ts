@@ -4,6 +4,11 @@ import { htmlToText } from "html-to-text";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processFetchedEmails } from "@/lib/email/processScan";
 import { parseForwardedMessage } from "@/lib/email/parseForwarded";
+import {
+  extractGmailConfirmation,
+  headerIndex,
+  tokenFromRecipient,
+} from "@/lib/email/inboundEmail";
 import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
@@ -36,32 +41,6 @@ function secretMatches(provided: string, expected: string): boolean {
   const a = createHash("sha256").update(provided).digest();
   const b = createHash("sha256").update(expected).digest();
   return timingSafeEqual(a, b);
-}
-
-/** The "+tag" of abc123+u_TOKEN@cloudmailin.net, lowercased. */
-export function tokenFromRecipient(recipient: string): string {
-  const address = recipient.match(/<([^<>]+)>/)?.[1] ?? recipient;
-  const local = address.split("@")[0] ?? "";
-  const plus = local.indexOf("+");
-  if (plus === -1) return "";
-  // Lowercased on the way in and on the way out: mail systems are entitled to
-  // case-fold the local part, so a token that only matches in its original
-  // case would fail intermittently and look like a flaky feature.
-  return local.slice(plus + 1).trim().toLowerCase();
-}
-
-/**
- * Google's Gmail-forwarding confirmation, which arrives at the destination
- * address rather than the user's own inbox. Recognised by sender AND by the
- * code's shape, so an ordinary email quoting a 9-digit number is not mistaken
- * for one.
- */
-export function extractGmailConfirmation(from: string, subject: string, body: string): string | null {
-  if (!from.toLowerCase().includes("forwarding-noreply@google.com")) return null;
-  const fromSubject = subject.match(/\(#(\d{6,12})\)/);
-  if (fromSubject) return fromSubject[1];
-  const fromBody = body.match(/confirmation code[^\d]{0,40}(\d{6,12})/i);
-  return fromBody ? fromBody[1] : null;
 }
 
 type CloudMailinPayload = {
@@ -127,8 +106,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, routed: false });
   }
 
-  const rawFrom = str(payload.headers?.from);
-  const rawSubject = str(payload.headers?.subject).slice(0, 300);
+  const h = headerIndex(payload.headers);
+  // Envelope sender as the last resort: better to attribute a capture to the
+  // forwarder than to an empty string.
+  const rawFrom = h.get("from") || str(payload.envelope?.from);
+  const rawSubject = (h.get("subject") ?? "").slice(0, 300);
+
+  // Key names only, never values — headers carry addresses and routing detail.
+  // This is the breadcrumb that would have identified the swallowed
+  // confirmation email in one look instead of a database dig.
+  if (!rawFrom) {
+    console.warn("[inbound/email] no From header; keys seen:", [...h.keys()].join(","));
+  }
   const plain = str(payload.plain).trim();
   const text = (plain || (str(payload.html) ? htmlToText(str(payload.html), { wordwrap: false }) : ""))
     .slice(0, 100_000);
@@ -162,7 +151,7 @@ export async function POST(request: Request) {
   const subject = fwd.unwrapped && fwd.subject ? fwd.subject : rawSubject;
   const bodyText = fwd.unwrapped ? fwd.body : text;
 
-  const headerDate = new Date(str(payload.headers?.date));
+  const headerDate = new Date(h.get("date") ?? "");
   const date =
     fwd.date ?? (Number.isNaN(headerDate.getTime()) ? new Date() : headerDate);
 
@@ -170,7 +159,7 @@ export async function POST(request: Request) {
   // same alert twice doesn't book it twice. Falling back to a content hash
   // keeps that true for clients that don't preserve it.
   const messageId =
-    str(payload.headers?.message_id).trim() ||
+    (h.get("messageid") ?? "").trim() ||
     `fwd-${createHash("sha1").update(`${tokenRow.user_id}|${originalFrom}|${subject}|${bodyText.slice(0, 500)}`).digest("hex").slice(0, 24)}`;
 
   const { data: trusted } = await supabase

@@ -98,14 +98,14 @@ export type EmailTransactionCandidate = {
   review_reason: string | null;
   auto_posted: boolean;
   transaction_id: string | null;
-  source: "email" | "csv" | "pdf" | "image" | "sms";
+  source: "email" | "csv" | "pdf" | "image" | "sms" | "forward";
 };
 
 // The capture trail behind a posted transaction — joined from its candidate by
 // transaction_id so a row can be double-checked against the original source.
 export type TransactionProvenance = {
   transaction_id: string;
-  source: "email" | "csv" | "pdf" | "image" | "sms";
+  source: "email" | "csv" | "pdf" | "image" | "sms" | "forward";
   from_address: string | null;
   subject: string | null;
   raw_snippet: string | null;
