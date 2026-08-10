@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { BlockedSender, EmailConnection, SmsTokenInfo, TrustedSender } from "@/lib/types";
+import type { ClosedSender, EmailConnection, SmsTokenInfo, TrustedSender } from "@/lib/types";
 import {
   connectEmailAccount,
   disableSmsForwarding,
@@ -11,10 +11,10 @@ import {
   enableSmsForwarding,
   importDocument,
   importStatementCsv,
+  reopenSender,
   scanEmailInbox,
   scanOlderEmails,
   trustSender,
-  unblockSender,
   untrustSender,
 } from "../actions";
 import ConnectEmailForm from "./ConnectEmailForm";
@@ -97,7 +97,7 @@ function currencySymbol(currency: string, locale: string): string {
 export default function CaptureSettings({
   initialConnections,
   initialTrustedSenders,
-  initialBlockedSenders,
+  initialClosedSenders,
   initialSmsToken,
   isPro,
   msOAuthAvailable,
@@ -107,7 +107,7 @@ export default function CaptureSettings({
 }: {
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
-  initialBlockedSenders: BlockedSender[];
+  initialClosedSenders: ClosedSender[];
   initialSmsToken: SmsTokenInfo | null;
   isPro: boolean;
   msOAuthAvailable: boolean;
@@ -121,7 +121,7 @@ export default function CaptureSettings({
   const searchParams = useSearchParams();
   const [connections, setConnections] = useState(initialConnections);
   const [trustedSenders, setTrustedSenders] = useState(initialTrustedSenders);
-  const [blockedSenders, setBlockedSenders] = useState(initialBlockedSenders);
+  const [closedSenders, setClosedSenders] = useState(initialClosedSenders);
   const [smsToken, setSmsToken] = useState(initialSmsToken);
   const [showSmsGuide, setShowSmsGuide] = useState(false);
   const [newPattern, setNewPattern] = useState("");
@@ -151,7 +151,7 @@ export default function CaptureSettings({
   // after router.refresh() post-scan) — useState only seeds from props once.
   useEffect(() => setConnections(initialConnections), [initialConnections]);
   useEffect(() => setTrustedSenders(initialTrustedSenders), [initialTrustedSenders]);
-  useEffect(() => setBlockedSenders(initialBlockedSenders), [initialBlockedSenders]);
+  useEffect(() => setClosedSenders(initialClosedSenders), [initialClosedSenders]);
   useEffect(() => setSmsToken(initialSmsToken), [initialSmsToken]);
 
   // Surface the outcome of the Microsoft OAuth round-trip (the callback redirects
@@ -376,15 +376,17 @@ export default function CaptureSettings({
     });
   }
 
-  function handleUnblock(id: string) {
+  function handleReopen(pattern: string) {
     startTransition(async () => {
-      const result = await unblockSender(id);
+      const result = await reopenSender(pattern);
       if (result.error) {
         setToast(result.error);
         return;
       }
-      setBlockedSenders((prev) => prev.filter((b) => b.id !== id));
-      setToast("Unblocked — future captures from it will appear again.");
+      setClosedSenders((prev) => prev.filter((s) => s.pattern !== pattern));
+      // Says what actually happens. Removing a refusal does not start opening
+      // the sender — it returns them to undecided, and the prompt asks next.
+      setToast(`${pattern} is undecided again — Review will ask before opening anything.`);
     });
   }
 
@@ -682,24 +684,30 @@ export default function CaptureSettings({
         </div>
       )}
 
-      {blockedSenders.length > 0 && (
+      {closedSenders.length > 0 && (
         <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
-          <h2 className="text-sm font-medium text-ink-subtle">🚫 Blocked senders</h2>
+          <h2 className="text-sm font-medium text-ink-subtle">🚫 Senders we never open</h2>
           <p className="mt-1 text-xs text-ink-faint">
-            Scans skip these senders entirely — nothing from them reaches your ledger or review.
-            Block one from any review item; unblock here if you change your mind.
+            Scans never open mail from these. We still see the sender line — that&rsquo;s how they
+            get recognised and skipped — but the message itself is never read, and nothing from
+            them reaches your ledger or{" "}
+            <Link href="/review" className="underline hover:text-ink-muted">
+              Review
+            </Link>
+            . Added by saying &ldquo;never this sender&rdquo; in Review, or by blocking a capture.
+            Remove one and we&rsquo;ll ask about them again rather than start opening their mail.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {blockedSenders.map((b) => (
+            {closedSenders.map((s) => (
               <span
-                key={b.id}
+                key={s.id}
                 className="inline-flex items-center gap-1.5 rounded-full bg-vermilion-soft px-3 py-1 font-mono text-xs text-vermilion"
               >
-                🚫 {b.pattern}
+                🚫 {s.pattern}
                 <button
-                  onClick={() => handleUnblock(b.id)}
+                  onClick={() => handleReopen(s.pattern)}
                   disabled={pending}
-                  title={`Let captures from ${b.pattern} through again`}
+                  title={`Stop refusing ${s.pattern} — Review will ask about it again`}
                   className="text-vermilion hover:text-vermilion disabled:opacity-50"
                 >
                   ✕

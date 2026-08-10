@@ -137,6 +137,16 @@ export type BlockedSender = {
   created_at: string;
 };
 
+// A sender_rules row with opened = false: mail scans never open. This is what
+// "blocked sender" became once the two ideas merged — see migration 0027.
+// `source` distinguishes a refusal the person made from one the app inferred,
+// so the UI never claims someone chose something they didn't.
+export type ClosedSender = {
+  id: string;
+  pattern: string;
+  source: "user" | "auto";
+};
+
 // A Fortune Goal — the goal-directed layer. "emergency" is a savings goal whose
 // target is anchored to the user's real monthly spending (N months of expenses).
 export type FortuneGoalKind = "savings" | "emergency";

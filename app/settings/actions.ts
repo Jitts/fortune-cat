@@ -611,6 +611,25 @@ export async function blockSender(fromAddress: string): Promise<BlockResult> {
     return { error: "Could not save — please try again." };
   }
 
+  // Close the sender for real. blocked_senders alone only made processScan
+  // DISCARD the message after it had already been downloaded and parsed —
+  // which is not what "block" says. sender_rules is what the envelope pass
+  // consults, so without this row a blocked sender's mail keeps being opened.
+  // Worse for a previously-trusted sender: its rule says opened = true, so it
+  // stayed readable until this write flipped it.
+  //
+  // Both tables get written because they answer different questions.
+  // blocked_senders feeds the anonymous cross-user aggregate below; sender_rules
+  // governs this user's mailbox. Retiring blocked_senders means moving that
+  // aggregate first.
+  const { error: ruleError } = await supabase
+    .from("sender_rules")
+    .upsert(
+      { user_id: user.id, pattern, opened: false, source: "user" },
+      { onConflict: "user_id,pattern" },
+    );
+  if (ruleError) console.error("[blockSender] sender_rules", ruleError);
+
   // Sweep the sender's pending review items — same substring match the scans
   // use, applied in JS so the semantics can never drift from processScan.
   const { data: pendingRows } = await supabase
@@ -648,45 +667,63 @@ export async function blockSender(fromAddress: string): Promise<BlockResult> {
   return { data, dismissed: ids.length };
 }
 
-export async function unblockSender(id: string): Promise<{ error?: string }> {
+/**
+ * Withdraw a refusal — the ✕ on a closed sender in Capture settings.
+ *
+ * Keyed by pattern, not by row id, because the refusal now lives in two tables
+ * and the pattern is the only key they share.
+ *
+ * Deletes the rule rather than flipping it to `opened = true`, which returns
+ * the sender to UNDECIDED and puts it back in the Review prompt. That is the
+ * conservative reading of one ✕ click: "I'm no longer refusing them" is not
+ * the same sentence as "start reading their mail", and only the second one
+ * widens what the app opens. The prompt then asks properly.
+ */
+export async function reopenSender(pattern: string): Promise<{ error?: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in." };
 
-  const { data: existing } = await supabase
-    .from("blocked_senders")
-    .select("id, pattern")
-    .eq("user_id", user.id)
-    .eq("id", id)
-    .maybeSingle();
-  if (!existing) return { error: "Could not find that blocked sender." };
+  const clean = typeof pattern === "string" ? pattern.toLowerCase().trim() : "";
+  if (!clean) return { error: "Missing sender." };
 
   const { error } = await supabase
-    .from("blocked_senders")
+    .from("sender_rules")
     .delete()
     .eq("user_id", user.id)
-    .eq("id", id);
+    .eq("pattern", clean);
   if (error) {
-    console.error("[unblockSender]", error);
+    console.error("[reopenSender]", error);
     return { error: "Could not remove — please try again." };
   }
 
-  const profile = await getUserProfile(supabase);
-  await bumpSenderSignal(existing.pattern, profile.country ?? "", -1);
+  // Legacy row from before the merge, plus its share of the cross-user
+  // aggregate. Only decrement when a row was actually removed, or a double
+  // click would drive this user's contribution negative.
+  const { data: removed } = await supabase
+    .from("blocked_senders")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("pattern", clean)
+    .select("id");
+  if ((removed ?? []).length > 0) {
+    const profile = await getUserProfile(supabase);
+    await bumpSenderSignal(clean, profile.country ?? "", -1);
+  }
 
   await logAudit(supabase, {
-    action: "blocked_sender.removed",
-    entityType: "blocked_sender",
-    entityId: id,
-    payload: { pattern: existing.pattern },
+    action: "sender_rule.reopened",
+    entityType: "sender_rule",
+    payload: { pattern: clean },
     riskLevel: "medium",
     userId: user.id,
   });
 
   revalidatePath("/settings");
   revalidatePath("/app");
+  revalidatePath("/review");
   return {};
 }
 

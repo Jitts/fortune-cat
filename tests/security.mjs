@@ -388,6 +388,21 @@ async function main() {
       const bDelRule = await clientB.from("sender_rules").delete().eq("id", aRule?.id ?? "").select();
       check("User B cannot delete User A's sender rule", (bDelRule.data?.length ?? 0) === 0);
 
+      // reopenSender deletes by PATTERN, not by row id — the pattern is the only
+      // key sender_rules and blocked_senders share. Patterns are guessable in a
+      // way uuids are not ("dbs.com"), so the pattern-keyed delete gets its own
+      // check rather than trusting the id-keyed one above to stand in for it.
+      const bDelByPattern = await clientB
+        .from("sender_rules")
+        .delete()
+        .eq("pattern", `scope-${stamp}.example`)
+        .select();
+      check("User B cannot delete User A's sender rule by pattern",
+        (bDelByPattern.data?.length ?? 0) === 0);
+
+      const stillThere = await clientA.from("sender_rules").select("id").eq("id", aRule?.id ?? "");
+      check("User A's sender rule survived User B's attempts", (stillThere.data?.length ?? 0) === 1);
+
       const anonRule = await anon.from("sender_rules").select("*").eq("id", aRule?.id ?? "");
       check("Anonymous caller cannot read a sender rule", (anonRule.data?.length ?? 0) === 0);
 

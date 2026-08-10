@@ -19,7 +19,7 @@ export default async function SettingsPage() {
     [
       { data: connections },
       { data: trustedSenders },
-      { data: blockedSenders },
+      { data: closedSenders },
       { count: pendingReviewCount },
       { data: activePayment },
       { data: smsToken },
@@ -35,7 +35,15 @@ export default async function SettingsPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: true }),
     supabase.from("trusted_senders").select().eq("user_id", user.id).order("pattern"),
-    supabase.from("blocked_senders").select().eq("user_id", user.id).order("pattern"),
+    // Refused senders come from sender_rules, not blocked_senders: the rule is
+    // what the envelope pass actually consults, so it is the only list that
+    // tells the truth about what scans skip.
+    supabase
+      .from("sender_rules")
+      .select("id, pattern, source")
+      .eq("user_id", user.id)
+      .eq("opened", false)
+      .order("pattern"),
     supabase
       .from("email_transaction_candidates")
       .select("id", { count: "exact", head: true })
@@ -58,7 +66,7 @@ export default async function SettingsPage() {
     <SettingsShell
       initialConnections={connections ?? []}
       initialTrustedSenders={trustedSenders ?? []}
-      initialBlockedSenders={blockedSenders ?? []}
+      initialClosedSenders={closedSenders ?? []}
       initialSmsToken={smsToken ?? null}
       pendingReviewCount={pendingReviewCount ?? 0}
       userEmail={user.email ?? ""}
