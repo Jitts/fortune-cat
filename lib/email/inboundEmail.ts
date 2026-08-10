@@ -21,32 +21,61 @@ export function tokenFromRecipient(recipient: string): string {
   return local.slice(plus + 1).trim().toLowerCase();
 }
 
+export type GmailConfirmation = {
+  /** The numeric code to paste into Gmail. Null when it can't be read. */
+  code: string | null;
+  /** Google's one-click verification link — confirms without any code. */
+  url: string | null;
+};
+
 /**
  * Google's Gmail-forwarding confirmation, which arrives at the destination
  * address rather than the user's own inbox.
  *
- * Two independent triggers, because relying on the sender alone already failed
- * once: if the From header can't be read for any reason, the code is consumed
- * as an ordinary message and lost, and the person is left staring at a Gmail
- * screen that will never verify. The subject is Google's own and specific
- * enough to stand alone.
+ * RECOGNITION is deliberately broader than EXTRACTION, because the two have
+ * opposite failure costs. Failing to recognise means the message is parsed as
+ * an ordinary transaction and lost, leaving someone at a Gmail screen that can
+ * never be satisfied and no trace of why. Failing to extract, once recognised,
+ * just means we hand back less. So: recognise on sender OR subject, then take
+ * whatever we can get.
  *
- * A code must still be extracted for this to count, so a message that merely
- * looks like a confirmation is treated as ordinary mail rather than swallowed.
+ * The link is the primary result, not the code. It confirms in one click,
+ * it needs no copy-paste, and — the reason it exists here — it does not depend
+ * on Google's wording. Every code heuristic below is a guess about phrasing
+ * that Google is free to change: the first version looked for "(#123456789)"
+ * in the subject, which is where Google used to put it and no longer does,
+ * and the whole feature silently stopped working. A URL is structural.
  */
 export function extractGmailConfirmation(
   from: string,
   subject: string,
   body: string,
-): string | null {
+): GmailConfirmation | null {
   const looksLikeGoogle =
     from.toLowerCase().includes("forwarding-noreply@google.com") ||
     /forwarding\s+confirmation/i.test(subject);
   if (!looksLikeGoogle) return null;
-  const fromSubject = subject.match(/\(#\s*(\d{6,12})\s*\)/);
-  if (fromSubject) return fromSubject[1];
-  const fromBody = body.match(/confirmation code[^\d]{0,40}(\d{6,12})/i);
-  return fromBody ? fromBody[1] : null;
+
+  // Google's verification link. Trailing punctuation is trimmed because mail
+  // clients wrap URLs in brackets or end the sentence right after them.
+  const urlMatch = body.match(/https:\/\/mail\.google\.com\/mail\/[^\s"'<>()[\]]+/i);
+  const url = urlMatch ? urlMatch[0].replace(/[.,;:]+$/, "") : null;
+
+  const code =
+    // Where Google used to put it. Kept because it costs nothing and older
+    // or regional variants may still use it.
+    subject.match(/\(#\s*(\d{6,12})\s*\)/)?.[1] ??
+    // The labelled form, in the languages this is likely to arrive in.
+    body.match(/(?:confirmation|verification|bestätigungs|confirmación|確認)[^\d]{0,40}(\d{6,12})/i)?.[1] ??
+    // Last resort: a bare number of the right shape, once we already know this
+    // is a Google confirmation. Excluded from anything glued to a URL or a
+    // longer token by requiring whitespace or line ends on both sides.
+    body.match(/(?:^|\s)(\d{6,12})(?=\s|$)/m)?.[1] ??
+    null;
+
+  // Recognised but empty-handed: still report it, so the caller treats it as
+  // setup mail rather than parsing it for a transaction it will never contain.
+  return { code, url };
 }
 
 /**

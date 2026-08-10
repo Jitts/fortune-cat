@@ -14,6 +14,7 @@ export type ForwardingState = {
   lastReceivedAt: string | null;
   receivedCount: number;
   pendingCode: string | null;
+  pendingUrl: string | null;
 };
 
 /**
@@ -66,7 +67,13 @@ export default function ForwardingCard({
         setError(result.error ?? "Forwarding isn't available yet.");
         return;
       }
-      setState({ address: result.address, lastReceivedAt: null, receivedCount: 0, pendingCode: null });
+      setState({
+        address: result.address,
+        lastReceivedAt: null,
+        receivedCount: 0,
+        pendingCode: null,
+        pendingUrl: null,
+      });
       setShowGuide(true);
     });
   }
@@ -81,7 +88,7 @@ export default function ForwardingCard({
         return;
       }
       const address = result.address;
-      setState((prev) => (prev ? { ...prev, address, pendingCode: null } : prev));
+      setState((prev) => (prev ? { ...prev, address, pendingCode: null, pendingUrl: null } : prev));
     });
   }
 
@@ -101,7 +108,7 @@ export default function ForwardingCard({
   function handleDismissCode() {
     startTransition(async () => {
       await dismissForwardingCode();
-      setState((prev) => (prev ? { ...prev, pendingCode: null } : prev));
+      setState((prev) => (prev ? { ...prev, pendingCode: null, pendingUrl: null } : prev));
     });
   }
 
@@ -150,20 +157,55 @@ export default function ForwardingCard({
         </button>
       ) : (
         <div className="mt-3 space-y-3">
-          {/* Gmail's confirmation code. Google mails this to the destination —
-              an inbox the person can't open, because it's ours. Catching it is
-              the difference between the auto-forward path working and being
-              impossible to finish. */}
-          {state?.pendingCode && (
+          {/* Google mails this to the destination — an inbox the person can't
+              open, because it's ours. Catching it is the difference between
+              the auto-forward path working and being impossible to finish.
+
+              The link leads, not the code. One click beats copying nine digits
+              between two screens, and it doesn't depend on Google's wording:
+              the code used to sit in the subject as "(#123456789)", Google
+              moved it, and extraction quietly stopped working. Both are shown
+              when both are readable, because a link that has already been
+              clicked once shows an error the second time and the code is then
+              the way through. */}
+          {(state?.pendingUrl || state?.pendingCode) && (
             <div className="rounded-lg border border-gold/40 bg-gold-soft p-3">
-              <p className="text-xs font-semibold text-ink">Gmail sent a confirmation code</p>
-              <p className="mt-1 text-xs text-ink-muted">
-                Paste this back into Gmail&rsquo;s forwarding settings to finish setting up your
-                rule.
+              <p className="text-xs font-semibold text-ink">
+                Gmail is waiting for you to confirm
               </p>
-              <p className="mt-2 select-all font-mono text-lg font-semibold tracking-wider text-ink">
-                {state.pendingCode}
-              </p>
+
+              {state.pendingUrl ? (
+                <>
+                  <p className="mt-1 text-xs text-ink-muted">
+                    Google sent the confirmation here. Open it and Gmail is verified — no code to
+                    copy.
+                  </p>
+                  <a
+                    href={state.pendingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-gold mt-2 inline-flex min-h-10 px-3.5 text-xs"
+                  >
+                    Confirm forwarding in Gmail ↗
+                  </a>
+                </>
+              ) : (
+                <p className="mt-1 text-xs text-ink-muted">
+                  Paste this into Gmail&rsquo;s forwarding settings to finish your rule.
+                </p>
+              )}
+
+              {state.pendingCode && (
+                <div className={state.pendingUrl ? "mt-3 border-t border-gold/30 pt-2" : "mt-2"}>
+                  {state.pendingUrl && (
+                    <p className="text-[11px] text-ink-muted">Or paste this code instead:</p>
+                  )}
+                  <p className="mt-0.5 select-all font-mono text-lg font-semibold tracking-wider text-ink">
+                    {state.pendingCode}
+                  </p>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={handleDismissCode}

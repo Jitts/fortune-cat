@@ -60,7 +60,7 @@ export default async function SettingsPage() {
     supabase.from("feature_votes").select("feature_request_id").eq("user_id", user.id),
     supabase
       .from("email_forwarding_tokens")
-      .select("token, last_received_at, received_count, pending_confirmation_code")
+      .select("token, last_received_at, received_count, pending_confirmation_code, pending_confirmation_url")
       .eq("user_id", user.id)
       .maybeSingle(),
     ]),
@@ -79,6 +79,7 @@ export default async function SettingsPage() {
         lastReceivedAt: forwardingRow?.last_received_at ?? null,
         receivedCount: forwardingRow?.received_count ?? 0,
         pendingCode: forwardingRow?.pending_confirmation_code ?? null,
+        pendingUrl: forwardingRow?.pending_confirmation_url ?? null,
       }
     : null;
 

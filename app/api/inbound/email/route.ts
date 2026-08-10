@@ -124,20 +124,28 @@ export async function POST(request: Request) {
 
   // Gmail's setup code, before anything else — it is not a transaction and
   // must not be parsed as one.
-  const code = extractGmailConfirmation(rawFrom, rawSubject, text);
-  if (code) {
+  const confirmation = extractGmailConfirmation(rawFrom, rawSubject, text);
+  if (confirmation) {
     await supabase
       .from("email_forwarding_tokens")
-      .update({ pending_confirmation_code: code, pending_confirmation_at: new Date().toISOString() })
+      .update({
+        pending_confirmation_code: confirmation.code,
+        pending_confirmation_url: confirmation.url,
+        pending_confirmation_at: new Date().toISOString(),
+      })
       .eq("id", tokenRow.id);
     await logAudit(supabase, {
       action: "email_forwarding.confirmation_received",
       entityType: "email_forwarding_token",
       entityId: tokenRow.id,
-      payload: {},
+      // Whether each half was readable, never the values. If Google reworks
+      // the wording again this is the line that says so immediately.
+      payload: { hasCode: !!confirmation.code, hasUrl: !!confirmation.url },
       riskLevel: "low",
       userId: tokenRow.user_id,
     });
+    // Return regardless of what was extracted: a setup email holds no
+    // transaction, so parsing on would only ever produce noise.
     return NextResponse.json({ ok: true, confirmation: true });
   }
 

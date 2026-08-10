@@ -97,6 +97,7 @@ export async function rotateForwardingAddress(): Promise<ForwardingResult> {
       // The old address's confirmation code is meaningless now, and leaving it
       // on screen would send someone to paste a code that can never verify.
       pending_confirmation_code: null,
+      pending_confirmation_url: null,
       pending_confirmation_at: null,
     })
     .eq("user_id", user.id)
@@ -162,7 +163,11 @@ export async function dismissForwardingCode(): Promise<{ error?: string }> {
 
   await supabase
     .from("email_forwarding_tokens")
-    .update({ pending_confirmation_code: null, pending_confirmation_at: null })
+    .update({
+      pending_confirmation_code: null,
+      pending_confirmation_url: null,
+      pending_confirmation_at: null,
+    })
     .eq("user_id", user.id);
 
   revalidatePath("/settings");
