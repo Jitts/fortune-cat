@@ -428,6 +428,65 @@ async function main() {
       const anonDisc = await anon.from("sender_discoveries").select("*").eq("id", aDisc?.id ?? "");
       check("Anonymous caller cannot read a sender discovery", (anonDisc.data?.length ?? 0) === 0);
 
+      // Email forwarding tokens. The token is the routing key for an inbound
+      // address, so reading someone else's would let you post into their review
+      // queue, and WRITING one would redirect their forwarded mail to an
+      // address you control — the worse of the two, and the reason update is
+      // checked separately from read.
+      const { data: aFwd } = await clientA
+        .from("email_forwarding_tokens")
+        .insert({ user_id: userA.id, token: `fwdtoken${stamp}aaaaaaaa` })
+        .select()
+        .single();
+      check("User A can create its own forwarding token", !!aFwd);
+
+      const bReadFwd = await clientB
+        .from("email_forwarding_tokens")
+        .select("*")
+        .eq("id", aFwd?.id ?? "");
+      check("User B cannot read User A's forwarding token", (bReadFwd.data?.length ?? 0) === 0,
+        `rows returned=${bReadFwd.data?.length ?? 0}`);
+
+      const bStealFwd = await clientB
+        .from("email_forwarding_tokens")
+        .select("user_id")
+        .eq("token", `fwdtoken${stamp}aaaaaaaa`);
+      check("User B cannot look up an account by forwarding token",
+        (bStealFwd.data?.length ?? 0) === 0);
+
+      const bRepointFwd = await clientB
+        .from("email_forwarding_tokens")
+        .update({ token: `hijack${stamp}bbbbbbbbbb` })
+        .eq("id", aFwd?.id ?? "")
+        .select();
+      check("User B cannot repoint User A's forwarding address",
+        (bRepointFwd.data?.length ?? 0) === 0);
+
+      const anonFwd = await anon
+        .from("email_forwarding_tokens")
+        .select("*")
+        .eq("id", aFwd?.id ?? "");
+      check("Anonymous caller cannot read a forwarding token", (anonFwd.data?.length ?? 0) === 0);
+
+      // The inbound webhook must not accept traffic without the shared secret.
+      // Without this the endpoint would take writes from anyone who learned a
+      // forwarding address, and those addresses ride in mail headers.
+      const noKey = await fetch(`${BASE_URL}/api/inbound/email`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ envelope: { to: `x+fwdtoken${stamp}aaaaaaaa@example.com` }, plain: "SGD 9.99 charged" }),
+      });
+      check("Inbound email webhook rejects a request with no key",
+        noKey.status === 401 || noKey.status === 503, `status=${noKey.status}`);
+
+      const badKey = await fetch(`${BASE_URL}/api/inbound/email?key=not-the-secret`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ envelope: { to: `x+fwdtoken${stamp}aaaaaaaa@example.com` }, plain: "SGD 9.99 charged" }),
+      });
+      check("Inbound email webhook rejects a wrong key",
+        badKey.status === 401 || badKey.status === 503, `status=${badKey.status}`);
+
       // Sender signals — anonymous global aggregate: RLS with no policies, so
       // NOBODY below service role can read or write it, signed in or not.
       const userReadSignals = await clientA.from("sender_signals").select("*").limit(1);

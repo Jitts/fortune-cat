@@ -115,7 +115,24 @@ export type ProcessOptions = {
     defaultCurrency: string,
   ) => ReturnType<typeof parseEmailForTransaction>;
   accountTagger?: (from: string, text: string) => string | null;
-  source?: "email" | "sms";
+  source?: "email" | "sms" | "forward";
+  /**
+   * The person picked this exact message by hand — currently only forwarding.
+   * It changes three things, all in the same direction: their choice governs,
+   * and nothing automatic may override it.
+   *
+   *  - Never auto-posts, even from a trusted sender. This is the load-bearing
+   *    one. A forwarding address travels in the To: header of every message
+   *    sent to it, so anyone who has seen one can send to it. Auto-posting
+   *    would turn a semi-public address into a way to write straight into
+   *    someone's ledger. Review is the whole defence.
+   *  - Standing blocks and the cross-user filter don't drop it. Both are
+   *    guesses about mail nobody looked at; forwarding is a person deciding
+   *    about a message in front of them. Silently discarding it would read as
+   *    the feature being broken.
+   *  - No "unrecognised sender" note. They recognised it — that's why it's here.
+   */
+  explicit?: boolean;
 };
 
 export async function processFetchedEmails(
@@ -152,10 +169,12 @@ export async function processFetchedEmails(
     userId,
   );
 
+  const explicit = options.explicit === true;
+
   const candidateRows = [];
   for (const mail of emails) {
     const from = mail.from.toLowerCase();
-    if (blocked.some((p) => from.includes(p))) continue;
+    if (!explicit && blocked.some((p) => from.includes(p))) continue;
 
     const parsed = parser(mail.subject, mail.text, baseCurrency);
     if (!parsed) continue;
@@ -177,16 +196,19 @@ export async function processFetchedEmails(
     }
 
     const trusted = patterns.some((p) => from.includes(p));
-    if (!trusted && !reviewReason) reviewReason = "unrecognised sender";
+    if (!trusted && !reviewReason && !explicit) reviewReason = "unrecognised sender";
 
     // A personal "trust" always wins over the collaborative filter — otherwise
     // trusting a sender would be meaningless the moment enough other users
     // block that same domain. Personal "block" already short-circuited above.
     const senderDomain = extractSenderDomain(mail.from);
-    const graduatedCount = !trusted && senderDomain ? graduated.get(senderDomain) : undefined;
+    const graduatedCount =
+      !trusted && !explicit && senderDomain ? graduated.get(senderDomain) : undefined;
     const filtered = graduatedCount != null;
 
-    const autoPost = trusted && !foreign;
+    // `!explicit` is the guard that keeps a spoofable inbound address from
+    // writing straight into the ledger. See ProcessOptions.explicit.
+    const autoPost = trusted && !foreign && !explicit;
 
     candidateRows.push({
       user_id: userId,

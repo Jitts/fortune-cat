@@ -5,6 +5,7 @@ import AppChrome from "@/app/components/AppChrome";
 import AccountShell from "@/app/account/AccountShell";
 import FeedbackShell from "@/app/feedback/FeedbackShell";
 import CaptureSettings from "./components/CaptureSettings";
+import type { ForwardingState } from "./components/ForwardingCard";
 import type { ClosedSender, EmailConnection, FeatureRequest, SmsTokenInfo, TrustedSender } from "@/lib/types";
 
 type SettingsTab = "capture" | "account" | "feedback";
@@ -26,6 +27,8 @@ export default function SettingsShell({
   initialConnections,
   initialTrustedSenders,
   initialClosedSenders,
+  forwarding,
+  forwardingAvailable,
   initialSmsToken,
   pendingReviewCount,
   userEmail,
@@ -40,6 +43,8 @@ export default function SettingsShell({
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
   initialClosedSenders: ClosedSender[];
+  forwarding: ForwardingState | null;
+  forwardingAvailable: boolean;
   initialSmsToken: SmsTokenInfo | null;
   pendingReviewCount: number;
   userEmail: string;
@@ -83,6 +88,8 @@ export default function SettingsShell({
             initialConnections={initialConnections}
             initialTrustedSenders={initialTrustedSenders}
             initialClosedSenders={initialClosedSenders}
+            forwarding={forwarding}
+            forwardingAvailable={forwardingAvailable}
             initialSmsToken={initialSmsToken}
             isPro={isPro}
             msOAuthAvailable={msOAuthAvailable}

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
  */
 export default function PrivacyPage() {
   return (
-    <LegalShell title="Privacy Policy" updated="21 July 2026">
+    <LegalShell title="Privacy Policy" updated="10 August 2026">
       {/* Plain-English summary up top — the details follow for anyone who wants them. */}
       <section className="rounded-2xl bg-surface p-6 ring-1 ring-line">
         <h2>The short version</h2>
@@ -72,9 +72,10 @@ export default function PrivacyPage() {
             <strong>Capture data:</strong> if you connect an inbox — its address, host settings,
             and an app password we encrypt before storing (AES-256-GCM); from scanned messages —
             the sender, subject, date, detected amount, and a short text snippet (up to 200
-            characters). If you enable SMS forwarding — the forwarded message text. If you upload
-            a statement or receipt — only the extracted text; PDFs and images are read in your
-            browser and never uploaded.
+            characters). If you enable SMS forwarding — the forwarded message text. If you use
+            email forwarding — the messages you forward to your Fortune Cat address, and nothing
+            else from your mailbox. If you upload a statement or receipt — only the extracted
+            text; PDFs and images are read in your browser and never uploaded.
           </li>
           <li>
             <strong>Payment status:</strong> whether you&rsquo;ve unlocked Pro. Payments are
@@ -163,6 +164,12 @@ export default function PrivacyPage() {
           <li>
             <strong>Microsoft</strong> — only if you connect an Outlook inbox, under a read-only
             mail permission you grant on Microsoft&rsquo;s own consent screen.
+          </li>
+          <li>
+            <strong>CloudMailin</strong> — only if you use email forwarding. They receive the
+            messages you forward to your Fortune Cat address and pass them to us. Nothing else in
+            your mailbox goes near them, and turning forwarding off in Settings &rsaquo; Capture
+            stops it immediately.
           </li>
           <li>
             <strong>Frankfurter</strong> — exchange rates only; receives currency codes, nothing

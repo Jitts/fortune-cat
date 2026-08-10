@@ -18,6 +18,7 @@ import {
   untrustSender,
 } from "../actions";
 import ConnectEmailForm from "./ConnectEmailForm";
+import ForwardingCard, { type ForwardingState } from "./ForwardingCard";
 import Toast from "@/app/app/components/Toast";
 import { PRO_INBOX_LIMIT, inboxLimit } from "@/lib/email/inboxLimits";
 
@@ -98,6 +99,8 @@ export default function CaptureSettings({
   initialConnections,
   initialTrustedSenders,
   initialClosedSenders,
+  forwarding,
+  forwardingAvailable,
   initialSmsToken,
   isPro,
   msOAuthAvailable,
@@ -108,6 +111,8 @@ export default function CaptureSettings({
   initialConnections: EmailConnection[];
   initialTrustedSenders: TrustedSender[];
   initialClosedSenders: ClosedSender[];
+  forwarding: ForwardingState | null;
+  forwardingAvailable: boolean;
   initialSmsToken: SmsTokenInfo | null;
   isPro: boolean;
   msOAuthAvailable: boolean;
@@ -630,6 +635,17 @@ export default function CaptureSettings({
           </div>
         )}
       </div>
+
+      {/* Immediately below the app-password card, deliberately. This is the
+          answer to the objection that card provokes, and it is worth nothing
+          if someone has to go looking for it after deciding not to connect. */}
+      <ForwardingCard
+        initial={forwarding}
+        available={forwardingAvailable}
+        locale={locale}
+        timezone={timezone}
+        className={sectionClass("capture-forwarding", highlight)}
+      />
 
       {connections.length > 0 && (
         <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">

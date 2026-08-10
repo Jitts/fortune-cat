@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/profile";
+import { forwardingAddressFor, forwardingConfigured } from "@/lib/email/forwardingAddress";
 import SettingsShell from "./SettingsShell";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,7 @@ export default async function SettingsPage() {
       { data: smsToken },
       { data: featureRequests },
       { data: myVotes },
+      { data: forwardingRow },
     ],
   ] = await Promise.all([
     getUserProfile(supabase),
@@ -56,8 +58,29 @@ export default async function SettingsPage() {
       .maybeSingle(),
     supabase.from("feature_requests").select().order("created_at"),
     supabase.from("feature_votes").select("feature_request_id").eq("user_id", user.id),
+    supabase
+      .from("email_forwarding_tokens")
+      .select("token, last_received_at, received_count, pending_confirmation_code")
+      .eq("user_id", user.id)
+      .maybeSingle(),
     ]),
   ]);
+
+  // The address is assembled server-side because only the server knows the
+  // shared inbound mailbox. A row with no resolvable address means forwarding
+  // isn't configured on this deploy, so the card stays hidden rather than
+  // showing an address that can't receive anything.
+  const forwardingAddress = forwardingRow?.token
+    ? forwardingAddressFor(forwardingRow.token)
+    : null;
+  const forwarding = forwardingAddress
+    ? {
+        address: forwardingAddress,
+        lastReceivedAt: forwardingRow?.last_received_at ?? null,
+        receivedCount: forwardingRow?.received_count ?? 0,
+        pendingCode: forwardingRow?.pending_confirmation_code ?? null,
+      }
+    : null;
 
   const votedIds = new Set((myVotes ?? []).map((v) => v.feature_request_id));
   const requestsWithVoteState = (featureRequests ?? []).map((r) => ({ ...r, hasVoted: votedIds.has(r.id) }));
@@ -67,6 +90,8 @@ export default async function SettingsPage() {
       initialConnections={connections ?? []}
       initialTrustedSenders={trustedSenders ?? []}
       initialClosedSenders={closedSenders ?? []}
+      forwarding={forwarding}
+      forwardingAvailable={forwardingConfigured()}
       initialSmsToken={smsToken ?? null}
       pendingReviewCount={pendingReviewCount ?? 0}
       userEmail={user.email ?? ""}
