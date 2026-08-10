@@ -17,6 +17,26 @@ const INCOME_KEYWORDS = /\b(refund|deposit|payroll|payment received|direct depos
 // a voucher discount applied at checkout still gets through.
 const PROMOTIONAL_SUBJECT_RE = /\b(redemption|redeem)\b[^\n]*\bvoucher/i;
 
+/**
+ * The regulator-mandated advertising prefix — "<ADV>" and its bracket variants.
+ *
+ * Singapore and Malaysia both require marketing messages to carry it, so it is
+ * the rare filter that is a declaration rather than a guess: the sender is
+ * stating, under a rule they can be penalised for breaking, that this is an
+ * advertisement. Nothing carrying it is a transaction.
+ *
+ * This is not hypothetical tidying. "<ADV> Don't let inflation erode your
+ * savings!" was parsed as a $100 expense and auto-posted into a real ledger,
+ * because the sender happened to be trusted and the body mentioned a figure.
+ * A second one, "<ADV> How can we improve your community?", was read as $500
+ * and only escaped because its sender wasn't trusted yet.
+ *
+ * Deliberately narrow. Topic words like "offer", "sale" or "unsubscribe"
+ * appear in genuine receipts all the time and would cost real captures; the
+ * prefix appears in nothing else.
+ */
+const ADVERTISEMENT_PREFIX_RE = /(?:^|\s)[<[(]\s*ad(?:v|vert|vertisement)?\s*[>\])]/i;
+
 // Common currency symbols/codes — not just USD/$, so receipts and bank
 // alerts in other currencies (SGD, MYR, EUR, GBP, THB, ...) are still picked
 // up. The token is captured so foreign amounts can be converted to the
@@ -97,6 +117,20 @@ export type ParsedCandidate = {
   // the reader's base currency is converted before it can enter the ledger.
   currency: string;
   type: TransactionType;
+  /**
+   * False when income-or-expense was a guess rather than a reading.
+   *
+   * Optional, and absent means confident — a statement import states its own
+   * sign, so those paths have nothing to declare. The parsers that infer
+   * direction from prose set it explicitly.
+   *
+   * processFetchedEmails routes an unconfident capture to review instead of
+   * auto-posting it, on the same principle already applied to foreign
+   * currency: a guessed rate never silently enters the ledger, and neither
+   * should a guessed direction. Getting the sign wrong is the costliest error
+   * here — a mis-signed amount moves the balance by twice its value.
+   */
+  typeConfident?: boolean;
   category: string | null;
   note: string;
 };
@@ -118,6 +152,7 @@ export function parseEmailForTransaction(
   defaultCurrency: string,
 ): ParsedCandidate | null {
   if (PROMOTIONAL_SUBJECT_RE.test(subject)) return null;
+  if (ADVERTISEMENT_PREFIX_RE.test(subject)) return null;
 
   const combined = normalizeWhitespace(`${subject}\n${bodyText}`);
   if (!TRANSACTION_KEYWORDS.test(combined)) return null;
@@ -135,10 +170,19 @@ export function parseEmailForTransaction(
   const currency = resolveCurrencyToken(match[1], defaultCurrency);
 
   const type: TransactionType = INCOME_KEYWORDS.test(combined) ? "income" : "expense";
-  // Category keywords (merchant names, etc.) often live in the body rather
-  // than the subject line — e.g. "GRAB*RIDE" or "STARBUCKS SG" in a bank
-  // debit alert whose subject is just "You have a new transaction".
-  const suggestion = suggestCategory(combined, type);
+
+  // Categorise on the payee, not on the whole email.
+  //
+  // This used to pass `combined` — subject plus the entire body — to the
+  // keyword tagger, on the reasoning that merchant names live in the body. The
+  // merchant does, but so does everything else: a bank alert is a few lines of
+  // transaction wrapped in image alt text, disclaimers and marketing. A real
+  // PayLah alert paying a food stall categorised as Transport, because the
+  // promotional footer said "grab a ride" and beat the one word that mattered.
+  // The signal is a dozen characters; the noise is several hundred words, and
+  // majority-vote keyword matching hands the decision to the noise every time.
+  const payee = extractPayee(combined);
+  const suggestion = suggestCategory(payee ?? subject, type);
 
   return {
     amount,
@@ -147,4 +191,58 @@ export function parseEmailForTransaction(
     category: suggestion?.category ?? null,
     note: subject.trim().slice(0, 120) || "Email transaction",
   };
+}
+
+// Where bank alerts name the other party. Ordered most-specific first; each
+// stops at a date, a preposition that starts a new clause, or punctuation, so
+// a match can't swallow the rest of the sentence.
+const PAYEE_PATTERNS: RegExp[] = [
+  // A bounded lazy gap rather than a guess at the amount's shape: alerts write
+  // "payment of SGD 2.00 to X", "payment of 2.00 to X" and "paid to X", and a
+  // pattern that assumed one token between "of" and "to" matched none of the
+  // first kind. Capped and newline/period-free so it can't cross clauses.
+  // `(?:[^.\n]|\.\d)` — a period is allowed only inside a number. That lets
+  // the gap span "of SGD 2.00 to" while still refusing to cross a sentence
+  // boundary, which a plain `[^.\n]` could not do and a plain `[^\n]` would
+  // have done too freely.
+  /\b(?:paid|payment|transfer(?:red)?)\b(?:[^.\n]|\.\d){0,40}?\bto\s+([^.,;\n]{2,60}?)(?=\s+on\s|\s+via\s|\s+for\s|[.,;\n]|$)/i,
+  /\b(?:at|to)\s+merchant\s+([^.,;\n]{2,60}?)(?=\s+on\s|[.,;\n]|$)/i,
+  /\bmerchant\s*(?:name)?\s*[:\-]\s*([^.,;\n]{2,60})/i,
+  /\b(?:payee|recipient|beneficiary)\s*[:\-]\s*([^.,;\n]{2,60})/i,
+  /\bwas\s+used\s+(?:for\s+[^\s]+\s+)?at\s+([^.,;\n]{2,60}?)(?=\s+on\s|[.,;\n]|$)/i,
+  /\bat\s+([^.,;\n]{2,60}?)(?=\s+on\s+\d|[.,;\n]|$)/i,
+];
+
+/**
+ * The other party to the transaction, or null when the alert doesn't name one.
+ *
+ * Null is a useful answer: it sends categorisation back to the subject line,
+ * which is short and topical. Guessing from the body is what produced the
+ * wrong answers this function exists to prevent.
+ */
+export function extractPayee(text: string): string | null {
+  for (const pattern of PAYEE_PATTERNS) {
+    const found = text.match(pattern)?.[1]?.trim();
+    if (!found || found.length < 2) continue;
+    // A "payee" that is mostly digits is a reference number, not a name.
+    if (/^\W*\d[\d\s\-/]*$/.test(found)) continue;
+    if (isSelfReferential(found)) continue;
+    return found;
+  }
+  return null;
+}
+
+/**
+ * "credited to your account" names no merchant — it names the reader.
+ *
+ * Worth its own check because the phrase sits in exactly the position a payee
+ * occupies, so a "to X" pattern captures it happily. Taking "your account" as
+ * the merchant then replaces the text that carried the real signal: a salary
+ * SMS categorised on "your account" matches nothing and comes back
+ * uncategorised, when the word "salary" was right there in the sentence.
+ */
+export function isSelfReferential(name: string): boolean {
+  return /^(?:your|my|the)?\s*(?:own\s+)?(?:account|acct|a\/c|card|wallet|balance|self|you)\b/i.test(
+    name.trim(),
+  );
 }

@@ -195,6 +195,14 @@ export async function processFetchedEmails(
       }
     }
 
+    // The parser couldn't tell income from expense. Same rule as an unknown
+    // exchange rate: a guessed direction never enters the ledger unseen. This
+    // one costs more than most — a mis-signed amount moves the balance by
+    // twice its value, and a trusted sender would otherwise post it silently.
+    if (parsed.typeConfident === false && !reviewReason) {
+      reviewReason = "money in or out is unclear — check the direction";
+    }
+
     const trusted = patterns.some((p) => from.includes(p));
     if (!trusted && !reviewReason && !explicit) reviewReason = "unrecognised sender";
 
@@ -208,7 +216,9 @@ export async function processFetchedEmails(
 
     // `!explicit` is the guard that keeps a spoofable inbound address from
     // writing straight into the ledger. See ProcessOptions.explicit.
-    const autoPost = trusted && !foreign && !explicit;
+    // `typeConfident` is the guard against posting a transaction whose sign
+    // was guessed — see the review reason set above.
+    const autoPost = trusted && !foreign && !explicit && parsed.typeConfident !== false;
 
     candidateRows.push({
       user_id: userId,

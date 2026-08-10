@@ -95,8 +95,18 @@ export function suggestCategory(
   }
 
   if (!best) {
-    // No keyword signal: income is almost always salary-like; expenses stay untagged.
-    if (type === "income") return { category: "Salary", confidence: 0.7 };
+    // Nothing recognised. Both directions now stay untagged.
+    //
+    // Income used to fall back to "Salary" on the reasoning that income
+    // usually is. It isn't: an insurance payout, a refund, a transfer from a
+    // friend and a rebate are all income, and every one of them was being
+    // filed as Salary with 0.7 confidence — a number that implies evidence
+    // where there was none. Worse, it auto-posted, so nobody ever saw the
+    // claim to correct it.
+    //
+    // Real salary says so ("salary", "payroll", "wage" are all keywords), so
+    // that case still matches above. Leaving the rest uncategorised is the
+    // honest answer, and an uncategorised row asks to be looked at.
     return null;
   }
 
