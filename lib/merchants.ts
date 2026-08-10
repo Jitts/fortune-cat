@@ -60,10 +60,10 @@ const RULES: Rule[] = [
   { match: /HAWKER/, name: "Hawker centre", category: "Food & Drink" },
 
   // ---- groceries (Food & Drink bucket) ----
-  { match: /UNITY BY FAIRPRICE|NTUC\s*FP\b|NTUC\s*F(AI)?RPR?ICE|FAIRPRICE/, name: "FairPrice", category: "Food & Drink" },
-  { match: /COLD\s*STORAGE/, name: "Cold Storage", category: "Food & Drink" },
-  { match: /SHENG\s*SIONG/, name: "Sheng Siong", category: "Food & Drink" },
-  { match: /\bGIANT\b/, name: "Giant", category: "Food & Drink" },
+  { match: /UNITY BY FAIRPRICE|NTUC\s*FP\b|NTUC\s*F(AI)?RPR?ICE|FAIRPRICE/, name: "FairPrice", category: "Groceries" },
+  { match: /COLD\s*STORAGE/, name: "Cold Storage", category: "Groceries" },
+  { match: /SHENG\s*SIONG/, name: "Sheng Siong", category: "Groceries" },
+  { match: /\bGIANT\b/, name: "Giant", category: "Groceries" },
   { match: /DON\s*DON\s*DONKI|DONKI/, name: "Don Don Donki", category: "Food & Drink" },
 
   // ---- utilities & billers ----
@@ -104,11 +104,11 @@ const RULES: Rule[] = [
   { match: /PLAYSTATION/, name: "PlayStation", category: "Entertainment" },
 
   // ---- shopping ----
-  { match: /SHOPEE/, name: "Shopee", category: "Shopping" },
-  { match: /LAZADA/, name: "Lazada", category: "Shopping" },
-  { match: /AMAZON|AMZN/, name: "Amazon", category: "Shopping" },
-  { match: /TAOBAO/, name: "Taobao", category: "Shopping" },
-  { match: /QOO10/, name: "Qoo10", category: "Shopping" },
+  { match: /SHOPEE/, name: "Shopee", category: "Online Shopping" },
+  { match: /LAZADA/, name: "Lazada", category: "Online Shopping" },
+  { match: /AMAZON|AMZN/, name: "Amazon", category: "Online Shopping" },
+  { match: /TAOBAO/, name: "Taobao", category: "Online Shopping" },
+  { match: /QOO10/, name: "Qoo10", category: "Online Shopping" },
   { match: /\bIKEA\b/, name: "IKEA", category: "Shopping" },
   { match: /UNIQLO/, name: "Uniqlo", category: "Shopping" },
   { match: /DECATHLON/, name: "Decathlon", category: "Shopping" },

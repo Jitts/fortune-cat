@@ -162,5 +162,47 @@ console.log("\nStill categorising what it should");
 check("a known merchant wins", suggestCategory("STARBUCKS SG", "expense")?.category === "Food & Drink");
 check("a ride is Transport", suggestCategory("GRAB*RIDE", "expense")?.category === "Transport");
 
+console.log("\nThe six categories nothing could reach before");
+const reaches = (text: string, expected: string) => {
+  const got = suggestCategory(text, "expense")?.category;
+  check(`${expected.padEnd(18)} ← "${text}"`, got === expected, `got ${got ?? "null"}`);
+};
+// LIVE: this is the message whose premium had nowhere to go.
+reaches("[Manulife] payment received for insurance policy ending 9193", "Insurance");
+reaches("NTUC FAIRPRICE grocery run", "Groceries");
+reaches("Monthly rent to landlord", "Housing");
+reaches("SHOPEE order #22910", "Online Shopping");
+reaches("Coursera course enrolment", "Education");
+reaches("Donation to charity", "Gifts & Donations");
+
+console.log("\nThe splits didn't cost their parents");
+reaches("Dinner at the restaurant", "Food & Drink");
+reaches("UNIQLO store purchase", "Shopping");
+reaches("Singtel broadband bill", "Utilities");
+
+console.log("\nTies go to the narrower category, not to declaration order");
+check(
+  "supermarket food shop is Groceries, not Food & Drink",
+  suggestCategory("grocery food shop", "expense")?.category === "Groceries",
+  suggestCategory("grocery food shop", "expense")?.category ?? "null",
+);
+check(
+  "an online order is Online Shopping, not Shopping",
+  suggestCategory("shopee order", "expense")?.category === "Online Shopping",
+  suggestCategory("shopee order", "expense")?.category ?? "null",
+);
+
+console.log("\nWords that used to drag things into Salary");
+check(
+  "an invoice is not salary",
+  suggestCategory("Your receipt from Anthropic, PBC #2932-6788-2138 invoice", "expense")?.category !==
+    "Salary",
+  suggestCategory("Your receipt from Anthropic, PBC invoice", "expense")?.category ?? "null",
+);
+check(
+  "a refund is not salary",
+  suggestCategory("Refund processed", "income")?.category !== "Salary",
+);
+
 console.log(`\n${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);
