@@ -4,10 +4,54 @@ import type { TransactionType } from "@/lib/types";
 // Requires at least one of these AND a matched amount before treating an
 // email as a transaction candidate — keeps ordinary newsletters/notifications
 // out even though they might mention a dollar figure in passing.
+// "transfer" and "received" are here because money arriving is a transaction
+// too, and the list was written almost entirely from the spending side. An
+// incoming transfer alert only passed this gate when its boilerplate happened
+// to contain some other word, which is not a rule so much as an accident.
+// The amount requirement below is what keeps this safe: "we received your
+// application" carries no currency-marked figure and still goes nowhere.
 const TRANSACTION_KEYWORDS =
-  /\b(receipt|order|invoice|payment|transaction|charged|purchase|statement|confirmation|paid|refund|deposit|payroll|bill|reference\s*(?:no\.?|number|#)?|txn|authoriz(?:ation|ed)|approval|debited|credited)\b/i;
+  /\b(receipt|order|invoice|payment|transaction|charged|purchase|statement|confirmation|paid|refund|deposit|payroll|bill|reference\s*(?:no\.?|number|#)?|txn|authoriz(?:ation|ed)|approval|debited|credited|received|transfer(?:red)?)\b/i;
 
-const INCOME_KEYWORDS = /\b(refund|deposit|payroll|payment received|direct deposit|credited)\b/i;
+/**
+ * Which way the money moved, and whether that was read or guessed.
+ *
+ * Shared by both parsers on purpose. The SMS side was fixed first, after
+ * "[Manulife]We have received PayNow Collection amount of S$484.07" was booked
+ * as income — the rule matched the verb without asking whose money it was.
+ * Leaving the email side on its own keyword list immediately proved the point:
+ * "digibank Alerts - You've received a transfer" was booked as an EXPENSE and
+ * auto-posted, because "received" on its own wasn't in that list. The same
+ * mistake in both directions, in two files, within two days. One function now.
+ *
+ * A verb alone never decides. Only a statement about whose account moved does,
+ * and when there isn't one the answer is flagged rather than invented.
+ */
+const INBOUND_RE =
+  /\b(?:you|you'?ve)\s+(?:have\s+)?received\b|\breceived a (?:transfer|payment|deposit)\b|\bcredited (?:to|into) your\b|\bdeposited (?:to|into) your\b|\btransfer from\b|\byour (?:payout|refund|salary)\b|\binto your account\b|\bdirect deposit\b|\bpayroll\b|\bpayment received\b/i;
+
+const OUTBOUND_RE =
+  /\b(?:we|they)\s+(?:have\s+|has\s+|had\s+)?(?:received|collected|debited|deducted|charged)\b|\bdeducted from your\b|\bdebited from your\b|\b(?:payment|paid|transfer(?:red)?) to\b|\byou (?:have )?(?:paid|made a payment)\b|\bwas charged\b/i;
+
+// Verbs that hint at money coming in. On their own they settle nothing — they
+// only mark the message as one where direction has to be established.
+const INCOME_VERB_RE = /\b(refund(?:ed)?|deposit(?:ed)?|payroll|credited|received|salary)\b/i;
+
+export type Direction = { type: TransactionType; confident: boolean };
+
+export function resolveDirection(text: string): Direction {
+  const inbound = INBOUND_RE.test(text);
+  const outbound = OUTBOUND_RE.test(text);
+
+  if (inbound && !outbound) return { type: "income", confident: true };
+  if (outbound && !inbound) return { type: "expense", confident: true };
+  // Contradictory statements, or an income-ish verb with nothing saying which
+  // way it went. Spending is the commoner case so it stays the guess, but the
+  // guess is declared and processFetchedEmails keeps it out of the ledger.
+  if (inbound || INCOME_VERB_RE.test(text)) return { type: "expense", confident: false };
+  // No income wording at all — an ordinary debit alert.
+  return { type: "expense", confident: true };
+}
 
 // Promotional voucher/redemption emails (e.g. a bank's "Redeem your S$80 Esso
 // Fuel Discount Vouchers" campaign) often mention "payment" in their T&Cs and
@@ -169,7 +213,7 @@ export function parseEmailForTransaction(
 
   const currency = resolveCurrencyToken(match[1], defaultCurrency);
 
-  const type: TransactionType = INCOME_KEYWORDS.test(combined) ? "income" : "expense";
+  const { type, confident } = resolveDirection(combined);
 
   // Categorise on the payee, not on the whole email.
   //
@@ -188,6 +232,7 @@ export function parseEmailForTransaction(
     amount,
     currency,
     type,
+    typeConfident: confident,
     category: suggestion?.category ?? null,
     note: subject.trim().slice(0, 120) || "Email transaction",
   };

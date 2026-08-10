@@ -204,5 +204,52 @@ check(
   suggestCategory("Refund processed", "income")?.category !== "Salary",
 );
 
+console.log("\nEmail direction — one shared rule, not a second list");
+
+// LIVE: booked as an EXPENSE and auto-posted. "received" on its own wasn't in
+// the email parser's income list, and that list was separate from the SMS one,
+// so the same mistake shipped twice in opposite directions.
+const inboundEmail = parseEmailForTransaction(
+  "digibank Alerts - You've received a transfer",
+  "You've received a transfer of SGD 21.00 from a friend.",
+  "SGD",
+);
+check("an incoming transfer is income", inboundEmail?.type === "income", inboundEmail?.type);
+check("and it is read, not guessed", inboundEmail?.typeConfident === true);
+
+const outboundEmail = parseEmailForTransaction(
+  "Transaction Alerts",
+  "You have made a payment of SGD 2.00 to KOPI STALL on 10 Aug 2026.",
+  "SGD",
+);
+check("an outgoing payment is an expense", outboundEmail?.type === "expense", outboundEmail?.type);
+check("and it is read, not guessed", outboundEmail?.typeConfident === true);
+
+const vagueEmail = parseEmailForTransaction(
+  "Alert",
+  "A payment of SGD 30.00 was credited. Ref 88213.",
+  "SGD",
+);
+check(
+  "an email with no stated direction is flagged rather than assumed",
+  vagueEmail?.typeConfident === false,
+  `typeConfident=${vagueEmail?.typeConfident}`,
+);
+
+// The two parsers must agree — that is the point of sharing the function.
+const bothWays = [
+  "We have received your payment of SGD 100.00",
+  "You have received SGD 100.00 into your account",
+];
+for (const text of bothWays) {
+  const viaSms = parseSmsTransaction(text, "SGD");
+  const viaEmail = parseEmailForTransaction("Alert", text, "SGD");
+  check(
+    `both parsers agree on "${text.slice(0, 28)}…"`,
+    viaSms?.type === viaEmail?.type,
+    `sms=${viaSms?.type} email=${viaEmail?.type}`,
+  );
+}
+
 console.log(`\n${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);
