@@ -141,6 +141,20 @@ export async function fetchRecentEnvelopes(
   return { envelopes, oldestSeq: start, reachedStart: start <= 1 };
 }
 
+/** Envelopes for the batch immediately before `beforeSeq`. Reads no bodies. */
+export async function fetchOlderEnvelopes(
+  creds: ImapCredentials,
+  beforeSeq: number,
+  limit = 50,
+): Promise<EnvelopeBatch> {
+  const endSeq = beforeSeq - 1;
+  if (endSeq < 1) return { envelopes: [], oldestSeq: beforeSeq, reachedStart: true };
+
+  const start = Math.max(1, endSeq - limit + 1);
+  const envelopes = await fetchEnvelopeRange(creds, start, endSeq);
+  return { envelopes, oldestSeq: start, reachedStart: start <= 1 };
+}
+
 /**
  * Full messages for specific UIDs — the "open" half of a scoped scan, called
  * only for senders the user has approved. UIDs rather than sequence numbers

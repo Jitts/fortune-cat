@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { bumpSenderSignal, bumpTrustSignal, extractSenderDomain } from "@/lib/email/senderSignals";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
-import { testImapConnection, fetchRecentEmails, fetchOlderEmails } from "@/lib/email/imapClient";
+import { testImapConnection } from "@/lib/email/imapClient";
+import { fetchScopedOlder, fetchScopedRecent } from "@/lib/email/senderScope";
 import { processFetchedEmails, createTransactionFromCandidate } from "@/lib/email/processScan";
 import { parseStatementCsv, type StatementRow } from "@/lib/csv/parseStatement";
 import { parseStatementText } from "@/lib/docs/parseStatementText";
@@ -216,7 +217,12 @@ export async function scanEmailInbox(connectionId: string): Promise<ScanResult> 
             oldestSeq: null,
             reachedStart: true,
           }
-        : await fetchRecentEmails(
+        : // Scoped: envelopes first, bodies only for senders the user has
+          // approved. Everything else is recorded to be asked about in Review
+          // rather than read on the assumption that silence means yes.
+          await fetchScopedRecent(
+            supabase,
+            user.id,
             {
               host: connection.imap_host,
               port: connection.imap_port,
@@ -312,7 +318,9 @@ export async function scanOlderEmails(connectionId: string): Promise<ScanResult>
 
   let batch;
   try {
-    batch = await fetchOlderEmails(
+    batch = await fetchScopedOlder(
+      supabase,
+      user.id,
       {
         host: connection.imap_host,
         port: connection.imap_port,

@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { FetchedEnvelope } from "@/lib/email/imapClient";
+import type { FetchedEmail, FetchedEnvelope, ImapCredentials } from "@/lib/email/imapClient";
+import {
+  fetchBodiesByUid,
+  fetchOlderEnvelopes,
+  fetchRecentEnvelopes,
+} from "@/lib/email/imapClient";
 import { extractSenderDomain } from "@/lib/email/senderSignals";
 
 // Works with both the RLS-scoped server client (manual scans) and the
@@ -141,6 +146,71 @@ export function planScopedFetch(envelopes: FetchedEnvelope[], rules: SenderRule[
   );
 
   return { openUids, undecided, skippedClosed, skippedUndecided };
+}
+
+export type ScopedBatch = {
+  /** Bodies we were allowed to open. Shape-compatible with FetchedBatch. */
+  emails: FetchedEmail[];
+  oldestSeq: number | null;
+  reachedStart: boolean;
+  /** Senders seen this pass that nobody has decided about yet. */
+  undecided: Discovery[];
+  /** Messages deliberately left unopened, for both reasons combined. */
+  unopened: number;
+};
+
+/**
+ * A scoped scan of the most recent messages: envelopes first, then bodies for
+ * approved senders only, with everything else recorded to be asked about.
+ *
+ * Returns the same `emails / oldestSeq / reachedStart` shape the unscoped
+ * fetch did, so callers hand the result to processFetchedEmails unchanged and
+ * the rest of the pipeline — dedup, FX, trust, review — is untouched.
+ */
+export async function fetchScopedRecent(
+  db: Db,
+  userId: string,
+  creds: ImapCredentials,
+  limit = 50,
+): Promise<ScopedBatch> {
+  const batch = await fetchRecentEnvelopes(creds, limit);
+  return completeScopedFetch(db, userId, creds, batch);
+}
+
+/** The same, continuing further back from a previous scan's cursor. */
+export async function fetchScopedOlder(
+  db: Db,
+  userId: string,
+  creds: ImapCredentials,
+  beforeSeq: number,
+  limit = 50,
+): Promise<ScopedBatch> {
+  const batch = await fetchOlderEnvelopes(creds, beforeSeq, limit);
+  return completeScopedFetch(db, userId, creds, batch);
+}
+
+async function completeScopedFetch(
+  db: Db,
+  userId: string,
+  creds: ImapCredentials,
+  batch: { envelopes: FetchedEnvelope[]; oldestSeq: number | null; reachedStart: boolean },
+): Promise<ScopedBatch> {
+  const rules = await loadSenderRules(db, userId);
+  const plan = planScopedFetch(batch.envelopes, rules);
+
+  // Recorded before the bodies are fetched, so an approved sender's mail
+  // still gets read even if writing discoveries fails.
+  await recordDiscoveries(db, userId, plan.undecided);
+
+  const emails = await fetchBodiesByUid(creds, plan.openUids);
+
+  return {
+    emails,
+    oldestSeq: batch.oldestSeq,
+    reachedStart: batch.reachedStart,
+    undecided: plan.undecided,
+    unopened: plan.skippedClosed + plan.skippedUndecided,
+  };
 }
 
 /**

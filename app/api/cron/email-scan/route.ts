@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decryptSecret } from "@/lib/crypto";
-import { fetchRecentEmails } from "@/lib/email/imapClient";
+import { fetchScopedRecent } from "@/lib/email/senderScope";
 import { ensureGraphAccessToken, fetchRecentMessagesGraph } from "@/lib/email/graphClient";
 import { processFetchedEmails } from "@/lib/email/processScan";
 import { logAudit } from "@/lib/audit";
@@ -44,7 +44,12 @@ export async function GET(request: Request) {
               oldestSeq: null as number | null,
               reachedStart: true,
             }
-          : await fetchRecentEmails(
+          : // Scoped, same as a manual scan — the nightly job must not read
+            // more of someone's inbox than they would have let it read while
+            // watching.
+            await fetchScopedRecent(
+              supabase,
+              conn.user_id,
               {
                 host: conn.imap_host,
                 port: conn.imap_port,
