@@ -18,3 +18,9 @@ supabase/.temp/
 .claude/worktrees/
 .claude/settings.local.json
 .claude/settings.local.json.*
+
+# Impeccable runtime state: a live overlay server's pid/port, written while the
+# browser session is open and meaningless once it closes. Critique snapshots
+# under .impeccable/critique/ are deliberately NOT ignored — those are a design
+# record, and /impeccable polish reads them as its backlog.
+.impeccable/live/
