@@ -8,8 +8,11 @@
 //   3. Brute-Force Defense  — rapid auth attempts trip the login throttle
 //   4. Data Exfiltration    — no bulk / cross-user / unauthenticated data leaks
 //
-// It creates two throwaway users, asserts, and cleans everything up in a
-// finally block. Run with the dev server up:  node tests/security.mjs
+// It provisions two throwaway users against the real project, asserts, then
+// deletes every row it created and both accounts — and verifies that, failing
+// the run if anything survives. It also sweeps accounts an earlier run left
+// behind, since a run killed mid-flight never reaches its own cleanup.
+// Run with the dev server up:  node tests/security.mjs
 //
 // Env is read from .env.local (NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY,
 // SUPABASE_SERVICE_ROLE_KEY).
@@ -84,6 +87,136 @@ function check(desc, pass, detail = "") {
 
 const anonOpts = { auth: { persistSession: false, autoRefreshToken: false } };
 
+// ── test-data hygiene ────────────────────────────────────────────────────────
+// Every user-scoped table this suite could write. Most of them cascade from
+// auth.users, so deleting the user is enough — but transactions, payments,
+// audit_logs, sms_tokens, email_connections, email_transaction_candidates,
+// trusted_senders and the feature_* pair carry a bare `user_id uuid` with NO
+// foreign key. For those, deleting the user does not delete the rows; it
+// strands them. They become invisible to RLS (auth.uid() can never match a
+// user that no longer exists) and unreachable by any product path, so nothing
+// ever surfaces them again.
+//
+// That is not hypothetical. Before this list existed the suite left 55
+// transactions, 35 audit log entries, 9 SMS tokens and a *pending* capture
+// belonging to eleven users who had already been deleted.
+const USER_SCOPED_TABLES = [
+  // no cascade — these MUST be deleted explicitly
+  "feature_votes",
+  "feature_requests",
+  "email_transaction_candidates",
+  "email_connections",
+  "trusted_senders",
+  "sms_tokens",
+  "payments",
+  "audit_logs",
+  "transactions",
+  "categories",
+  // cascade from auth.users — deleted anyway, so cleanup never depends on the
+  // user delete succeeding
+  "category_budgets",
+  "goal_achievements",
+  "fortune_goals",
+  "fortune_slips",
+  "balance_anchors",
+  "subscription_decisions",
+  "manual_recurring_bills",
+  "user_profiles",
+  "blocked_senders",
+  "sender_rules",
+  "sender_discoveries",
+  "email_forwarding_tokens",
+];
+
+// Throwaway accounts this suite provisions. @example.com is reserved by
+// RFC 2606 and can never receive mail, and the stamp is a millisecond epoch —
+// no human account can match this shape.
+const TEST_EMAIL_RE = /^sectest\.(?:a|b|brute)\.\d+@example\.com$/;
+
+// A sweep that matches more than a handful of accounts means the pattern is
+// wrong, not that the suite ran that many times. Stop rather than delete.
+const MAX_SWEEP = 20;
+
+const cleanupProblems = [];
+let residue = [];
+
+/**
+ * Runs one cleanup step in isolation. The whole cleanup used to sit in a single
+ * try block, so the first failure skipped every statement after it — including
+ * the user delete, which is what the cascading tables rely on. One transient
+ * error and a whole run's data stayed in the database, while the suite still
+ * printed "All security checks passed".
+ *
+ * Every step now runs whatever happened to the one before it, and anything that
+ * fails is recorded rather than swallowed.
+ */
+async function step(label, fn) {
+  try {
+    const res = await fn();
+    if (res?.error) cleanupProblems.push(`${label}: ${res.error.message}`);
+  } catch (e) {
+    cleanupProblems.push(`${label}: ${e.message}`);
+  }
+}
+
+/** Deletes every row owned by `ids`, then the auth users themselves. */
+async function purgeUsers(service, ids) {
+  if (!ids.length) return;
+  for (const table of USER_SCOPED_TABLES) {
+    await step(`delete ${table}`, () => service.from(table).delete().in("user_id", ids));
+  }
+  for (const id of ids) {
+    await step(`deleteUser ${id}`, () => service.auth.admin.deleteUser(id));
+  }
+}
+
+/** Counts what survived. Returns [[table, count], ...] — empty means clean. */
+async function residualRows(service, ids) {
+  const found = [];
+  if (!ids.length) return found;
+  for (const table of USER_SCOPED_TABLES) {
+    const { count, error } = await service
+      .from(table)
+      .select("*", { count: "exact", head: true })
+      .in("user_id", ids);
+    if (error) {
+      cleanupProblems.push(`verify ${table}: ${error.message}`);
+      continue;
+    }
+    if (count) found.push([table, count]);
+  }
+  return found;
+}
+
+/**
+ * Collects throwaway users a previous run left behind. A killed run never
+ * reaches its finally block at all, so self-healing on the next run is the only
+ * cleanup that covers that case — one such run left two live test accounts and
+ * their data in the database for nine days. Ctrl-C is the obvious way in; the
+ * quieter one is piping this suite into `head`, which kills it on EPIPE
+ * somewhere in the middle of section 1.
+ */
+async function sweepStaleTestUsers(service) {
+  const stale = [];
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await service.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) {
+      console.log(`[sweep] could not list users: ${error.message}`);
+      return;
+    }
+    stale.push(...data.users.filter((u) => TEST_EMAIL_RE.test(u.email ?? "")));
+    if (data.users.length < 1000) break;
+  }
+  if (!stale.length) return;
+  if (stale.length > MAX_SWEEP) {
+    console.log(`[sweep] ${stale.length} accounts match — over the ${MAX_SWEEP} cap, refusing to delete. Check the pattern.`);
+    return;
+  }
+  console.log(`[sweep] removing ${stale.length} leftover test account(s) from an earlier run:`);
+  for (const u of stale) console.log(`        ${u.email}  (created ${u.created_at})`);
+  await purgeUsers(service, stale.map((u) => u.id));
+}
+
 async function main() {
   const env = loadEnv();
   const url = env.NEXT_PUBLIC_SUPABASE_URL;
@@ -94,6 +227,9 @@ async function main() {
   }
 
   const service = createClient(url, serviceKey, anonOpts);
+
+  // Collect anything an earlier run left behind before adding more.
+  await sweepStaleTestUsers(service);
 
   const stamp = Date.now();
   const pw = `Str0ng-${randomUUID()}`;
@@ -651,31 +787,28 @@ async function main() {
       if (aToken) await service.from("sms_tokens").delete().eq("id", aToken.id);
     }
   } finally {
-    // ── cleanup (best-effort) ─────────────────────────────────────────────────
-    try {
-      if (userA || userB) {
-        const ids = [userA?.id, userB?.id].filter(Boolean);
-        await service.from("transactions").delete().in("user_id", ids);
-        await service.from("payments").delete().in("user_id", ids);
-        await service.from("audit_logs").delete().in("user_id", ids);
-        await service.from("sms_tokens").delete().in("user_id", ids);
-        await service.from("email_connections").delete().in("user_id", ids);
-        await service.from("fortune_slips").delete().in("user_id", ids);
-        await service.from("balance_anchors").delete().in("user_id", ids);
-        await service.from("subscription_decisions").delete().in("user_id", ids);
-        await service.from("manual_recurring_bills").delete().in("user_id", ids);
-        await service.from("user_profiles").delete().in("user_id", ids);
-        await service.from("blocked_senders").delete().in("user_id", ids);
-        await service.from("sender_signals").delete().like("domain", "%.example");
-      }
-      for (const b of createdBuckets) {
-        await service.from("rate_limit_events").delete().eq("bucket", b);
-      }
-      if (userA) await service.auth.admin.deleteUser(userA.id);
-      if (userB) await service.auth.admin.deleteUser(userB.id);
-    } catch (e) {
-      console.log(`\n[cleanup] warning: ${e.message}`);
+    // ── cleanup ───────────────────────────────────────────────────────────────
+    // Rows first, then the users. Deleting the user first would leave every
+    // no-FK row orphaned with no way left to find it: the user id is the only
+    // handle those rows have, and once the account is gone nothing joins back
+    // to them.
+    const ids = [userA?.id, userB?.id].filter(Boolean);
+
+    // Exact domain, not `like "%.example"` — a wildcard delete would also take
+    // out a concurrent run's rows, and this table is a shared global aggregate.
+    await step("delete sender_signals", () =>
+      service.from("sender_signals").delete().eq("domain", `poison-${stamp}.example`));
+
+    for (const b of createdBuckets) {
+      await step("delete rate_limit_events", () =>
+        service.from("rate_limit_events").delete().eq("bucket", b));
     }
+
+    await purgeUsers(service, ids);
+
+    // Prove it rather than assume it. A cleanup that reports success while
+    // leaving rows behind is exactly how the residue accumulated unnoticed.
+    residue = await residualRows(service, ids);
   }
 
   // ── summary ──────────────────────────────────────────────────────────────────
@@ -692,14 +825,34 @@ async function main() {
   console.log("──────────────────────────────────────────────────────────");
   console.log(`${passed}/${total} checks passed`);
   const failed = total - passed;
-  if (failed > 0) {
-    console.log(`\n${failed} check(s) FAILED`);
+
+  // Cleanup is part of the result, not a footnote. A suite that provisions real
+  // users against the real project and leaves them there is a finding of its
+  // own, so it fails the run instead of printing a warning nobody reads.
+  if (residue.length) {
+    console.log(`\nCLEANUP FAILED — rows left behind for the test users:`);
+    for (const [table, count] of residue) console.log(`   ${table}: ${count}`);
+  }
+  if (cleanupProblems.length) {
+    console.log(`\n[cleanup] ${cleanupProblems.length} step(s) errored:`);
+    for (const p of cleanupProblems) console.log(`   ${p}`);
+  }
+
+  if (failed > 0 || residue.length) {
+    if (failed > 0) console.log(`\n${failed} check(s) FAILED`);
     process.exit(1);
   }
-  console.log("\nAll security checks passed ✅");
+  console.log("\nAll security checks passed ✅  (test data cleaned up)");
 }
 
 main().catch((e) => {
   console.error("\nFATAL:", e.message);
+  // A crash still runs the finally block, so say what state it left the
+  // database in — silence here is what let residue build up unnoticed.
+  if (residue.length) {
+    console.error("Rows left behind for the test users:");
+    for (const [table, count] of residue) console.error(`   ${table}: ${count}`);
+  }
+  for (const p of cleanupProblems) console.error(`[cleanup] ${p}`);
   process.exit(1);
 });
