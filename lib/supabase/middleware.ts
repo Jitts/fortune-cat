@@ -1,11 +1,5 @@
-import { createServerClient, type SetAllCookies } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-// Same reason as lib/supabase/server.ts: @supabase/ssr 0.5.2 reaches into
-// `@supabase/supabase-js/dist/module/lib/types`, a path supabase-js 2.110 no
-// longer ships, so the options type collapses and these callbacks would
-// otherwise be implicitly `any`.
-type CookiesToSet = Parameters<SetAllCookies>[0];
 
 export async function updateSession(request: NextRequest) {
   const supabaseResponse = NextResponse.next({ request });
@@ -28,7 +22,7 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: CookiesToSet) {
+        setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
