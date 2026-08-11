@@ -22,6 +22,11 @@ export type MonthPulse = {
   outTotal: number;
   net: number;
   maxBar: number;
+  /** Tallest income day, and tallest spending day, scaled independently.
+   *  One shared scale let a single payday flatten every spending day in the
+   *  month to nothing — see the note where these are computed. */
+  maxIn: number;
+  maxOut: number;
   burnPerDay: number;
   burnDelta: number | null; // % vs last month's daily pace
   savingsRate: number | null; // whole-percent net/income
@@ -85,6 +90,14 @@ export function monthPulse(
   }
 
   const maxBar = Math.max(1, ...days.map((d) => Math.max(d.in, d.out)));
+  // Income and spending get their own scales. Sharing one meant a single salary
+  // set the ceiling for both halves of the chart, so a month of real spending
+  // — S$2 here, S$150 there — all rendered at the minimum bar height: a flat
+  // line with one green spike, on the largest object on the Home tab. Whatever
+  // the chart was for, it stopped answering "where did the money go", which is
+  // the product's one-sentence purpose.
+  const maxIn = Math.max(1, ...days.map((d) => d.in));
+  const maxOut = Math.max(1, ...days.map((d) => d.out));
   const burnPerDay = today > 0 ? outTotal / today : 0;
   const lastMonthDays = new Date(Date.UTC(year, month - 1, 0)).getUTCDate();
   const lastBurnPerDay = lastMonthDays > 0 ? lastMonthOut / lastMonthDays : 0;
@@ -114,5 +127,5 @@ export function monthPulse(
     cursor = prevDay(cursor);
   }
 
-  return { days, inTotal, outTotal, net, maxBar, burnPerDay, burnDelta, savingsRate, streak };
+  return { days, inTotal, outTotal, net, maxBar, maxIn, maxOut, burnPerDay, burnDelta, savingsRate, streak };
 }

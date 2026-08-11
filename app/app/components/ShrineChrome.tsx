@@ -66,11 +66,22 @@ const TABS: { id: ShrineTab; label: string }[] = [
   { id: "bills", label: "Bills" },
 ];
 
+// The bottom nav splits TABS around the Log button rather than listing tabs by
+// hand. The hand-written version rendered TABS[0], TABS[1] and a hardcoded
+// "fortunes", which silently orphaned Bills: recurring bills, the subscription
+// kill-chain and what's due before payday were reachable only by typing
+// ?tab=bills, on the product's primary device. Deriving the two halves means a
+// tab added to TABS shows up crowded rather than not at all.
+const MOBILE_LEFT = TABS.slice(0, 2);
+const MOBILE_RIGHT = TABS.slice(2);
+
 /**
  * The Fortune Cat app chrome: a top bar on desktop (wordmark · tabs · a always-
  * visible gold LOG button · settings · theme) and a bottom nav on mobile (Home ·
- * Ledger · gold LOG · Fortunes · More). Tabs switch in-page; LOG opens the add
- * sheet — the core verb stays one tap away from every screen.
+ * Ledger · gold LOG · Fortunes · Bills). Tabs switch in-page; LOG opens the add
+ * sheet — the core verb stays one tap away from every screen. Account, help and
+ * appearance sit behind the header's ⋯ button, so every slot in the thumb zone
+ * is a destination.
  */
 export default function ShrineChrome({
   active,
@@ -125,7 +136,7 @@ export default function ShrineChrome({
                 <Icon name={t.id} className={active === t.id ? "text-gold-text" : ""} />
                 {t.label}
                 {t.id === "ledger" && pendingReviewCount > 0 && (
-                  <span className="grid h-4 min-w-4 place-items-center rounded-full bg-vermilion px-1 font-mono text-[10px] font-bold text-white">
+                  <span className="grid h-4 min-w-4 place-items-center rounded-full bg-vermilion px-1 font-mono text-[10px] font-bold text-on-vermilion">
                     {pendingReviewCount}
                   </span>
                 )}
@@ -152,6 +163,10 @@ export default function ShrineChrome({
         <div className="flex items-center gap-2">
           {isPro && <ProBadge />}
           <ThemeToggle variant="compact" />
+          {/* Account and settings live in the header; the thumb zone below is
+              for destinations only. That trade is what freed the fifth nav slot
+              for Bills. */}
+          <MoreButton open={moreOpen} onClick={() => setMoreOpen(true)} />
         </div>
       </header>
 
@@ -218,7 +233,7 @@ export default function ShrineChrome({
         className="fixed inset-x-0 bottom-0 z-30 flex items-end border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
         aria-label="Sections"
       >
-        {[TABS[0], TABS[1]].map((t) => (
+        {MOBILE_LEFT.map((t) => (
           <NavItem
             key={t.id}
             id={t.id}
@@ -232,10 +247,17 @@ export default function ShrineChrome({
           <span className="btn-gold pressable -mt-5 flex h-12 w-12 items-center justify-center rounded-full text-2xl font-bold ring-4 ring-surface">
             ＋
           </span>
-          <span className="pb-3 font-mono text-[10px] uppercase tracking-wide text-ink-faint">Log</span>
+          <span className="pb-3 font-mono text-[11px] tracking-wide text-ink-faint">Log</span>
         </button>
-        <NavItem id="fortunes" label={TABS[2].label} active={active === "fortunes"} onClick={() => onTab("fortunes")} />
-        <MoreItem active={moreOpen} onClick={() => setMoreOpen(true)} />
+        {MOBILE_RIGHT.map((t) => (
+          <NavItem
+            key={t.id}
+            id={t.id}
+            label={t.label}
+            active={active === t.id}
+            onClick={() => onTab(t.id)}
+          />
+        ))}
       </nav>
     </div>
   );
@@ -258,14 +280,14 @@ function NavItem({
     <button
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className={`flex flex-1 flex-col items-center gap-1 pb-3 pt-2.5 font-mono text-[10px] uppercase tracking-wide ${
-        active ? "font-semibold text-gold-text" : "text-ink-faint"
+      className={`flex flex-1 flex-col items-center gap-1 pb-3 pt-2.5 font-mono text-[11px] tracking-wide ${
+        active ? "font-semibold text-gold-text" : "text-ink-muted"
       }`}
     >
       <span className="relative leading-none">
         <Icon name={id} />
         {badge > 0 && (
-          <span className="absolute -right-3 -top-1 min-w-[16px] rounded-full bg-vermilion px-1 text-center font-mono text-[9px] font-bold text-white">
+          <span className="absolute -right-3 -top-1 min-w-[16px] rounded-full bg-vermilion px-1 text-center font-mono text-[10px] font-bold text-on-vermilion">
             {badge}
           </span>
         )}
@@ -275,20 +297,20 @@ function NavItem({
   );
 }
 
-function MoreItem({ active, onClick }: { active: boolean; onClick: () => void }) {
+function MoreButton({ open, onClick }: { open: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-1 flex-col items-center gap-1 pb-3 pt-2.5 font-mono text-[10px] uppercase tracking-wide ${
-        active ? "font-semibold text-gold-text" : "text-ink-faint"
-      }`}
+      aria-label="Account and settings"
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      className="grid h-11 w-11 place-items-center rounded-full text-ink-muted transition hover:bg-surface-3 hover:text-ink"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
         <circle cx="5" cy="12" r="1.4" />
         <circle cx="12" cy="12" r="1.4" />
         <circle cx="19" cy="12" r="1.4" />
       </svg>
-      More
     </button>
   );
 }

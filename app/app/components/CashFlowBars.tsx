@@ -18,9 +18,11 @@ export default function CashFlowBars({
   /** The user's IANA timezone — keeps "this month" on their calendar, not UTC. */
   timezone: string;
 }) {
-  const { format } = useMoney();
+  // The reader's own locale, not Singapore's — the project's own convention,
+  // and these two were the last literals in this file.
+  const { format, locale } = useMoney();
   const pulse = useMemo(() => monthPulse(transactions, new Date(), timezone), [transactions, timezone]);
-  const monthLabel = new Date().toLocaleDateString("en-SG", {
+  const monthLabel = new Date().toLocaleDateString(locale, {
     month: "long",
     year: "numeric",
     timeZone: timezone,
@@ -45,26 +47,32 @@ export default function CashFlowBars({
                 className="flex h-24 flex-1 flex-col items-center"
                 title={`${i + 1} ${monthLabel}: in ${format(d.in)} · out ${format(d.out)}`}
               >
+                {/* Each half scales to its own busiest day, and the floor is
+                    2% rather than 6% so a S$2 coffee and a S$150 shop stay
+                    visibly different instead of both bottoming out. */}
                 <div className="flex w-full max-w-[16px] flex-1 items-end justify-center">
                   <div
                     className="w-full rounded-t-sm bg-jade"
-                    style={{ height: d.in > 0 ? `${Math.max(6, (d.in / pulse.maxBar) * 100)}%` : 0 }}
+                    style={{ height: d.in > 0 ? `${Math.max(2, (d.in / pulse.maxIn) * 100)}%` : 0 }}
                   />
                 </div>
                 <div className="w-full border-t-2 border-line" />
                 <div className="flex w-full max-w-[16px] flex-1 items-start justify-center">
                   <div
                     className="w-full rounded-b-sm bg-out"
-                    style={{ height: d.out > 0 ? `${Math.max(6, (d.out / pulse.maxBar) * 100)}%` : 0 }}
+                    style={{ height: d.out > 0 ? `${Math.max(2, (d.out / pulse.maxOut) * 100)}%` : 0 }}
                   />
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-1 flex justify-between font-mono text-[10px] text-ink-faint">
-            <span>1 {new Date().toLocaleDateString("en-SG", { month: "short" })}</span>
+          <div className="mt-1 flex justify-between font-mono text-[11px] text-ink-subtle">
+            <span>1 {new Date().toLocaleDateString(locale, { month: "short", timeZone: timezone })}</span>
             <span>today</span>
           </div>
+          {/* Two scales need saying out loud, or a tall green bar reads as
+              comparable to a tall grey one. */}
+          <p className="mt-2 text-[11px] text-ink-subtle">Each half is scaled to its own busiest day.</p>
         </div>
       )}
 

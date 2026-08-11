@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Category, Transaction, TransactionType } from "@/lib/types";
 import { suggestCategory } from "@/lib/tagger";
 import ReceiptScanButton from "./ReceiptScanButton";
@@ -66,6 +66,17 @@ export default function TransactionForm({
   const [keypadOpen, setKeypadOpen] = useState(false);
   const [markRecurring, setMarkRecurring] = useState(false);
   const [recurringCadence, setRecurringCadence] = useState<"monthly" | "weekly">("monthly");
+
+  // Every field needs an id its label can point at. These were sibling <label>
+  // elements with no htmlFor, so a screen reader announced the amount input as
+  // `textbox "0.00"` and the category as its first option — no field name at
+  // all, on the app's core verb. useId because both entry surfaces mount at
+  // once (CSS decides which is visible), so a hand-written id would collide.
+  const formId = useId();
+  const amountId = `${formId}-amount`;
+  const categoryId = `${formId}-category`;
+  const dateId = `${formId}-date`;
+  const noteId = `${formId}-note`;
 
   // Only offered on the Add flow (not Edit) and only for expenses — a quick
   // enrollment shortcut so a fresh subscription shows up in Bills Due right
@@ -143,7 +154,9 @@ export default function TransactionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-ink-muted">Amount</label>
+        <label htmlFor={amountId} className="block text-sm font-medium text-ink-muted">
+          Amount
+        </label>
         {/* On a phone, tapping the amount opens the keypad with the calculator
             rather than the OS number pad — correcting a captured row is usually
             done against a receipt with several lines on it. The overlay is
@@ -151,6 +164,7 @@ export default function TransactionForm({
             input and never mounts the sheet. */}
         <div className="relative mt-1">
           <input
+            id={amountId}
             type="number"
             step="0.01"
             min="0"
@@ -181,8 +195,11 @@ export default function TransactionForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium text-ink-muted">Category</label>
+        <label htmlFor={categoryId} className="block text-sm font-medium text-ink-muted">
+          Category
+        </label>
         <select
+          id={categoryId}
           value={values.category_id}
           onChange={(e) => setValues((v) => ({ ...v, category_id: e.target.value }))}
           className="field mt-1"
@@ -196,8 +213,11 @@ export default function TransactionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-ink-muted">Date</label>
+        <label htmlFor={dateId} className="block text-sm font-medium text-ink-muted">
+          Date
+        </label>
         <input
+          id={dateId}
           type="date"
           value={values.date}
           onChange={(e) => setValues((v) => ({ ...v, date: e.target.value }))}
@@ -206,8 +226,11 @@ export default function TransactionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-ink-muted">Note (optional)</label>
+        <label htmlFor={noteId} className="block text-sm font-medium text-ink-muted">
+          Note (optional)
+        </label>
         <input
+          id={noteId}
           type="text"
           value={values.note}
           onChange={(e) => setValues((v) => ({ ...v, note: e.target.value }))}

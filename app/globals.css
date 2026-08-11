@@ -45,6 +45,7 @@
   --color-jade-soft: var(--jade-soft);
   --color-vermilion: var(--vermilion);
   --color-vermilion-soft: var(--vermilion-soft);
+  --color-on-vermilion: var(--on-vermilion);
   --color-seal: var(--seal);
 }
 
@@ -69,7 +70,14 @@
   --ink: #1e1913;
   --ink-muted: #5c5346;
   --ink-subtle: #73695a;
-  --ink-faint: #9c9384;
+  /* Was #9c9384, which measured 2.79:1 on --surface-2 and 3.03:1 on white —
+     under the 4.5:1 the project targets, at the 10–11px this token is used for.
+     It carries the bottom-nav labels, chart axes, the money deltas and the
+     keypad's running expression: the number you check before committing money.
+     There is no room for a compliant step below --ink-subtle on a near-white
+     page, so "faint" is now an alias rather than a distinction that cannot be
+     drawn. Quiet text separates itself by size and weight instead. */
+  --ink-faint: var(--ink-subtle);
   --line: #e6e1d9;
   --action: #241d15;
   --on-action: #faf7f2;
@@ -84,6 +92,10 @@
   --jade-soft: #dcefe6;
   --vermilion: #c0361d;
   --vermilion-soft: #fae8e3;
+  /* Ink for text sitting ON vermilion (the review-count badge). Light vermilion
+     is dark enough to carry white at 5.55:1; the dark theme's is not, so the
+     pair has to be a token rather than a hardcoded text-white. */
+  --on-vermilion: #ffffff;
   --seal: #b1301b;
 
   --focus-ring: #8a5f10;
@@ -109,7 +121,8 @@
   --ink: #f7f1e6;
   --ink-muted: #bcc3dd;
   --ink-subtle: #8f97b8;
-  --ink-faint: #636c92;
+  /* Was #636c92 — 3.50:1 on --surface-2. Same reasoning as the light theme. */
+  --ink-faint: var(--ink-subtle);
   --line: #333f70;
   --action: #1f2742;
   --on-action: #f7f1e6;
@@ -124,6 +137,9 @@
   --jade-soft: #16352b;
   --vermilion: #f0795b;
   --vermilion-soft: #3a201a;
+  /* White on this vermilion is 2.77:1 — the badge was unreadable. Near-black
+     ink on the same swatch is 6.31:1. */
+  --on-vermilion: #24120c;
   --seal: #b1301b;
 
   --focus-ring: #edc35b;

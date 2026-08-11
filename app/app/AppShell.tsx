@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { BalanceAnchor, Category, CategoryBudget, EmailConnection, EmailTransactionCandidate, FortuneGoal, FortuneSlipRow, GoalAchievement, ManualRecurringBill, SubscriptionDecision, Transaction, TransactionProvenance } from "@/lib/types";
@@ -113,6 +113,69 @@ export default function AppShell({
   const sheetOpen = modal !== null && !fullForm;
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // The desktop entry modal was a bare <div>: no dialog role, no focus move, no
+  // trap, no backdrop dismiss. Every one of the 18 controls behind it stayed
+  // ahead of the form in the tab order, and Esc only worked by accident —
+  // through the mobile EntrySheet, which stays mounted and listening even on
+  // desktop. A keyboard or screen-reader user had no way to tell the app's core
+  // verb had opened. EntrySheet already does this properly; the desktop path
+  // was the odd one out.
+  const entryTitleId = useId();
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  // Where focus came from, so it can go back there on close rather than
+  // collapsing to the top of the document.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const panel = modalRef.current;
+    // Both entry surfaces mount on every device and CSS picks the visible one,
+    // so asking the element whether it is actually painted keeps the breakpoint
+    // in one place instead of hardcoding `lg` a second time here in JS.
+    if (!modal || !panel || panel.getClientRects().length === 0) return;
+
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
+
+    const focusable = () =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.getClientRects().length > 0);
+
+    // Straight to the amount. It is the field every entry starts with, and
+    // landing there is the difference between "a dialog opened" and "type".
+    (panel.querySelector<HTMLElement>("input[type=number]") ?? focusable()[0])?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        closeEntry();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      // Wrap at both ends so Tab can never walk out into the dashboard behind.
+      if (e.shiftKey && (active === first || !panel.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown, true);
+      returnFocusRef.current?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modal, fullForm]);
 
   // The "+ Add" tab and drawer item deep-link here as /app?add=1 so the
   // add-transaction modal is reachable from any screen.
@@ -503,11 +566,33 @@ export default function AppShell({
           className={`fixed inset-0 z-40 items-center justify-center bg-black/30 p-4 ${
             fullForm ? "flex" : "hidden lg:flex"
           }`}
+          // Clicking the backdrop leaves. The panel stops the event so a click
+          // inside it never counts as a click outside.
+          onClick={closeEntry}
         >
-          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-semibold text-ink">
-              {modal === "add" ? "Add Transaction" : "Edit Transaction"}
-            </h3>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={entryTitleId}
+            ref={modalRef}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl"
+          >
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <h3 id={entryTitleId} className="text-lg font-semibold text-ink">
+                {modal === "add" ? "Add Transaction" : "Edit Transaction"}
+              </h3>
+              <button
+                type="button"
+                onClick={closeEntry}
+                aria-label="Close"
+                className="-mr-1 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-subtle transition hover:bg-surface-3 hover:text-ink"
+              >
+                <span aria-hidden className="text-lg leading-none">
+                  ×
+                </span>
+              </button>
+            </div>
             <TransactionForm
               categories={categories}
               initial={

@@ -33,20 +33,38 @@ export default function CatRail({
   const state = catState(pulse.net, pulse.burnDelta);
   const sr = pulse.savingsRate;
 
+  // The headline states the number the ring is drawing, so the two can never be
+  // read as disagreeing. Before, the caption spoke about "luck" while the ring
+  // spoke about savings, which is what let them contradict each other.
   const caption =
     state === "saving"
-      ? "Well fed · luck is rising"
+      ? sr != null
+        ? `Well fed · saving ${sr}%`
+        : "Well fed · more came in than went out"
       : state === "even"
-        ? "Watchful · luck holds steady"
-        : "Ears back · luck is thin";
+        ? "Watchful · breaking even"
+        : "Ears back · in the red this month";
   // The reader's own locale and calendar — not Singapore's.
   const monthName = new Date().toLocaleDateString(locale, { month: "long", timeZone: timezone });
   const ringNote =
     sr != null && sr > 0
-      ? `the ring is your savings pace — saving ${sr}% of ${monthName}'s income`
+      ? `the ring is your savings pace — ${sr}% of ${monthName}'s income stayed put`
       : sr != null && sr < 0
-        ? "the ring is your savings pace — you're in the red this month"
+        ? "the ring is your savings pace — you're spending more than comes in"
         : "the ring is your savings pace";
+
+  // Pace used to be able to override the mood outright. It's a real signal, so
+  // it keeps a voice — just a subordinate one, and only when it's steep enough
+  // to be worth saying. Encouragement leads; the caveat follows.
+  // Past a point the percentage stops informing and starts sounding broken:
+  // someone who barely used the app last month gets a true but useless "2942%
+  // faster". Above 200 the shape of the fact is all that's left, so say that.
+  const paceCaveat =
+    pulse.burnDelta == null || pulse.burnDelta <= 30
+      ? null
+      : pulse.burnDelta > 200
+        ? "spending far faster than last month"
+        : `spending ${pulse.burnDelta}% faster than last month`;
 
   return (
     <div className="rounded-2xl border border-line bg-surface p-5">
@@ -69,6 +87,11 @@ export default function CatRail({
         <div className="text-center">
           <p className="text-base font-semibold text-ink">{caption}</p>
           <p className="mx-auto mt-1 max-w-[15rem] text-xs text-ink-subtle">{ringNote}</p>
+          {paceCaveat && (
+            <p className="mx-auto mt-1.5 max-w-[15rem] text-xs text-ink-muted">
+              <span aria-hidden>·</span> {paceCaveat}
+            </p>
+          )}
         </div>
       </div>
 
