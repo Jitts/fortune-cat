@@ -13,7 +13,8 @@ import { parseStatementCsv, type StatementRow } from "@/lib/csv/parseStatement";
 import { parseStatementText } from "@/lib/docs/parseStatementText";
 import { parseEmailForTransaction } from "@/lib/email/parseCandidate";
 import { convertToBase } from "@/lib/fx";
-import { getBaseCurrency, getUserProfile } from "@/lib/profile";
+import { getBaseCurrency, getProfileByUserId, getUserProfile } from "@/lib/profile";
+import { formatNumberIn } from "@/lib/format";
 import { suggestCategory } from "@/lib/tagger";
 import { inboxLimit } from "@/lib/email/inboxLimits";
 import { ensureGraphAccessToken, fetchRecentMessagesGraph } from "@/lib/email/graphClient";
@@ -1015,7 +1016,9 @@ export async function importDocument(formData: FormData): Promise<ImportResult> 
 
   // Receipts parsed via the email heuristic may be in a foreign currency —
   // foreign meaning "not the user's own base currency".
-  const baseCurrency = await getBaseCurrency(supabase, user.id);
+  // Server-side, so there's no CurrencyProvider — the profile is the only
+  // source for the locale this review note gets formatted in.
+  const { currency: baseCurrency, locale } = await getProfileByUserId(supabase, user.id);
   if (receipt && !statement.rows[0] && receipt.currency !== baseCurrency) {
     const fx = await convertToBase(receipt.amount, receipt.currency, baseCurrency);
     if (fx) single.amount = fx.base;
@@ -1028,8 +1031,8 @@ export async function importDocument(formData: FormData): Promise<ImportResult> 
         original_amount: receipt.amount,
         original_currency: receipt.currency,
         review_reason: fx
-          ? `${receipt.currency} ${receipt.amount.toLocaleString("en-SG")} @ ${fx.rate.toFixed(4)} — confirm the rate`
-          : `${receipt.currency} ${receipt.amount.toLocaleString("en-SG")} — rate unavailable, edit the ${baseCurrency} amount`,
+          ? `${receipt.currency} ${formatNumberIn(receipt.amount, locale)} @ ${fx.rate.toFixed(4)} — confirm the rate`
+          : `${receipt.currency} ${formatNumberIn(receipt.amount, locale)} — rate unavailable, edit the ${baseCurrency} amount`,
       })
       .eq("user_id", user.id)
       .eq("status", "pending")

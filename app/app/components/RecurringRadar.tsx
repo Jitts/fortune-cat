@@ -7,11 +7,12 @@ import { useMoney } from "@/app/components/CurrencyProvider";
 import { addManualBill, deleteManualBill } from "../manualBillActions";
 import type { ManualRecurringBill, Transaction } from "@/lib/types";
 
-function dueLabel(daysUntil: number, nextDate: string): string {
-  const date = new Date(`${nextDate}T00:00:00`).toLocaleDateString("en-SG", {
-    day: "numeric",
-    month: "short",
-  });
+function dueLabel(
+  daysUntil: number,
+  nextDate: string,
+  formatDate: (v: string, o?: Intl.DateTimeFormatOptions) => string,
+): string {
+  const date = formatDate(nextDate, { day: "numeric", month: "short" });
   if (daysUntil < 0) return `${date} · overdue`;
   if (daysUntil === 0) return `${date} · today`;
   if (daysUntil === 1) return `${date} · tomorrow`;
@@ -28,7 +29,7 @@ function todayIso() {
  */
 function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecurringBill[] }) {
   const [manualBills, setManualBills] = useState(initial);
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -183,10 +184,7 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
                 <p className="truncate text-sm font-medium text-ink">{b.name}</p>
                 <p className="text-xs text-ink-subtle">
                   every {b.cadence} · next{" "}
-                  {new Date(`${b.next_due_date}T00:00:00`).toLocaleDateString("en-SG", {
-                    day: "numeric",
-                    month: "short",
-                  })}
+                  {formatDate(b.next_due_date, { day: "numeric", month: "short" })}
                   {b.account_tag ? ` · ${b.account_tag}` : ""}
                 </p>
               </div>
@@ -235,7 +233,7 @@ export default function RecurringRadar({
   manualBills: ManualRecurringBill[];
   isPro: boolean;
 }) {
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   const { upcoming, alerts } = useMemo(() => analyzeRecurring(transactions), [transactions]);
   const hasDetected = upcoming.length > 0 || alerts.length > 0;
 
@@ -297,7 +295,7 @@ export default function RecurringRadar({
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-ink">{f.name}</p>
                       <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-ink-subtle">
-                        <span>{dueLabel(f.daysUntil, f.nextDate)}</span>
+                        <span>{dueLabel(f.daysUntil, f.nextDate, formatDate)}</span>
                         <span className="rounded-full bg-surface-3 px-1.5 py-px font-mono text-[10px] text-ink-subtle">
                           {f.cadence}
                         </span>

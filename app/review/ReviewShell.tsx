@@ -17,7 +17,7 @@ import AppChrome from "@/app/components/AppChrome";
 import Toast from "@/app/app/components/Toast";
 import SenderPrompt from "@/app/app/components/SenderPrompt";
 import type { PendingSender } from "@/lib/email/pendingSenders";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDateIn } from "@/lib/format";
 import { CurrencyProvider } from "@/app/components/CurrencyProvider";
 
 export default function ReviewShell({
@@ -28,6 +28,7 @@ export default function ReviewShell({
   isPro,
   currency,
   locale,
+  timezone,
   pendingSenders = [],
 }: {
   hasConnection: boolean;
@@ -37,6 +38,7 @@ export default function ReviewShell({
   isPro: boolean;
   currency: string;
   locale: string;
+  timezone: string;
   /** Senders the envelope pass saw that nobody has decided about yet. */
   pendingSenders?: PendingSender[];
 }) {
@@ -143,7 +145,7 @@ export default function ReviewShell({
   }
 
   return (
-    <CurrencyProvider currency={currency} locale={locale}>
+    <CurrencyProvider currency={currency} locale={locale} timezone={timezone}>
     <AppChrome userEmail={userEmail} isPro={isPro} pendingReviewCount={candidates.length}>
       <div className="space-y-3">
         {/* Ahead of the captures: an unopened sender can't produce one. */}
@@ -199,7 +201,7 @@ export default function ReviewShell({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-ink">{c.subject}</p>
                     <p className="font-mono text-[10px] text-ink-faint">
-                      {c.email_date ? formatDate(c.email_date.slice(0, 10)) : ""}
+                      {c.email_date ? formatDateIn(c.email_date.slice(0, 10), locale, timezone) : ""}
                       {c.account_tag ? ` · ${c.account_tag}` : ""}
                     </p>
                   </div>

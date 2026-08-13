@@ -16,14 +16,13 @@ import CoinGlyph from "@/app/components/CoinGlyph";
  * looking healthy is no comfort if you cross zero on the 14th.
  */
 
-function shortDate(iso: string): string {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-SG", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  });
-}
+// A bare YYYY-MM-DD: formatDate pins it to UTC on both ends, so the label
+// cannot slide a day for readers either side of the line.
+const shortDateOpts: Intl.DateTimeFormatOptions = {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+};
 
 export default function BalanceForecast({
   transactions,
@@ -36,7 +35,7 @@ export default function BalanceForecast({
   anchor: BalanceAnchor | null;
   isPro: boolean;
 }) {
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
 
   // Per-instance gradient id. Only one forecast renders today, so a fixed id
   // would still work — but the responsive layout duplicates organs between the
@@ -132,7 +131,7 @@ export default function BalanceForecast({
                 {format(f.lowest.balance)}
               </p>
               <p className="mt-0.5 text-xs text-ink-subtle">
-                on {shortDate(f.lowest.date)}
+                on {formatDate(f.lowest.date, shortDateOpts)}
                 {relative && " — change from today"}
               </p>
             </div>
@@ -140,7 +139,7 @@ export default function BalanceForecast({
 
           <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full" role="img" aria-label={
             f.lowest
-              ? `Projected balance over the next ${f.horizonDays} days, lowest on ${shortDate(f.lowest.date)}`
+              ? `Projected balance over the next ${f.horizonDays} days, lowest on ${formatDate(f.lowest.date, shortDateOpts)}`
               : "Projected balance"
           }>
             <defs>
@@ -177,7 +176,7 @@ export default function BalanceForecast({
 
           {dipsBelowZero && (
             <p className="mt-2 rounded-lg bg-vermilion-soft px-3 py-2 text-xs text-vermilion">
-              Your projected balance crosses zero on {shortDate(f.lowest!.date)}. Moving a bill or
+              Your projected balance crosses zero on {formatDate(f.lowest!.date, shortDateOpts)}. Moving a bill or
               holding back a purchase before then would clear it.
             </p>
           )}
@@ -213,7 +212,7 @@ export default function BalanceForecast({
                 >
                   <span className="flex min-w-0 items-center gap-2">
                     <span className="w-16 shrink-0 font-mono text-[10px] text-ink-faint">
-                      {shortDate(e.on).replace(/^\w+, /, "")}
+                      {formatDate(e.on, shortDateOpts).replace(/^\w+, /, "")}
                     </span>
                     <span className="truncate text-ink-muted">{e.name}</span>
                     {e.kind === "planned" && (

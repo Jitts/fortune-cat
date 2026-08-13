@@ -50,6 +50,7 @@ export default async function ReviewPage() {
       isPro={!!activePayment}
       currency={profile.currency}
       locale={profile.locale}
+      timezone={profile.timezone}
       pendingSenders={pendingSenders}
     />
   );

@@ -12,10 +12,14 @@ import type { ManualRecurringBill, Transaction } from "@/lib/types";
  * right rail and the Bills tab. When there's nothing yet, offers a way in
  * rather than just disappearing.
  */
-function whenLabel(daysUntil: number, nextDate: string): string {
+function whenLabel(
+  daysUntil: number,
+  nextDate: string,
+  formatDate: (v: string, o?: Intl.DateTimeFormatOptions) => string,
+): string {
   if (daysUntil <= 0) return "due now";
   if (daysUntil === 1) return "tomorrow";
-  return new Date(`${nextDate}T00:00:00`).toLocaleDateString("en-SG", { day: "numeric", month: "short" });
+  return formatDate(nextDate, { day: "numeric", month: "short" });
 }
 
 export default function BillsDue({
@@ -29,7 +33,7 @@ export default function BillsDue({
   limit?: number;
   onAdd?: () => void;
 }) {
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   const bills = useMemo(() => {
     const detected = analyzeRecurring(transactions).upcoming.filter((f) => f.type === "expense");
     const manual = manualBills.filter((b) => b.type === "expense");
@@ -67,7 +71,7 @@ export default function BillsDue({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-ink">{b.name}</p>
                 <p className="text-xs text-ink-subtle">
-                  {whenLabel(b.daysUntil, b.nextDate)} ·{" "}
+                  {whenLabel(b.daysUntil, b.nextDate, formatDate)} ·{" "}
                   {b.biller ? "GIRO" : (b.accountTag ?? (b.source === "manual" ? "manual" : "card"))}
                 </p>
               </div>

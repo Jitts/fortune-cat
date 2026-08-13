@@ -1,6 +1,5 @@
 "use client";
 
-import { formatDate } from "@/lib/format";
 import { useMoney } from "@/app/components/CurrencyProvider";
 import type { EmailTransactionCandidate } from "@/lib/types";
 
@@ -19,7 +18,7 @@ export default function EmailCandidateList({
   onBlockSender?: (fromAddress: string) => void;
   pendingId: string | null;
 }) {
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   if (candidates.length === 0) {
     return (
       <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-line">

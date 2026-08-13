@@ -30,10 +30,9 @@ function DeltaTag({ delta, invertGood }: { delta: Delta; invertGood?: boolean })
 
 /** Two-series monthly bars: income (jade) vs expense (ink). */
 function MonthlyChart({ monthly }: { monthly: { month: string; income: number; expense: number }[] }) {
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   const max = Math.max(1, ...monthly.map((m) => Math.max(m.income, m.expense)));
-  const label = (key: string) =>
-    new Date(`${key}-01T00:00:00`).toLocaleDateString("en-SG", { month: "short" });
+  const label = (key: string) => formatDate(`${key}-01`, { month: "short" });
   return (
     <div>
       <div className="mb-3 flex items-center gap-4 font-mono text-[10px] uppercase tracking-wide text-ink-subtle">

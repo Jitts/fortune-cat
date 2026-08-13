@@ -19,7 +19,7 @@ export default function GoalWins({
   achievements: GoalAchievement[];
   isPro: boolean;
 }) {
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
 
   const byYear = useMemo(() => {
     const groups = new Map<number, GoalAchievement[]>();
@@ -87,10 +87,7 @@ export default function GoalWins({
                     </div>
                     <span className="shrink-0 text-right font-mono text-[11px] text-jade">
                       ✓{" "}
-                      {new Date(a.achieved_at).toLocaleDateString("en-SG", {
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {formatDate(a.achieved_at, { month: "short", day: "numeric" })}
                     </span>
                   </li>
                 ))}

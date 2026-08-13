@@ -4,6 +4,7 @@
 // their money natively; a missing profile falls straight back to these.
 export const DEFAULT_CURRENCY = "SGD";
 export const DEFAULT_LOCALE = "en-SG";
+export const DEFAULT_TIMEZONE = "Asia/Singapore";
 
 export function formatCurrency(
   amount: number,
@@ -18,12 +19,49 @@ export function formatCurrency(
   }
 }
 
-export function formatDate(date: string) {
-  return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+const CALENDAR_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Render a date in the reader's locale, drawing the calendar-date / instant
+ * distinction that has now caused two shipped bugs.
+ *
+ *  • A bare `YYYY-MM-DD` is a CALENDAR DATE, not a moment. It is pinned to UTC
+ *    on both the parse and the format, so no offset can shift it. Parsing it at
+ *    local midnight and rendering it in another zone is what made a bill due
+ *    28 Aug read as 27 Aug (see lib/manualBills.ts).
+ *  • Anything else is a real instant and is rendered in the reader's timezone —
+ *    a UTC `created_at` shown without one lands on the wrong day near midnight.
+ *
+ * Prefer `useMoney().formatDate` in components; it binds locale + timezone from
+ * the profile so no call site has to remember either.
+ */
+export function formatDateIn(
+  value: string | Date,
+  locale: string = DEFAULT_LOCALE,
+  timezone: string = DEFAULT_TIMEZONE,
+  opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" },
+): string {
+  const calendarDate = typeof value === "string" && CALENDAR_DATE.test(value);
+  const d = calendarDate ? new Date(`${value}T00:00:00Z`) : new Date(value);
+  const timeZone = calendarDate ? "UTC" : timezone;
+  try {
+    return new Intl.DateTimeFormat(locale, { timeZone, ...opts }).format(d);
+  } catch {
+    // Unknown locale/timezone — never throw in a render path.
+    return new Intl.DateTimeFormat(DEFAULT_LOCALE, { timeZone: "UTC", ...opts }).format(d);
+  }
+}
+
+export function formatNumberIn(
+  value: number,
+  locale: string = DEFAULT_LOCALE,
+  opts: Intl.NumberFormatOptions = {},
+): string {
+  try {
+    return new Intl.NumberFormat(locale, opts).format(value);
+  } catch {
+    return new Intl.NumberFormat(DEFAULT_LOCALE, opts).format(value);
+  }
 }
 
 export function isCurrentMonth(date: string) {

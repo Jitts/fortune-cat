@@ -19,9 +19,8 @@ function signedAmount(t: Transaction) {
 
 // Inside a year section the year is already on the header, so months show just
 // their name ("July") to avoid repeating it on every bar.
-function monthNameLabel(key: string) {
-  const [y, m] = key.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long" });
+function monthNameLabel(key: string, formatDate: (v: string, o?: Intl.DateTimeFormatOptions) => string) {
+  return formatDate(`${key}-01`, { month: "long" });
 }
 
 // "Today · Sat, 13 Jul" / "Yesterday · …" for the two most recent days, else the
@@ -30,16 +29,16 @@ function monthNameLabel(key: string) {
 // from new Date() would use the server's UTC day during SSR and the browser's
 // local day on the client, mismatching near midnight. All date math is done in
 // UTC on the bare calendar strings so the weekday stamp never drifts by tz.
-function dayLabel(date: string, today: string) {
+function dayLabel(
+  date: string,
+  today: string,
+  formatDate: (v: string, o?: Intl.DateTimeFormatOptions) => string,
+) {
   const d = new Date(`${date}T00:00:00Z`);
   const t = new Date(`${today}T00:00:00Z`);
   const diffDays = Math.round((t.getTime() - d.getTime()) / 86_400_000);
-  const stamp = d.toLocaleDateString("en-US", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  });
+  // formatDate keeps a bare calendar date pinned to UTC, same as the math above.
+  const stamp = formatDate(date, { weekday: "short", day: "numeric", month: "short" });
   if (diffDays === 0) return `Today · ${stamp}`;
   if (diffDays === 1) return `Yesterday · ${stamp}`;
   return stamp;
@@ -82,7 +81,7 @@ function TransactionRow({
   onRejectTag: (id: string) => void;
   tagPending: boolean;
 }) {
-  const { format } = useMoney();
+  const { format, formatNumber } = useMoney();
   const category = categories.find((c) => c.id === t.category_id);
   const isIncome = t.type === "income";
   const prov = provenance[t.id];
@@ -129,7 +128,7 @@ function TransactionRow({
               )}
               {t.original_currency && t.original_amount != null && (
                 <span className="font-mono text-[10px] text-ink-faint">
-                  {t.original_currency} {t.original_amount.toLocaleString("en-SG")}
+                  {t.original_currency} {formatNumber(t.original_amount)}
                 </span>
               )}
               {merchant?.biller && (
@@ -197,6 +196,8 @@ export default function TransactionList({
   onRejectTag: (id: string) => void;
   tagPending: boolean;
 }) {
+  const { formatDate } = useMoney();
+
   // Fold the flat, date-desc list into years → months → days, carrying a running
   // net subtotal at each level. Insertion order stays reverse-chronological
   // because we walk a defensively-sorted copy.
@@ -393,7 +394,7 @@ export default function TransactionList({
                           >
                             ▾
                           </span>
-                          {monthNameLabel(month.key)}
+                          {monthNameLabel(month.key, formatDate)}
                         </span>
                         <span className="text-sm font-semibold">
                           <NetAmount value={month.net} strong />
@@ -426,7 +427,7 @@ export default function TransactionList({
                                     }`}
                                     style={day.key === today ? { filter: "drop-shadow(0 0 3px rgba(255,215,0,.7))" } : undefined}
                                   />
-                                  {dayLabel(day.key, today)}
+                                  {dayLabel(day.key, today, formatDate)}
                                   <span
                                     className={`inline-block text-[9px] leading-none text-ink-faint transition-transform ${dayCollapsed ? "-rotate-90" : ""}`}
                                     aria-hidden

@@ -14,12 +14,11 @@ const STATUS_META: Record<SubscriptionStatus, { label: string; pill: string }> =
   cancelled: { label: "Cancelled", pill: "bg-jade-soft text-jade" },
 };
 
-function lastChargedLabel(date: string): string {
-  const d = new Date(`${date}T00:00:00`).toLocaleDateString("en-SG", {
-    day: "numeric",
-    month: "short",
-  });
-  return `last charged ${d}`;
+function lastChargedLabel(
+  date: string,
+  formatDate: (v: string, o?: Intl.DateTimeFormatOptions) => string,
+): string {
+  return `last charged ${formatDate(date, { day: "numeric", month: "short" })}`;
 }
 
 /**
@@ -37,7 +36,7 @@ export default function SubscriptionKillChain({
   decisions: SubscriptionDecision[];
   isPro: boolean;
 }) {
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   const subs = useMemo(() => detectSubscriptions(transactions), [transactions]);
 
   const [decisionMap, setDecisionMap] = useState<Record<string, SubscriptionDecision>>(() =>
@@ -144,7 +143,7 @@ export default function SubscriptionKillChain({
                     {sub.name}
                   </p>
                   <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-ink-subtle">
-                    <span>{lastChargedLabel(sub.lastDate)}</span>
+                    <span>{lastChargedLabel(sub.lastDate, formatDate)}</span>
                     {decision && (
                       <span
                         className={`rounded-full px-1.5 py-px font-mono text-[10px] ${STATUS_META[decision.status].pill}`}

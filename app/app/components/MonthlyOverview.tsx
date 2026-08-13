@@ -18,7 +18,7 @@ type MonthRow = {
  * month's heartbeat; this card shows the trend line behind it.
  */
 export default function MonthlyOverview({ transactions }: { transactions: Transaction[] }) {
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   const months = useMemo<MonthRow[]>(() => {
     const map = new Map<string, { inTotal: number; outTotal: number }>();
     for (const t of transactions) {
@@ -33,10 +33,7 @@ export default function MonthlyOverview({ transactions }: { transactions: Transa
       .slice(0, 12)
       .map(([key, v]) => ({
         key,
-        label: new Date(`${key}-01T00:00:00`).toLocaleDateString("en-SG", {
-          month: "short",
-          year: "2-digit",
-        }),
+        label: formatDate(`${key}-01`, { month: "short", year: "2-digit" }),
         inTotal: v.inTotal,
         outTotal: v.outTotal,
         net: v.inTotal - v.outTotal,

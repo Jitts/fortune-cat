@@ -413,7 +413,7 @@ export default function AppShell({
   };
 
   return (
-    <CurrencyProvider currency={currency} locale={locale}>
+    <CurrencyProvider currency={currency} locale={locale} timezone={timezone}>
     <ShrineChrome
       active={active}
       onTab={setTab}

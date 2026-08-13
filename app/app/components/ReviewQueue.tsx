@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate } from "@/lib/format";
 import { useMoney } from "@/app/components/CurrencyProvider";
 import type { EmailTransactionCandidate } from "@/lib/types";
 import {
@@ -34,7 +33,7 @@ export default function ReviewQueue({
   pendingSenders?: PendingSender[];
 }) {
   const router = useRouter();
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   const [candidates, setCandidates] = useState(initialCandidates);
   const [filtered, setFiltered] = useState(initialFiltered);
   const [showFiltered, setShowFiltered] = useState(false);

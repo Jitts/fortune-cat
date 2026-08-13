@@ -66,7 +66,7 @@ export default function FortuneGoals({
   isPro: boolean;
 }) {
   const router = useRouter();
-  const { format } = useMoney();
+  const { format, formatDate } = useMoney();
   const [items, setItems] = useState(goals);
   // Reconcile with server data after a router.refresh() — e.g. once a reached
   // goal has been banked as a win and should drop off the active list.
@@ -271,7 +271,7 @@ export default function FortuneGoals({
                         <p className="mt-0.5 text-xs text-ink-subtle [font-variant-numeric:tabular-nums]">
                           {format(g.saved_amount)} of {format(g.target_amount)}
                           {g.target_date && (
-                            <> · by {new Date(`${g.target_date}T00:00:00`).toLocaleDateString("en-SG", { month: "short", year: "numeric" })}</>
+                            <> · by {formatDate(g.target_date, { month: "short", year: "numeric" })}</>
                           )}
                         </p>
                       </div>
