@@ -16,6 +16,7 @@ supabase/.temp/
 
 # Claude Code local state (transient agent worktrees, personal settings)
 .claude/worktrees/
+.claude/settings.json
 .claude/settings.local.json
 .claude/settings.local.json.*
 
