@@ -14,10 +14,15 @@ function daysBetween(a: string, b: string): number {
   return Math.round((Date.parse(b) - Date.parse(a)) / DAY_MS);
 }
 
+// A bare YYYY-MM-DD is a calendar date, not an instant, so the whole roll stays
+// in UTC. Parsing local midnight and serialising with toISOString() disagreed by
+// the user's offset: east of UTC, "2026-08-28" + 1 month came back 2026-09-27,
+// and because manualBillToFlow rolls in a loop the loss compounded — six monthly
+// rolls landed on the 22nd. Due dates feed safe-to-spend's "bills still due".
 export function addCadence(dateStr: string, cadence: ManualRecurringBill["cadence"]): string {
-  const d = new Date(`${dateStr}T00:00:00`);
-  if (cadence === "weekly") d.setDate(d.getDate() + 7);
-  else d.setMonth(d.getMonth() + 1);
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  if (cadence === "weekly") d.setUTCDate(d.getUTCDate() + 7);
+  else d.setUTCMonth(d.getUTCMonth() + 1);
   return d.toISOString().slice(0, 10);
 }
 
