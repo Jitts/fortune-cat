@@ -33,6 +33,12 @@ assert.equal(d, "2027-02-28", `six monthly rolls drifted in ${tz}`);
 assert.equal(addCadence("2026-12-15", "monthly"), "2027-01-15");
 assert.equal(addCadence("2026-12-29", "weekly"), "2027-01-05");
 
+// A bill due the 31st clamps into months too short to hold it.
+assert.equal(addCadence("2026-01-31", "monthly"), "2026-02-28", "31 Jan should clamp to 28 Feb");
+assert.equal(addCadence("2026-01-30", "monthly"), "2026-02-28");
+// Leap year: 31 Jan 2028 clamps to the 29th, not the 28th.
+assert.equal(addCadence("2028-01-31", "monthly"), "2028-02-29");
+
 // End to end through the flow builder: a bill whose stored anchor is long past
 // gets rolled forward, and must still land on its original day-of-month.
 const bill = {
@@ -48,5 +54,27 @@ const bill = {
 const flow = manualBillToFlow(bill, new Date("2026-08-13T08:26:00Z"));
 assert.equal(flow.nextDate, "2026-08-28", `rolled anchor drifted in ${tz}`);
 assert.equal(flow.daysUntil, 15);
+
+// The clamp must not STICK. manualBillToFlow measures every step from the
+// original anchor, so a bill anchored on the 31st passes through 28 Feb and
+// comes back to 31 Mar. Rolling off each previous result instead would leave it
+// on the 28th forever — the compounding bug in a different hat.
+const on31 = { ...bill, next_due_date: "2026-01-31" } as ManualRecurringBill;
+assert.equal(manualBillToFlow(on31, new Date("2026-02-15T00:00:00Z")).nextDate, "2026-02-28");
+assert.equal(
+  manualBillToFlow(on31, new Date("2026-03-15T00:00:00Z")).nextDate,
+  "2026-03-31",
+  "clamped day-of-month stuck instead of recovering",
+);
+assert.equal(manualBillToFlow(on31, new Date("2026-04-15T00:00:00Z")).nextDate, "2026-04-30");
+assert.equal(manualBillToFlow(on31, new Date("2026-05-15T00:00:00Z")).nextDate, "2026-05-31");
+
+// Weekly still steps exactly, and also measures from the anchor. Note the roll
+// stops at -5 days, not 0: a just-missed bill stays on the list for five days
+// rather than silently jumping to next cycle, so from 20 Aug this rests on the
+// 15th (-5) rather than advancing to the 22nd.
+const weekly = { ...bill, next_due_date: "2026-08-01", cadence: "weekly" } as ManualRecurringBill;
+assert.equal(manualBillToFlow(weekly, new Date("2026-08-20T00:00:00Z")).nextDate, "2026-08-15");
+assert.equal(manualBillToFlow(weekly, new Date("2026-08-26T00:00:00Z")).nextDate, "2026-08-22");
 
 console.log(`ok — manual bill cadence holds its day-of-month (${tz})`);

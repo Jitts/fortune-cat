@@ -14,16 +14,43 @@ function daysBetween(a: string, b: string): number {
   return Math.round((Date.parse(b) - Date.parse(a)) / DAY_MS);
 }
 
-// A bare YYYY-MM-DD is a calendar date, not an instant, so the whole roll stays
-// in UTC. Parsing local midnight and serialising with toISOString() disagreed by
-// the user's offset: east of UTC, "2026-08-28" + 1 month came back 2026-09-27,
-// and because manualBillToFlow rolls in a loop the loss compounded — six monthly
-// rolls landed on the 22nd. Due dates feed safe-to-spend's "bills still due".
+/**
+ * `anchor` advanced by `n` cadence steps, as a bare YYYY-MM-DD.
+ *
+ * Two rules, both learned the hard way:
+ *
+ *  1. A bare date is a calendar date, not an instant, so the whole roll stays in
+ *     UTC. Parsing local midnight and serialising with toISOString() disagreed
+ *     by the reader's offset — east of UTC, "2026-08-28" + 1 month came back
+ *     2026-09-27, and it compounded to the 22nd over six rolls.
+ *  2. Always measured from the ORIGINAL anchor, never from the previous result.
+ *     Monthly keeps the anchor's day-of-month and clamps only into months too
+ *     short to hold it, so 31 Jan -> 28 Feb -> 31 Mar. Re-clamping off each
+ *     result would make the 28th stick and walk the bill backwards — the same
+ *     compounding bug wearing a different hat.
+ *
+ * Due dates feed safe-to-spend's "bills still due", so drift moves money.
+ */
+function addCadenceSteps(
+  anchor: string,
+  cadence: ManualRecurringBill["cadence"],
+  n: number,
+): string {
+  if (cadence === "weekly") {
+    const d = new Date(`${anchor}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 7 * n);
+    return d.toISOString().slice(0, 10);
+  }
+  const [y, m, day] = anchor.split("-").map(Number);
+  const targetMonth = m - 1 + n; // 0-indexed from year y; Date.UTC normalises overflow
+  const lastDayOfTarget = new Date(Date.UTC(y, targetMonth + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(y, targetMonth, Math.min(day, lastDayOfTarget)))
+    .toISOString()
+    .slice(0, 10);
+}
+
 export function addCadence(dateStr: string, cadence: ManualRecurringBill["cadence"]): string {
-  const d = new Date(`${dateStr}T00:00:00Z`);
-  if (cadence === "weekly") d.setUTCDate(d.getUTCDate() + 7);
-  else d.setUTCMonth(d.getUTCMonth() + 1);
-  return d.toISOString().slice(0, 10);
+  return addCadenceSteps(dateStr, cadence, 1);
 }
 
 export type BillFlow = RecurringFlow & { source?: "manual"; id?: string };
@@ -35,11 +62,12 @@ export type BillFlow = RecurringFlow & { source?: "manual"; id?: string };
 // ever the bill's original anchor.
 export function manualBillToFlow(bill: ManualRecurringBill, today = new Date()): BillFlow {
   const todayStr = today.toISOString().slice(0, 10);
-  let next = bill.next_due_date;
-  let guard = 0;
-  while (daysBetween(todayStr, next) < -5 && guard < 500) {
-    next = addCadence(next, bill.cadence);
-    guard += 1;
+  const anchor = bill.next_due_date;
+  let next = anchor;
+  let steps = 0;
+  while (daysBetween(todayStr, next) < -5 && steps < 500) {
+    steps += 1;
+    next = addCadenceSteps(anchor, bill.cadence, steps);
   }
   return {
     key: `manual:${bill.id}`,
