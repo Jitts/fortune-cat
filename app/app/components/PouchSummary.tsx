@@ -9,22 +9,31 @@ import type { BalanceAnchor, FortuneGoal, Transaction } from "@/lib/types";
 
 /**
  * "In your pouch" — the mockup's pouch card. Compact by default: label, the big
- * safe-to-spend number, and the receipt breakdown lines. Pace bar, full receipt
- * and confirm-balance live behind a "details" expander. Same engine as before
- * (lib/safeToSpend); this is the Shrine restyle of SafeToSpendCard.
+ * safe-to-spend number, and the receipt breakdown lines. Same engine as before
+ * (lib/safeToSpend).
+ *
+ * The number itself is FREE. It's derived from the user's own logged
+ * transactions, and it's the one big number on Home — walling the payoff of the
+ * core verb is the "nagged" failure mode PRODUCT.md's "value before the wall"
+ * rejects. Pro buys the refinements: the confirmed-balance anchor (flow mode →
+ * exact figure) and the pace/coverage detail. A free user's receipt is shorter
+ * because Pro features feed it, which is a better upgrade pitch than a padlock.
  */
 export default function PouchSummary({
   transactions,
   goals,
   anchor,
   isPro,
+  timezone,
 }: {
   transactions: Transaction[];
   goals: FortuneGoal[];
   anchor: BalanceAnchor | null;
   isPro: boolean;
+  /** The user's IANA timezone — month-end is their calendar's, not the runtime's. */
+  timezone: string;
 }) {
-  const { format } = useMoney();
+  const { format, locale } = useMoney();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
@@ -36,29 +45,13 @@ export default function PouchSummary({
     [transactions, goals, anchor],
   );
 
-  const monthEnd = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString(
-    "en-SG",
+  // The user's own calendar month, not the runtime's — near local midnight on
+  // the 31st these disagree, and "till 31 Aug" would flip a month early.
+  const todayLocal = new Date(`${new Date().toLocaleDateString("en-CA", { timeZone: timezone })}T00:00:00`);
+  const monthEnd = new Date(todayLocal.getFullYear(), todayLocal.getMonth() + 1, 0).toLocaleDateString(
+    locale,
     { day: "numeric", month: "short" },
   );
-
-  if (!isPro) {
-    return (
-      <div className="mt-5 border-t border-line pt-5 text-center">
-        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-          In your pouch
-        </p>
-        <p className="mt-2 text-sm text-ink-muted">
-          Go Pro to see exactly what&apos;s yours to spend — after bills and goals.
-        </p>
-        <Link
-          href="/upgrade"
-          className="mt-3 inline-block rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action/90"
-        >
-          Go Pro
-        </Link>
-      </div>
-    );
-  }
 
   const negative = sts.safe < 0;
   const overPace = sts.spentProgress > sts.monthProgress;
@@ -89,9 +82,11 @@ export default function PouchSummary({
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
           In your pouch <span className="text-ink-faint/70">· till {monthEnd}</span>
         </p>
-        <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[9px] font-semibold text-gold-text">
-          PRO
-        </span>
+        {isPro && (
+          <span className="rounded-full bg-gold-soft px-2 py-0.5 font-mono text-[9px] font-semibold text-gold-text">
+            PRO
+          </span>
+        )}
       </div>
 
       <p
@@ -115,14 +110,23 @@ export default function PouchSummary({
         ))}
       </dl>
 
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="mt-3 text-xs font-medium text-ink-subtle underline hover:text-ink-muted"
-      >
-        {open ? "Hide details" : "Details"}
-      </button>
+      {isPro ? (
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="mt-3 text-xs font-medium text-ink-subtle underline hover:text-ink-muted"
+        >
+          {open ? "Hide details" : "Details"}
+        </button>
+      ) : (
+        <Link
+          href="/upgrade"
+          className="mt-3 inline-block text-xs font-medium text-ink-subtle underline hover:text-ink-muted"
+        >
+          Go Pro to confirm your real balance and see your pace →
+        </Link>
+      )}
 
-      {open && (
+      {isPro && open && (
         <div className="mt-3 border-t border-line pt-3">
           {/* pace bar */}
           <div className="relative h-2 w-full overflow-hidden rounded-full bg-surface-3">

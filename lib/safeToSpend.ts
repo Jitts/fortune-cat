@@ -96,7 +96,6 @@ export function computeSafeToSpend({
 
   const bills = billsStillDue(transactions, today);
   const setAsides = goalSetAsides(goals, today);
-  const monthLabel = today.toLocaleDateString("en-SG", { month: "long" });
 
   let mode: SafeMode;
   let safe: number;

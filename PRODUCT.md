@@ -28,7 +28,7 @@ Charm with restraint. The lucky-cat theme earns delight through small, deliberat
 
 Encourage, never scold. Money is framed as fortune, streaks, and momentum, not shame. The app makes people feel a little luckier for using it.
 
-Value before the wall. Pro is something people upgrade into because it's worth it, not because they're nagged. The demo-first version of this (open `/app`, no account) is gone — the wall now sits at signup, and the free tier still paywalls "In your pouch", the one big number on Home. That tension is open, not settled.
+Value before the wall. Pro is something people upgrade into because it's worth it, not because they're nagged. The demo-first version of this (open `/app`, no account) is gone — the wall now sits at signup. Past it, **the free tier gets the number**: "In your pouch" is the payoff of the core verb, computed from the user's own transactions, so it is not paywalled. Pro buys refinements to it — the confirmed-balance anchor and the pace/coverage detail — plus the autopilot features that feed it. A free receipt is shorter because Pro features add lines to it; that is the upgrade pitch, not a padlock.
 
 ## Accessibility & Inclusion
 

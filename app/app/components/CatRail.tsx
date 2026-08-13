@@ -95,7 +95,7 @@ export default function CatRail({
         </div>
       </div>
 
-      <PouchSummary transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} />
+      <PouchSummary transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} />
     </div>
   );
 }
