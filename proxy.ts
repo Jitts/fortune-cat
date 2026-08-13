@@ -1,7 +1,9 @@
+// Renamed from middleware.ts in the Next 16 upgrade — same Supabase session
+// refresh on every matched request, just the new file convention.
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
 

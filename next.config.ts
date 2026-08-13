@@ -2,9 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Type errors block the build — `npm run typecheck` is clean and stays that
-  // way. Lint stays advisory: `next lint` is deprecated and its failures are
-  // style, not correctness.
-  eslint: { ignoreDuringBuilds: true },
+  // way. There is no `eslint` key any more: Next 16 removed `next lint`, so
+  // there is nothing to opt out of during the build.
   experimental: {
     serverActions: {
       // PDFs and screenshots arrive as extracted text (a long statement can
