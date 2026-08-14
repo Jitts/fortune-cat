@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { analyzeRecurring } from "@/lib/recurring";
+import { manualBillToFlow } from "@/lib/manualBills";
 import { useMoney } from "@/app/components/CurrencyProvider";
 import { addManualBill, deleteManualBill } from "../manualBillActions";
 import type { ManualRecurringBill, Transaction } from "@/lib/types";
@@ -19,22 +20,25 @@ function dueLabel(
   return `${date} · in ${daysUntil} days`;
 }
 
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 /**
  * Bills the radar hasn't (or can't) detect yet — always available, any tier,
  * since this is plain data entry rather than the radar's "intelligence".
  */
-function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecurringBill[] }) {
+function ManualBillsSection({
+  manualBills: initial,
+  today,
+}: {
+  manualBills: ManualRecurringBill[];
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
+}) {
   const [manualBills, setManualBills] = useState(initial);
   const { format, formatDate } = useMoney();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [cadence, setCadence] = useState<"monthly" | "weekly">("monthly");
-  const [nextDueDate, setNextDueDate] = useState(todayIso());
+  const [nextDueDate, setNextDueDate] = useState(today);
   const [accountTag, setAccountTag] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -44,7 +48,7 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
     setName("");
     setAmount("");
     setCadence("monthly");
-    setNextDueDate(todayIso());
+    setNextDueDate(today);
     setAccountTag("");
   }
 
@@ -184,7 +188,10 @@ function ManualBillsSection({ manualBills: initial }: { manualBills: ManualRecur
                 <p className="truncate text-sm font-medium text-ink">{b.name}</p>
                 <p className="text-xs text-ink-subtle">
                   every {b.cadence} · next{" "}
-                  {formatDate(b.next_due_date, { day: "numeric", month: "short" })}
+                  {formatDate(manualBillToFlow(b, new Date(`${today}T00:00:00Z`)).nextDate, {
+                    day: "numeric",
+                    month: "short",
+                  })}
                   {b.account_tag ? ` · ${b.account_tag}` : ""}
                 </p>
               </div>
@@ -228,10 +235,13 @@ export default function RecurringRadar({
   transactions,
   manualBills,
   isPro,
+  today,
 }: {
   transactions: Transaction[];
   manualBills: ManualRecurringBill[];
   isPro: boolean;
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { format, formatDate } = useMoney();
   const { upcoming, alerts } = useMemo(() => analyzeRecurring(transactions), [transactions]);
@@ -239,7 +249,7 @@ export default function RecurringRadar({
 
   return (
     <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">
-      <ManualBillsSection manualBills={manualBills} />
+      <ManualBillsSection manualBills={manualBills} today={today} />
 
       <div className="mt-5 border-t border-line pt-5">
         {!isPro ? (

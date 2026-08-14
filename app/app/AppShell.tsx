@@ -532,7 +532,7 @@ export default function AppShell({
               <div className="lg:hidden">
                 <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} />
               </div>
-              <RecurringRadar transactions={transactions} manualBills={manualBills} isPro={isPro} />
+              <RecurringRadar transactions={transactions} manualBills={manualBills} isPro={isPro} today={today} />
               <SubscriptionKillChain
                 transactions={transactions}
                 decisions={subscriptionDecisions}
