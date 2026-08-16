@@ -108,15 +108,18 @@ export default function AnalyticsPanel({
   transactions,
   categories,
   isPro,
+  today,
 }: {
   transactions: Transaction[];
   categories: Category[];
   isPro: boolean;
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { format } = useMoney();
   const [preset, setPreset] = useState<PeriodPreset>("3m");
   const analytics = useMemo(() => {
-    const range = periodRange(preset, transactions);
+    const range = periodRange(preset, transactions, today);
     return { range, a: analyzePeriod(transactions, categories, range) };
   }, [preset, transactions, categories]);
   const { a, range } = analytics;

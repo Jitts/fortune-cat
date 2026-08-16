@@ -31,13 +31,16 @@ export default function SubscriptionKillChain({
   transactions,
   decisions,
   isPro,
+  today,
 }: {
   transactions: Transaction[];
   decisions: SubscriptionDecision[];
   isPro: boolean;
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { format, formatDate } = useMoney();
-  const subs = useMemo(() => detectSubscriptions(transactions), [transactions]);
+  const subs = useMemo(() => detectSubscriptions(transactions, today), [transactions, today]);
 
   const [decisionMap, setDecisionMap] = useState<Record<string, SubscriptionDecision>>(() =>
     Object.fromEntries(decisions.map((d) => [d.merchant_key, d])),

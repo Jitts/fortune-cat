@@ -485,7 +485,7 @@ export default function AppShell({
               <CashFlowBars transactions={transactions} timezone={timezone} />
               <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
                 <CategoryBreakdown transactions={transactions} categories={categories} today={today} />
-                <MonthlyOverview transactions={transactions} />
+                <MonthlyOverview transactions={transactions} today={today} />
               </div>
             </>
           )}
@@ -524,7 +524,7 @@ export default function AppShell({
                 today={today}
               />
               <InsightCard transactions={transactions} categories={categories} today={today} />
-              <AnalyticsPanel transactions={transactions} categories={categories} isPro={isPro} />
+              <AnalyticsPanel transactions={transactions} categories={categories} isPro={isPro} today={today} />
               <GoalWins achievements={achievements} isPro={isPro} />
             </>
           )}
@@ -539,6 +539,7 @@ export default function AppShell({
                 transactions={transactions}
                 decisions={subscriptionDecisions}
                 isPro={isPro}
+                today={today}
               />
             </div>
           )}
@@ -600,7 +601,7 @@ export default function AppShell({
               categories={categories}
               initial={
                 modal === "add"
-                  ? { ...emptyFormValues(categories), date: today, amount: quickPrefill }
+                  ? { ...emptyFormValues(categories, today), amount: quickPrefill }
                   : // Carry a keypad amount across on the EDIT hop as well, or
                     // "More options" would silently discard what was just typed.
                     {

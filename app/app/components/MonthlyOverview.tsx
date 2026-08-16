@@ -17,7 +17,14 @@ type MonthRow = {
  * with data, paired bars scaled to the biggest month. The pulse shows this
  * month's heartbeat; this card shows the trend line behind it.
  */
-export default function MonthlyOverview({ transactions }: { transactions: Transaction[] }) {
+export default function MonthlyOverview({
+  transactions,
+  today,
+}: {
+  transactions: Transaction[];
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
+}) {
   const { format, formatDate } = useMoney();
   const months = useMemo<MonthRow[]>(() => {
     const map = new Map<string, { inTotal: number; outTotal: number }>();
@@ -43,7 +50,9 @@ export default function MonthlyOverview({ transactions }: { transactions: Transa
   if (months.length < 2) return null;
 
   const maxBar = Math.max(1, ...months.map((m) => Math.max(m.inTotal, m.outTotal)));
-  const currentKey = new Date().toISOString().slice(0, 7);
+  // toISOString() gave the UTC month, so the "current" row was highlighted a
+  // day early or late for readers either side of the line.
+  const currentKey = today.slice(0, 7);
 
   return (
     <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-line">

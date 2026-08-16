@@ -26,10 +26,14 @@ function monthKey(year: number, month0: number): string {
 export function periodRange(
   preset: PeriodPreset,
   transactions: Transaction[],
-  today = new Date(),
+  /** The user's own calendar date (YYYY-MM-DD, from their profile timezone). */
+  today: string,
 ): PeriodRange {
-  const y = today.getFullYear();
-  const m = today.getMonth();
+  // Parsed straight off the calendar string: reading getMonth() off the runtime
+  // clock put the server (UTC) and the browser in different months for the
+  // hours either side of a boundary, which shifted the whole period window.
+  const [y, month1] = today.split("-").map(Number);
+  const m = month1 - 1;
 
   if (preset === "all") {
     const present = [...new Set(transactions.map((t) => t.date.slice(0, 7)))].sort();

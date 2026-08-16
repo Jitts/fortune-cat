@@ -28,9 +28,9 @@ const ACTIVE_WINDOW_DAYS = 70;
 
 export function detectSubscriptions(
   transactions: Transaction[],
-  today = new Date(),
+  /** The user's own calendar date (YYYY-MM-DD, from their profile timezone). */
+  todayStr: string,
 ): Subscription[] {
-  const todayStr = today.toISOString().slice(0, 10);
   const groups = new Map<string, Transaction[]>();
 
   for (const t of transactions) {

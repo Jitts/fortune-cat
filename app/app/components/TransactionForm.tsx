@@ -15,16 +15,22 @@ export type TransactionFormValues = {
   note: string;
 };
 
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-export function emptyFormValues(categories: Category[]): TransactionFormValues {
+/**
+ * A blank entry, pre-dated to the user's own day. `today` is required: the old
+ * default was `new Date().toISOString()`, which is the UTC day — for a reader
+ * east of UTC that pre-fills yesterday for the first hours of their morning.
+ * The one caller already overrode it, so the default only ever waited to catch
+ * the next one.
+ */
+export function emptyFormValues(
+  categories: Category[],
+  today: string,
+): TransactionFormValues {
   return {
     type: "expense",
     amount: "",
     category_id: categories[0]?.id ?? "",
-    date: todayIso(),
+    date: today,
     note: "",
   };
 }
