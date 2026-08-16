@@ -60,8 +60,7 @@ export type BillFlow = RecurringFlow & { source?: "manual"; id?: string };
 // passes. Computed on read (not persisted back) so this stays a pure
 // function, same as the rest of the radar — the stored next_due_date is only
 // ever the bill's original anchor.
-export function manualBillToFlow(bill: ManualRecurringBill, today = new Date()): BillFlow {
-  const todayStr = today.toISOString().slice(0, 10);
+export function manualBillToFlow(bill: ManualRecurringBill, todayStr: string): BillFlow {
   const anchor = bill.next_due_date;
   let next = anchor;
   let steps = 0;
@@ -91,8 +90,8 @@ export function manualBillToFlow(bill: ManualRecurringBill, today = new Date()):
 export function mergeBillFlows(
   detected: RecurringFlow[],
   manual: ManualRecurringBill[],
-  today = new Date(),
+  todayStr: string,
 ): BillFlow[] {
-  const manualFlows = manual.map((b) => manualBillToFlow(b, today));
+  const manualFlows = manual.map((b) => manualBillToFlow(b, todayStr));
   return [...detected, ...manualFlows].sort((a, b) => a.daysUntil - b.daysUntil);
 }

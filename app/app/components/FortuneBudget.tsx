@@ -18,10 +18,13 @@ export default function FortuneBudget({
   budgets,
   categories,
   transactions,
+  today,
 }: {
   budgets: CategoryBudget[];
   categories: Category[];
   transactions: Transaction[];
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { format } = useMoney();
   const [items, setItems] = useState(budgets);
@@ -37,7 +40,7 @@ export default function FortuneBudget({
   const spendByCategory = useMemo(() => {
     const m = new Map<string, number>();
     for (const t of transactions) {
-      if (t.type !== "expense" || !t.category_id || !isCurrentMonth(t.date)) continue;
+      if (t.type !== "expense" || !t.category_id || !isCurrentMonth(t.date, today)) continue;
       m.set(t.category_id, (m.get(t.category_id) ?? 0) + t.amount);
     }
     return m;

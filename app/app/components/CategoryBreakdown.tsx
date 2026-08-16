@@ -7,14 +7,17 @@ import type { Category, Transaction } from "@/lib/types";
 export default function CategoryBreakdown({
   transactions,
   categories,
+  today,
 }: {
   transactions: Transaction[];
   categories: Category[];
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { format } = useMoney();
   const totals = new Map<string, number>();
   for (const t of transactions) {
-    if (t.type !== "expense" || !t.category_id || !isCurrentMonth(t.date)) continue;
+    if (t.type !== "expense" || !t.category_id || !isCurrentMonth(t.date, today)) continue;
     totals.set(t.category_id, (totals.get(t.category_id) ?? 0) + t.amount);
   }
 

@@ -188,7 +188,7 @@ function ManualBillsSection({
                 <p className="truncate text-sm font-medium text-ink">{b.name}</p>
                 <p className="text-xs text-ink-subtle">
                   every {b.cadence} · next{" "}
-                  {formatDate(manualBillToFlow(b, new Date(`${today}T00:00:00Z`)).nextDate, {
+                  {formatDate(manualBillToFlow(b, today).nextDate, {
                     day: "numeric",
                     month: "short",
                   })}
@@ -244,7 +244,7 @@ export default function RecurringRadar({
   today: string;
 }) {
   const { format, formatDate } = useMoney();
-  const { upcoming, alerts } = useMemo(() => analyzeRecurring(transactions), [transactions]);
+  const { upcoming, alerts } = useMemo(() => analyzeRecurring(transactions, today), [transactions, today]);
   const hasDetected = upcoming.length > 0 || alerts.length > 0;
 
   return (

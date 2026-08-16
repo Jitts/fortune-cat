@@ -102,10 +102,10 @@ function severityFor(state: CatState, savingsRate: number | null): SlipSeverity 
 function categoryPaceSignal(
   transactions: Transaction[],
   categories: Category[],
-  today: Date,
+  day: Date,
 ): { categoryName: string; pctDiff: number; direction: "above" | "below" } | null {
-  const thisMonth = monthKey(today);
-  const dayOfMonth = today.getDate();
+  const thisMonth = monthKey(day);
+  const dayOfMonth = day.getDate();
 
   const thisMonthByCategory = new Map<string, number>();
   for (const t of transactions) {
@@ -128,7 +128,7 @@ function categoryPaceSignal(
 
   const baselinePaces: number[] = [];
   for (let i = 1; i <= 3; i++) {
-    const monthStart = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const monthStart = new Date(day.getFullYear(), day.getMonth() - i, 1);
     const key = monthKey(monthStart);
     const daysInThatMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
     let total = 0;
@@ -166,7 +166,8 @@ function detailLine(
   transactions: Transaction[],
   categories: Category[],
   s: MonthSignals,
-  today: Date,
+  today: string,
+  day: Date,
   fmt: (n: number) => string,
 ): string {
   const { upcoming } = analyzeRecurring(transactions, today);
@@ -178,7 +179,7 @@ function detailLine(
     return `${urgentBill.name} (~${fmt(urgentBill.expectedAmount)}) is ${when}.`;
   }
 
-  const pace = categoryPaceSignal(transactions, categories, today);
+  const pace = categoryPaceSignal(transactions, categories, day);
   if (pace) {
     return `${pace.categoryName} sits ${pace.pctDiff}% ${pace.direction} its usual path.`;
   }
@@ -204,14 +205,15 @@ function weeklyRecommendation(
   transactions: Transaction[],
   goals: FortuneGoal[],
   anchor: BalanceAnchor | null,
-  today: Date,
+  today: string,
+  day: Date,
   fmt: (n: number) => string,
 ): string | null {
   const sts = computeSafeToSpend({ transactions, goals, anchor, today });
   if (sts.safe <= 0) return null;
 
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  const daysLeftInMonth = daysInMonth - today.getDate() + 1;
+  const daysInMonth = new Date(day.getFullYear(), day.getMonth() + 1, 0).getDate();
+  const daysLeftInMonth = daysInMonth - day.getDate() + 1;
   const dailyCap = sts.safe / Math.max(1, daysLeftInMonth);
   if (dailyCap <= 0) return null;
 
@@ -226,15 +228,24 @@ export function computeSlip(
   anchor: BalanceAnchor | null,
   currency: string = DEFAULT_CURRENCY,
   locale: string = DEFAULT_LOCALE,
-  today = new Date(),
+  /**
+   * The user's own calendar date (YYYY-MM-DD, from their profile timezone).
+   * REQUIRED. It used to default to `new Date()` while slipActions filed the
+   * result under todayIso(profile.timezone) — so a slip drawn in the reader's
+   * morning was computed from the server's PREVIOUS UTC day and then stored
+   * under today's date. daySeed() is derived from it too, which meant the
+   * "same day, same slip" promise was keyed off the wrong day.
+   */
+  today: string,
 ): FortuneSlip {
   // One formatter bound to the user's currency, threaded through every line the
   // slip prints, so the frozen slip text reads in their money.
   const fmt = (n: number) => fmtCurrency(n, currency, locale);
-  const s = monthSignals(transactions, today);
+  const day = new Date(`${today}T00:00:00`);
+  const s = monthSignals(transactions, day);
   const state = catState(s.net, s.burnDelta);
   const severity = severityFor(state, s.savingsRate);
-  const seed = daySeed(today);
+  const seed = daySeed(day);
 
   let headline: string;
   switch (severity) {
@@ -295,7 +306,7 @@ export function computeSlip(
     severity,
     fortuneWord: FORTUNE_WORD[severity],
     headline,
-    detail: detailLine(transactions, categories, s, today, fmt),
-    recommendation: isPro ? weeklyRecommendation(transactions, goals, anchor, today, fmt) : null,
+    detail: detailLine(transactions, categories, s, today, day, fmt),
+    recommendation: isPro ? weeklyRecommendation(transactions, goals, anchor, today, day, fmt) : null,
   };
 }

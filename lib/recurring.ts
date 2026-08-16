@@ -76,8 +76,7 @@ export function flowKey(t: Transaction): string | null {
   return `n:${note.toUpperCase()}:${t.type}`;
 }
 
-export function analyzeRecurring(transactions: Transaction[], today = new Date()): RadarResult {
-  const todayStr = today.toISOString().slice(0, 10);
+export function analyzeRecurring(transactions: Transaction[], todayStr: string): RadarResult {
   const groups = new Map<string, Transaction[]>();
   for (const t of transactions) {
     const key = flowKey(t);

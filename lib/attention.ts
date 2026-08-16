@@ -16,9 +16,9 @@ export function computeAttention(
   budgets: CategoryBudget[],
   currency: string = DEFAULT_CURRENCY,
   locale: string = DEFAULT_LOCALE,
-  today = new Date(),
+  today: string,
 ): AttentionSlip | null {
-  const thisMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  const thisMonth = today.slice(0, 7);
 
   // 1) Worst budget overflow this month.
   const spend = new Map<string, number>();

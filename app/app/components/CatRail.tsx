@@ -20,6 +20,7 @@ export default function CatRail({
   anchor,
   isPro,
   timezone,
+  today,
 }: {
   transactions: Transaction[];
   goals: FortuneGoal[];
@@ -27,6 +28,8 @@ export default function CatRail({
   isPro: boolean;
   /** The user's IANA timezone — keeps the streak on their calendar, not UTC. */
   timezone: string;
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { locale } = useMoney();
   const pulse = useMemo(() => monthPulse(transactions, new Date(), timezone), [transactions, timezone]);
@@ -95,7 +98,7 @@ export default function CatRail({
         </div>
       </div>
 
-      <PouchSummary transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} />
+      <PouchSummary transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} today={today} />
     </div>
   );
 }

@@ -44,6 +44,11 @@ export async function drawDailySlip(): Promise<SlipResult> {
     supabase.from("balance_anchors").select().order("anchored_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
+  // One value for both the computation and the row it is filed under. These
+  // used to be derived separately — computeSlip fell back to the server clock
+  // while the row took the profile timezone — so a slip could be computed from
+  // yesterday's numbers and stored as today's.
+  const slipDate = todayIso(profile.timezone);
   const slip = computeSlip(
     (transactions ?? []) as Transaction[],
     (categories ?? []) as Category[],
@@ -52,8 +57,8 @@ export async function drawDailySlip(): Promise<SlipResult> {
     (anchor ?? null) as BalanceAnchor | null,
     profile.currency,
     profile.locale,
+    slipDate,
   );
-  const slipDate = todayIso(profile.timezone);
 
   const { data, error } = await supabase
     .from("fortune_slips")

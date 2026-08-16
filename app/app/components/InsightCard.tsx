@@ -11,12 +11,15 @@ import type { Category, Transaction } from "@/lib/types";
 export default function InsightCard({
   transactions,
   categories,
+  today,
 }: {
   transactions: Transaction[];
   categories: Category[];
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { format } = useMoney();
-  const monthTx = transactions.filter((t) => isCurrentMonth(t.date));
+  const monthTx = transactions.filter((t) => isCurrentMonth(t.date, today));
   const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
 

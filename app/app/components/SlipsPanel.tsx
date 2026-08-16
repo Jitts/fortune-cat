@@ -15,6 +15,7 @@ export default function SlipsPanel({
   transactions,
   categories,
   budgets,
+  today,
   todaySlip,
   slipStreak,
   heading = true,
@@ -22,14 +23,16 @@ export default function SlipsPanel({
   transactions: Transaction[];
   categories: Category[];
   budgets: CategoryBudget[];
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
   todaySlip: FortuneSlipRow | null;
   slipStreak: number;
   heading?: boolean;
 }) {
   const { currency, locale } = useMoney();
   const attention = useMemo(
-    () => computeAttention(transactions, categories, budgets, currency, locale),
-    [transactions, categories, budgets, currency, locale],
+    () => computeAttention(transactions, categories, budgets, currency, locale, today),
+    [transactions, categories, budgets, currency, locale, today],
   );
 
   return (

@@ -58,9 +58,8 @@ export function goalSetAsides(goals: FortuneGoal[], today: Date): number {
 }
 
 /** Sum of recurring expense bills still due this month (radar's forward view). */
-function billsStillDue(transactions: Transaction[], today: Date): number {
-  const { upcoming } = analyzeRecurring(transactions, today);
-  const thisMonth = monthKey(today);
+function billsStillDue(transactions: Transaction[], todayStr: string, thisMonth: string): number {
+  const { upcoming } = analyzeRecurring(transactions, todayStr);
   let total = 0;
   for (const f of upcoming) {
     if (f.type !== "expense") continue;
@@ -75,16 +74,27 @@ export function computeSafeToSpend({
   transactions,
   goals,
   anchor,
-  today = new Date(),
+  today,
 }: {
   transactions: Transaction[];
   goals: FortuneGoal[];
   anchor: BalanceAnchor | null;
-  today?: Date;
+  /**
+   * The user's own calendar date (YYYY-MM-DD, from their profile timezone).
+   * REQUIRED — it used to default to `new Date()`, so the month bucketing below
+   * followed whichever clock happened to run it: UTC on the server, the
+   * reader's zone in the browser. Near a month boundary that put income and
+   * spending in different months on the two renders.
+   */
+  today: string;
 }): SafeToSpend {
-  const thisMonth = monthKey(today);
-  const dayOfMonth = today.getDate();
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  // Local midnight of THEIR day. Parsing local and reading local getters is
+  // self-consistent, and matches how each t.date is parsed below, so every
+  // comparison here is calendar-to-calendar whatever zone the runtime is in.
+  const day = new Date(`${today}T00:00:00`);
+  const thisMonth = monthKey(day);
+  const dayOfMonth = day.getDate();
+  const daysInMonth = new Date(day.getFullYear(), day.getMonth() + 1, 0).getDate();
 
   let monthIncome = 0;
   let monthSpent = 0;
@@ -94,8 +104,8 @@ export function computeSafeToSpend({
     else monthSpent += t.amount;
   }
 
-  const bills = billsStillDue(transactions, today);
-  const setAsides = goalSetAsides(goals, today);
+  const bills = billsStillDue(transactions, today, thisMonth);
+  const setAsides = goalSetAsides(goals, day);
 
   let mode: SafeMode;
   let safe: number;

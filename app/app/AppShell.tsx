@@ -433,8 +433,8 @@ export default function AppShell({
             into Home and the budget into Fortunes, so tabs open on their own
             content instead of a wall of rails) ===== */}
         <div className="hidden space-y-6 lg:block">
-          <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} />
-          <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
+          <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} today={today} />
+          <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} today={today} />
         </div>
 
         {/* ===== CENTRE — swaps with the active tab ===== */}
@@ -480,11 +480,11 @@ export default function AppShell({
                 }}
               />
               <div className="lg:hidden">
-                <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} />
+                <CatRail transactions={transactions} goals={goals} anchor={anchor} isPro={isPro} timezone={timezone} today={today} />
               </div>
               <CashFlowBars transactions={transactions} timezone={timezone} />
               <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-                <CategoryBreakdown transactions={transactions} categories={categories} />
+                <CategoryBreakdown transactions={transactions} categories={categories} today={today} />
                 <MonthlyOverview transactions={transactions} />
               </div>
             </>
@@ -509,19 +509,21 @@ export default function AppShell({
                   transactions={transactions}
                   categories={categories}
                   budgets={budgets}
+                  today={today}
                   todaySlip={todaySlip}
                   slipStreak={slipStreak}
                 />
                 <FortuneGoals goals={goals} achievements={achievements} transactions={transactions} isPro={isPro} />
-                <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} />
+                <FortuneBudget budgets={budgets} categories={categories} transactions={transactions} today={today} />
               </div>
               <BalanceForecast
                 transactions={transactions}
                 manualBills={manualBills}
                 anchor={anchor}
                 isPro={isPro}
+                today={today}
               />
-              <InsightCard transactions={transactions} categories={categories} />
+              <InsightCard transactions={transactions} categories={categories} today={today} />
               <AnalyticsPanel transactions={transactions} categories={categories} isPro={isPro} />
               <GoalWins achievements={achievements} isPro={isPro} />
             </>
@@ -530,7 +532,7 @@ export default function AppShell({
           {active === "bills" && (
             <div className="space-y-6">
               <div className="lg:hidden">
-                <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} />
+                <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} today={today} />
               </div>
               <RecurringRadar transactions={transactions} manualBills={manualBills} isPro={isPro} today={today} />
               <SubscriptionKillChain
@@ -549,11 +551,12 @@ export default function AppShell({
             transactions={transactions}
             categories={categories}
             budgets={budgets}
+            today={today}
             todaySlip={todaySlip}
             slipStreak={slipStreak}
           />
           <FortuneGoals goals={goals} achievements={achievements} transactions={transactions} isPro={isPro} />
-          <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} />
+          <BillsDue transactions={transactions} manualBills={manualBills} onAdd={() => setTab("bills")} today={today} />
         </div>
       </div>
 

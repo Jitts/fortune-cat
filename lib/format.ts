@@ -64,8 +64,18 @@ export function formatNumberIn(
   }
 }
 
-export function isCurrentMonth(date: string) {
-  const d = new Date(`${date}T00:00:00`);
-  const now = new Date();
-  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+/**
+ * Is this transaction's calendar date in the reader's current month?
+ *
+ * `today` is REQUIRED and must be the user's own calendar date (YYYY-MM-DD,
+ * from their profile timezone). It used to default to the runtime clock, which
+ * meant the server answered in UTC and the browser answered in the reader's
+ * zone — so for eight hours either side of a month boundary the two disagreed
+ * and "this month" totals changed on hydration.
+ *
+ * Both values are bare calendar dates, so comparing the YYYY-MM prefix needs no
+ * Date object and no timezone at all.
+ */
+export function isCurrentMonth(date: string, today: string) {
+  return date.slice(0, 7) === today.slice(0, 7);
 }

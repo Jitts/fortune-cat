@@ -27,18 +27,21 @@ export default function BillsDue({
   manualBills,
   limit = 6,
   onAdd,
+  today,
 }: {
   transactions: Transaction[];
   manualBills: ManualRecurringBill[];
   limit?: number;
   onAdd?: () => void;
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { format, formatDate } = useMoney();
   const bills = useMemo(() => {
-    const detected = analyzeRecurring(transactions).upcoming.filter((f) => f.type === "expense");
+    const detected = analyzeRecurring(transactions, today).upcoming.filter((f) => f.type === "expense");
     const manual = manualBills.filter((b) => b.type === "expense");
-    return mergeBillFlows(detected, manual).slice(0, limit);
-  }, [transactions, manualBills, limit]);
+    return mergeBillFlows(detected, manual, today).slice(0, limit);
+  }, [transactions, manualBills, limit, today]);
 
   return (
     <div>

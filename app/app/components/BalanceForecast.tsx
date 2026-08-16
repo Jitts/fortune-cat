@@ -29,11 +29,14 @@ export default function BalanceForecast({
   manualBills,
   anchor,
   isPro,
+  today,
 }: {
   transactions: Transaction[];
   manualBills: ManualRecurringBill[];
   anchor: BalanceAnchor | null;
   isPro: boolean;
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
   const { format, formatDate } = useMoney();
 
@@ -46,7 +49,7 @@ export default function BalanceForecast({
   const fillId = `fc-forecast-fill-${useId().replace(/:/g, "")}`;
 
   const f = useMemo(
-    () => computeForecast({ transactions, manualBills, anchor }),
+    () => computeForecast({ transactions, manualBills, anchor, today }),
     [transactions, manualBills, anchor],
   );
 

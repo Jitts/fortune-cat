@@ -24,16 +24,16 @@ export default function PouchSummary({
   goals,
   anchor,
   isPro,
-  timezone,
+  today,
 }: {
   transactions: Transaction[];
   goals: FortuneGoal[];
   anchor: BalanceAnchor | null;
   isPro: boolean;
-  /** The user's IANA timezone — month-end is their calendar's, not the runtime's. */
-  timezone: string;
+  /** The user's local calendar date (YYYY-MM-DD), from their profile timezone. */
+  today: string;
 }) {
-  const { format, locale } = useMoney();
+  const { format, formatDate } = useMoney();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
@@ -41,17 +41,16 @@ export default function PouchSummary({
   const [pending, startTransition] = useTransition();
 
   const sts = useMemo(
-    () => computeSafeToSpend({ transactions, goals, anchor }),
-    [transactions, goals, anchor],
+    () => computeSafeToSpend({ transactions, goals, anchor, today }),
+    [transactions, goals, anchor, today],
   );
 
-  // The user's own calendar month, not the runtime's — near local midnight on
-  // the 31st these disagree, and "till 31 Aug" would flip a month early.
-  const todayLocal = new Date(`${new Date().toLocaleDateString("en-CA", { timeZone: timezone })}T00:00:00`);
-  const monthEnd = new Date(todayLocal.getFullYear(), todayLocal.getMonth() + 1, 0).toLocaleDateString(
-    locale,
-    { day: "numeric", month: "short" },
-  );
+  // Last day of THEIR month, derived from their calendar date rather than any
+  // clock. Date.UTC(y, m, 0) is day zero of the following month, i.e. the last
+  // of this one, so February and leap years fall out for free.
+  const [y, m] = today.split("-").map(Number);
+  const lastDay = String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, "0");
+  const monthEnd = formatDate(`${today.slice(0, 7)}-${lastDay}`, { day: "numeric", month: "short" });
 
   const negative = sts.safe < 0;
   const overPace = sts.spentProgress > sts.monthProgress;

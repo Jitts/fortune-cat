@@ -102,16 +102,17 @@ export function computeForecast({
   transactions,
   manualBills,
   anchor,
-  today = new Date(),
+  today,
   horizonDays = 30,
 }: {
   transactions: Transaction[];
   manualBills: ManualRecurringBill[];
   anchor: BalanceAnchor | null;
-  today?: Date;
+  /** The user's own calendar date (YYYY-MM-DD, from their profile timezone). */
+  today: string;
   horizonDays?: number;
 }): Forecast {
-  const todayStr = iso(today);
+  const todayStr = today;
   const endStr = addDaysStr(todayStr, horizonDays);
 
   // Today's balance = the confirmed anchor, moved by everything logged since.
