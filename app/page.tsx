@@ -9,6 +9,7 @@ import Reveal from "@/app/components/Reveal";
 import ShrineStars from "@/app/components/ShrineStars";
 import Wordmark from "@/app/components/Wordmark";
 import { FREE_PRO_BETA } from "@/lib/beta";
+import { PRO_PRICE } from "@/lib/proFeatures";
 
 export const dynamic = "force-dynamic";
 
@@ -113,7 +114,7 @@ export default async function Home() {
                   {user ? "Open your app" : "Start tracking — it's free"}
                 </Link>
                 <Link href="/upgrade" className="btn btn-ghost px-6 py-3.5 text-sm">
-                  See Pro — $9 once
+                  {FREE_PRO_BETA ? "See Pro — free in beta" : `See Pro — ${PRO_PRICE} once`}
                 </Link>
               </div>
             </Reveal>
@@ -147,7 +148,7 @@ export default async function Home() {
           </div>
           <nav className="flex flex-wrap gap-x-5 gap-y-2">
             <Link href="/upgrade" className="hover:text-ink">
-              {FREE_PRO_BETA ? "Pro — free in beta" : "Pro — $9 once"}
+              {FREE_PRO_BETA ? "Pro — free in beta" : `Pro — ${PRO_PRICE} once`}
             </Link>
             <Link href="/signup" className="hover:text-ink">
               Sign up free

@@ -38,7 +38,7 @@ const FAQS = [
   },
   {
     q: "What's the difference between Free and Pro?",
-    a: "Free covers tracking: manual and automatic logging, one capture inbox, your daily fortune slip, CSV export, and your last 10 transactions of history. Pro adds the thinking on top — Safe-to-Spend, savings goals, a daily balance forecast for the month ahead, recurring-bill radar, the subscription kill-chain (cancel steps for the subscriptions you no longer want), deep analytics, a daily spend target on your slip, your full history, and three capture inboxes.",
+    a: "Free covers tracking and the headline number: manual and automatic logging, one capture inbox, statement and receipt upload, monthly budgets, your daily fortune slip, Safe-to-Spend — what's actually yours to spend after bills and set-asides — CSV export, and your last 10 transactions of history. Pro adds the thinking on top: savings goals, a daily balance forecast for the month ahead, recurring-bill radar, the subscription kill-chain (cancel steps for the subscriptions you no longer want), deep analytics, a daily spend target on your slip, confirming your real balance so Safe-to-Spend becomes exact rather than estimated, your full history, and three capture inboxes.",
   },
   {
     q: "Does Fortune Cat work in my country and currency?",

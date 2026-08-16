@@ -30,6 +30,12 @@ export const PLAN_COMPARISON: PlanGroup[] = [
     rows: [
       { label: "Log expenses and income by hand", free: true, pro: true },
       { label: "Auto-capture from forwarded SMS and email", free: true, pro: true },
+      {
+        label: "Upload statements, receipts and screenshots",
+        note: "read on your device",
+        free: true,
+        pro: true,
+      },
       { label: "Capture inboxes", free: "1", pro: "3" },
       { label: "Transaction history", free: "Last 10", pro: "All" },
       { label: "Daily fortune slip", free: true, pro: true },
@@ -39,7 +45,14 @@ export const PLAN_COMPARISON: PlanGroup[] = [
   {
     title: "Making it work for you",
     rows: [
-      { label: "Safe-to-Spend", note: "what's truly yours to spend", free: false, pro: true },
+      { label: "Safe-to-Spend", note: "what's truly yours to spend", free: true, pro: true },
+      {
+        label: "Confirm your real balance",
+        note: "turns the estimate exact, adds your pace",
+        free: false,
+        pro: true,
+      },
+      { label: "Monthly budgets by category", free: true, pro: true },
       { label: "Fortune Goals", note: "savings goals and emergency fund", free: false, pro: true },
       { label: "The month ahead", note: "your balance, projected daily", free: false, pro: true },
       { label: "Recurring radar", note: "learns your bills, flags spikes", free: false, pro: true },
@@ -58,8 +71,8 @@ export const PLAN_COMPARISON: PlanGroup[] = [
 export const PRO_FEATURES: ProFeature[] = [
   {
     icon: "👛",
-    title: "Safe-to-Spend",
-    desc: "See exactly what's yours to spend this month — after your bills, goals and set-asides are accounted for.",
+    title: "Safe-to-Spend, made exact",
+    desc: "The free tier estimates what's yours to spend from the month's flow. Pro lets you confirm your real balance so the number is exact, and shows your pace and how many days it covers.",
   },
   {
     icon: "🎯",
