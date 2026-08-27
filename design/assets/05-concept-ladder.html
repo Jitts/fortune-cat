@@ -1,0 +1,767 @@
+<title>Fortune Cat: Five Rungs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --paper:     #fbf6ec;
+    --panel:     #ffffff;
+    --ink:       #241c11;
+    --ink-mute:  #6b6153;
+    --ink-faint: #9c9384;
+    --hair:      #e0d7c6;
+    --accent:    #8a5f10;
+
+    --riso-lacquer: #2e2114;
+    --riso-gold:    #f0b429;
+    --riso-blue:    #2f4fa8;
+    --riso-verm:    #e4533c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #12100c;
+      --panel:     #1b1710;
+      --ink:       #f6efe1;
+      --ink-mute:  #a49883;
+      --ink-faint: #6d6353;
+      --hair:      #322a1e;
+      --accent:    #edc35b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:     #12100c;
+    --panel:     #1b1710;
+    --ink:       #f6efe1;
+    --ink-mute:  #a49883;
+    --ink-faint: #6d6353;
+    --hair:      #322a1e;
+    --accent:    #edc35b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 68px 32px 120px; }
+
+  .eyebrow {
+    margin: 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 16px 0 0; font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: clamp(2.3rem, 5.6vw, 3.7rem); font-weight: 800; line-height: 0.94;
+    letter-spacing: -0.04em; text-wrap: balance;
+  }
+  .lede { margin: 20px 0 0; max-width: 64ch; font-size: 17px; line-height: 1.62; color: var(--ink-mute); }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 28px; }
+
+  .callout {
+    margin: 28px 0 0; padding: 18px 22px; border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    font-size: 15.5px; line-height: 1.62;
+  }
+  .callout b { color: var(--accent); }
+
+  section { margin-top: 84px; }
+  .head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--hair); padding-bottom: 14px; }
+  .id {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.16em; color: var(--accent); border: 1px solid var(--hair);
+    border-radius: 3px; padding: 4px 9px;
+  }
+  h2 { margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.025em; }
+  .inks { margin-left: auto; display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); }
+  .chip { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+
+  .grid { display: grid; grid-template-columns: minmax(0,1fr) 306px; gap: 36px; margin-top: 28px; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0,1fr); } }
+
+  /* ── the riso plate ───────────────────────────────────────────────────
+     Two flat inks, multiplied where they overlap so the overlap makes a
+     real third colour the way a duplicator actually does it — not a third
+     swatch picked by hand. The grain rect on top is what stops it reading
+     as vector. */
+  .plate {
+    position: relative; background: #fbf6ec;
+    border: 1px solid var(--hair); border-radius: 4px; overflow: hidden;
+  }
+  .plate .grain {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; mix-blend-mode: multiply; opacity: 0.42;
+  }
+  .ink { mix-blend-mode: multiply; }
+
+  .hero { display: flex; align-items: center; justify-content: center; padding: 26px 20px 12px; }
+  .moods { display: flex; align-items: flex-end; justify-content: center; gap: 6px; padding: 0 20px 8px; flex-wrap: wrap; }
+  .mood { text-align: center; }
+  .mood .cap {
+    margin: 2px 0 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #a1937c;
+  }
+  .tiny {
+    display: flex; align-items: flex-end; justify-content: center; gap: 26px;
+    padding: 14px 20px 22px; border-top: 1px dashed #ddd2ba; margin: 8px 16px 0;
+  }
+  .tiny .cap { margin: 6px 0 0; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #a1937c; text-align: center; }
+
+  .spec { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.85; color: var(--ink-mute); }
+  .spec h3 {
+    margin: 0 0 12px; font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
+  }
+  .spec dl { margin: 0 0 18px; display: grid; grid-template-columns: 68px minmax(0,1fr); gap: 2px 12px; }
+  .spec dt { color: var(--ink-faint); }
+  .spec dd { margin: 0; color: var(--ink); }
+  .note { margin: 16px 0 0; font-family: 'Hanken Grotesk', sans-serif; font-size: 14.5px; line-height: 1.6; color: var(--ink-mute); }
+  .note strong { color: var(--ink); font-weight: 600; }
+  .verdict { margin-top: 18px; padding: 12px 14px; border-radius: 4px; background: color-mix(in srgb, var(--accent) 10%, transparent); font-family: 'Hanken Grotesk', sans-serif; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+
+  .close { margin-top: 100px; border-top: 2px solid var(--ink); padding-top: 26px; }
+  .close ul { margin: 18px 0 0; padding-left: 20px; }
+  .close li { margin-bottom: 13px; font-size: 16px; line-height: 1.6; color: var(--ink-mute); max-width: 68ch; }
+  .close li strong { color: var(--ink); font-weight: 600; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; color: var(--accent); }
+
+  /* ── the ladder rail ──────────────────────────────────────────────── */
+  .rungs { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 2px; margin-top: 34px; }
+  @media (max-width: 760px) { .rungs { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  .rung { padding: 12px 12px 14px; border-top: 3px solid var(--hair); }
+  .rung:nth-child(1) { border-top-color: #b8ad97; }
+  .rung:nth-child(2) { border-top-color: #c9a24a; }
+  .rung:nth-child(3) { border-top-color: var(--riso-gold); }
+  .rung:nth-child(4) { border-top-color: var(--riso-verm); }
+  .rung:nth-child(5) { border-top-color: var(--riso-blue); }
+  .rung b {
+    display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink);
+  }
+  .rung span { display: block; margin-top: 5px; font-size: 13px; line-height: 1.45; color: var(--ink-mute); }
+
+  .risk { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+          letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+
+  .stage { padding: 30px 24px; display: flex; align-items: center; justify-content: center; gap: 30px; flex-wrap: wrap; }
+  .stage.tight { padding: 18px 20px 22px; }
+  .cap-row { display: flex; justify-content: center; gap: 34px; padding: 0 20px 20px; flex-wrap: wrap; }
+  .cap-row .cap { font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+                  letter-spacing: 0.14em; text-transform: uppercase; color: #a1937c; text-align: center; }
+
+  /* 01 — the lockup */
+  .wordmark { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+              font-size: 40px; letter-spacing: -0.035em; line-height: 0.9; color: #2e2114; }
+  .wordmark small { display: block; margin-top: 8px; font-family: 'JetBrains Mono', monospace;
+                    font-size: 10px; font-weight: 500; letter-spacing: 0.22em; color: #96784a; }
+
+  /* 03 — the press is running. One plate drifts against the other, which is
+     what a duplicator does when the paper feed is a little tired. */
+  @keyframes press-drift {
+    0%,100% { transform: translate(0,0)     rotate(0deg); }
+    35%     { transform: translate(3px,2px) rotate(0.35deg); }
+    70%     { transform: translate(-2px,3px) rotate(-0.25deg); }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .drift { animation: press-drift 7.5s ease-in-out infinite; transform-origin: 50% 50%; }
+  }
+
+  /* 04 — the flip. Hovering fills one reading so the other one lets go. */
+  .flip .pouch, .flip .cats { transition: opacity 0.45s ease; }
+  .flip:hover .cats  { opacity: 0.16; }
+  .flip:focus-within .cats { opacity: 0.16; }
+  .flipwrap { position: relative; }
+  .flipwrap .hint {
+    position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: #a1937c; white-space: nowrap;
+  }
+
+  /* 05 — the console */
+  .console { padding: 22px 24px 26px; border-top: 1px dashed #ddd2ba; margin: 0 16px; }
+  .knobs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px 26px; }
+  @media (max-width: 620px) { .knobs { grid-template-columns: minmax(0,1fr); } }
+  .knob { display: grid; grid-template-columns: 92px minmax(0,1fr) 44px; align-items: center; gap: 10px; }
+  .knob label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.13em;
+                text-transform: uppercase; color: #8a7c64; }
+  .knob output { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2e2114;
+                 font-variant-numeric: tabular-nums; text-align: right; }
+  .knob input[type=range] { width: 100%; accent-color: #c08a12; }
+  .knob input[type=range]:focus-visible { outline: 2px solid #c08a12; outline-offset: 3px; }
+
+  .specimens { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 24px 20px 2px; }
+  .specimen { text-align: center; }
+  .specimen .who { margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+                   letter-spacing: 0.13em; text-transform: uppercase; color: #a1937c; }
+
+  table.map { margin: 16px 0 4px; width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  table.map th { text-align: left; font-weight: 600; font-size: 10px; letter-spacing: 0.18em;
+                 text-transform: uppercase; color: var(--accent); padding: 0 0 8px; border-bottom: 1px solid var(--hair); }
+  table.map td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--hair); color: var(--ink-mute); vertical-align: top; }
+  table.map td:first-child { color: var(--ink); white-space: nowrap; }
+
+  footer { margin-top: 96px; border-top: 2px solid var(--ink); padding-top: 28px; }
+  footer ul { margin: 18px 0 0; padding: 0 0 0 18px; }
+  footer li { margin-bottom: 12px; font-size: 15.5px; line-height: 1.6; color: var(--ink-mute); }
+  footer li strong { color: var(--ink); font-weight: 600; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; color: var(--accent); }
+</style>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Fortune Cat &middot; art direction, round two</p>
+  <h1>Five rungs, from<br>safe to unhinged.</h1>
+  <p class="lede">
+    The riso plates settled the <em>medium</em>. This settles the <em>nerve</em>. Same two-ink
+    press, same cat, five escalating answers to the question of how strange the mark is allowed
+    to be &mdash; each one a real, buildable thing rather than a mood board.
+  </p>
+
+  <div class="rungs">
+    <div class="rung"><b>01 &middot; Conventional</b><span>A lockup. Passes any brand review. The control specimen.</span></div>
+    <div class="rung"><b>02 &middot; Unconventional</b><span>The cat isn&rsquo;t drawn. It&rsquo;s assembled out of statement rows.</span></div>
+    <div class="rung"><b>03 &middot; Wow</b><span>Two halftone screens, live moir&eacute;, the press still running.</span></div>
+    <div class="rung"><b>04 &middot; Unexpected</b><span>There is no cat. Then there are two, and you can&rsquo;t stop seeing them.</span></div>
+    <div class="rung"><b>05 &middot; Flabbergasted</b><span>The mark is a function of your money. Nobody else has your cat.</span></div>
+  </div>
+
+  <div class="callout">
+    <b>Read this as a ladder, not a menu.</b> Rung 01 is what you&rsquo;d ship if the answer were
+    &ldquo;don&rsquo;t scare anyone.&rdquo; Every rung after it trades a little safety for a
+    little memory. Somewhere on this ladder is the highest rung you&rsquo;d actually defend
+    in a room &mdash; that&rsquo;s the pick.
+  </div>
+</header>
+
+<!-- ══ 01 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="head">
+    <span class="id">01</span>
+    <h2>Chop &amp; Wordmark</h2>
+    <span class="risk">risk &mdash;&mdash;&mdash;&mdash;&mdash; none</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="stage">
+        <svg width="150" height="150" viewBox="0 0 220 168" role="img" aria-label="Fortune cat mark">
+          <g class="ink" transform="translate(4 3)" fill="#e4533c">
+            <path d="M18 16 L52 13 L55 47 L21 50 z"/>
+            <path d="M80 105 C98 114 132 114 150 105 C149 112 148 117 147 121 C128 128 102 128 83 121 C82 117 81 112 80 105 z"/>
+            <ellipse cx="182" cy="112" rx="21" ry="14" transform="rotate(-12 182 112)"/>
+          </g>
+          <g class="ink" fill="#f0b429">
+            <path d="M64 46 C61 33 58 23 57 15 C71 21 84 30 92 39 C100 36 113 35 125 38 C133 29 146 20 159 14
+                     C157 25 155 36 154 47 C166 58 171 74 167 90 C162 107 143 117 119 117
+                     C95 117 77 107 71 90 C66 74 68 58 64 46 z"/>
+            <path d="M76 106 C68 122 67 140 76 152 C95 159 141 159 160 152 C167 140 164 122 154 106 z"/>
+            <ellipse cx="178" cy="88" rx="17" ry="16"/>
+          </g>
+          <g fill="#fbf6ec">
+            <ellipse cx="111" cy="88" rx="20" ry="13"/>
+            <text x="40" y="44" text-anchor="middle" font-size="27" font-weight="700" font-family="Georgia, serif">&#x91D1;</text>
+            <rect x="175" y="110" width="16" height="3.5" rx="1.5" transform="rotate(-12 183 112)"/>
+          </g>
+          <g class="ink" fill="none" stroke="#2e2114" stroke-width="3" stroke-linecap="round">
+            <path d="M89 70 q8 8 16 0"/><path d="M117 70 q8 8 16 0"/>
+            <path d="M107 83 l7 0 l-3.5 5 z" fill="#2e2114" stroke="none"/>
+            <path d="M103 92 q9 7 18 0"/>
+          </g>
+        </svg>
+
+        <div class="wordmark">Fortune<br>Cat<small>Your money logs itself</small></div>
+      </div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>01 &middot; Conventional</h3>
+      <dl>
+        <dt>basis</dt><dd>R3 cut paper, tidied</dd>
+        <dt>inks</dt><dd>#f0b429 &middot; #e4533c</dd>
+        <dt>lockup</dt><dd>mark left, stacked type</dd>
+        <dt>holds at</dt><dd>16px and up</dd>
+      </dl>
+      <p class="note">
+        This is the rung where nothing is at stake. The mark from the riso round, a display face
+        set tight, a mono strapline. It will look correct on an invoice, an App Store tile and a
+        conference lanyard, and it will not be remembered by anyone who sees it once.
+      </p>
+      <div class="verdict">
+        Keep this drawn no matter which rung you pick &mdash; every direction below still needs a
+        boring lockup for the places that refuse to be interesting.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 02 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="head">
+    <span class="id">02</span>
+    <h2>Ledger</h2>
+    <span class="risk">risk &#9632;&mdash;&mdash;&mdash;&mdash; low</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="stage tight"><div id="ledger-stage"></div></div>
+      <div class="cap-row">
+        <div class="cap">26 rows &middot; 60 line items</div>
+        <div class="cap">silhouette is emergent</div>
+      </div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>02 &middot; Unconventional</h3>
+      <dl>
+        <dt>drawn</dt><dd>nothing but the face</dd>
+        <dt>rows</dt><dd>26, 6.6px pitch</dd>
+        <dt>split</dt><dd>label bar + amount bar</dd>
+        <dt>inks</dt><dd>#2e2114 &middot; #f0b429</dd>
+      </dl>
+      <p class="note">
+        There is no cat path in this file. There is a silhouette <em>function</em> &mdash; head
+        circle, two ear triangles, a body trapezoid, a raised paw &mdash; sampled every 6.6px, and
+        each scanline is emitted as a statement row: long bar for the payee, short right-aligned
+        bar for the amount.
+      </p>
+      <p class="note">
+        Up close it is a bank statement. At arm&rsquo;s length it is unmistakably a cat. That gap
+        is the whole idea, and it is <strong>literally true of the product</strong> rather than a
+        metaphor about it.
+      </p>
+      <div class="verdict">
+        The only direction here whose construction explains what the app does without a word of
+        copy.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 03 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="head">
+    <span class="id">03</span>
+    <h2>Press Run</h2>
+    <span class="risk">risk &#9632;&#9632;&#9632;&mdash;&mdash; medium</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="stage">
+        <svg width="330" height="252" viewBox="0 0 220 168" role="img" aria-label="Fortune cat printed as two halftone screens">
+          <defs>
+            <!-- 15 deg and 23 deg. Real printers keep screens 30 deg apart precisely
+                 BECAUSE 8 deg apart does this. We want the thing they avoid. -->
+            <pattern id="scr-a" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+              <circle cx="3.5" cy="3.5" r="2.3" fill="#f0b429"/>
+            </pattern>
+            <pattern id="scr-b" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(23)">
+              <circle cx="3.5" cy="3.5" r="2.2" fill="#e4533c"/>
+            </pattern>
+            <g id="cat-solid">
+              <path d="M64 46 C61 33 58 23 57 15 C71 21 84 30 92 39 C100 36 113 35 125 38 C133 29 146 20 159 14
+                       C157 25 155 36 154 47 C166 58 171 74 167 90 C162 107 143 117 119 117
+                       C95 117 77 107 71 90 C66 74 68 58 64 46 z"/>
+              <path d="M76 106 C68 122 67 140 76 152 C95 159 141 159 160 152 C167 140 164 122 154 106 z"/>
+              <ellipse cx="178" cy="88" rx="17" ry="16"/>
+              <ellipse cx="182" cy="112" rx="21" ry="14" transform="rotate(-12 182 112)"/>
+            </g>
+          </defs>
+
+          <g class="ink"><use href="#cat-solid" fill="url(#scr-a)"/></g>
+          <g class="ink drift"><use href="#cat-solid" fill="url(#scr-b)"/></g>
+
+          <g fill="#fbf6ec"><ellipse cx="111" cy="88" rx="20" ry="13"/></g>
+          <g class="ink" fill="none" stroke="#2e2114" stroke-width="3" stroke-linecap="round">
+            <path d="M89 70 q8 8 16 0"/><path d="M117 70 q8 8 16 0"/>
+            <path d="M107 83 l7 0 l-3.5 5 z" fill="#2e2114" stroke="none"/>
+            <path d="M103 92 q9 7 18 0"/>
+          </g>
+        </svg>
+      </div>
+      <div class="cap-row">
+        <div class="cap">screen angles 15&deg; / 23&deg;</div>
+        <div class="cap">registration drifts &plusmn;3px, 7.5s</div>
+      </div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>03 &middot; Wow</h3>
+      <dl>
+        <dt>fill</dt><dd>two dot screens</dd>
+        <dt>angles</dt><dd>15&deg; and 23&deg;</dd>
+        <dt>moir&eacute;</dt><dd>real, not a texture</dd>
+        <dt>motion</dt><dd>7.5s drift, opt-out</dd>
+      </dl>
+      <p class="note">
+        The cat is not filled with colour. It is filled with two <strong>dot screens</strong> eight
+        degrees apart, and the interference between them is genuine moir&eacute; &mdash; computed by
+        the renderer at whatever size you view it, not baked into a bitmap. Zoom the page and the
+        pattern reorganises, because it is a real optical effect rather than a picture of one.
+      </p>
+      <p class="note">
+        Then the press keeps running: one plate drifts against the other on a 7.5&nbsp;second cycle,
+        so the interference breathes. It never resolves and it never repeats visibly.
+      </p>
+      <div class="verdict">
+        The one that makes people lean in. Costs you a static export &mdash; a PNG of this is just a
+        cat with dots on it, and the whole point evaporates.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 04 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="head">
+    <span class="id">04</span>
+    <h2>The Pouch</h2>
+    <span class="risk">risk &#9632;&#9632;&#9632;&#9632;&mdash; high</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="stage">
+        <div class="flipwrap">
+        <svg class="flip" width="340" height="248" viewBox="0 0 260 190" tabindex="0"
+             role="img" aria-label="Two cats in profile whose facing outlines form a money pouch between them">
+          <defs>
+            <path id="pouch-half" d="M100 38
+              C103 43 103 45 102 48  C100 53 97 54 98 58   C100 64 109 64 110 70
+              C111 75 101 75 99 79   C102 83 105 83 104 86  C103 91 101 92 100 96
+              C97 102 89 103 84 108  C76 116 70 119 66 126  C60 134 57 139 58 146
+              C60 160 92 168 130 168 L130 38 Z"/>
+            <g id="cat-half">
+              <path d="M100 38
+                C103 43 103 45 102 48  C100 53 97 54 98 58   C100 64 109 64 110 70
+                C111 75 101 75 99 79   C102 83 105 83 104 86  C103 91 101 92 100 96
+                C97 102 89 103 84 108  C78 115 72 125 68 141  C63 157 57 166 50 174
+                L10 174 C6 150 8 126 14 104 C18 87 21 75 22 61
+                C20 45 24 31 31 19 C41 29 47 38 53 47 C66 38 85 33 100 38 Z"/>
+            </g>
+          </defs>
+
+          <!-- vermilion: the pouch, drawn as two mirrored halves that meet on the centre line -->
+          <g class="ink pouch" fill="#e4533c">
+            <path d="M92 26 C110 19 150 19 168 26 L164 46 C150 42 110 42 96 46 Z"/>
+            <use href="#pouch-half"/>
+            <use href="#pouch-half" transform="translate(260 0) scale(-1 1)"/>
+          </g>
+
+          <!-- gold: the two cats, sharing that exact edge -->
+          <g class="ink cats" fill="#f0b429">
+            <use href="#cat-half"/>
+            <use href="#cat-half" transform="translate(260 0) scale(-1 1)"/>
+          </g>
+
+          <!-- eyes are knockouts, so they read on gold and vanish on the pouch reading -->
+          <g fill="#fbf6ec">
+            <ellipse cx="62" cy="62" rx="7" ry="5"/>
+            <ellipse cx="198" cy="62" rx="7" ry="5"/>
+          </g>
+          <g fill="#2e2114" class="ink">
+            <ellipse cx="64" cy="62" rx="2.6" ry="3.4"/>
+            <ellipse cx="196" cy="62" rx="2.6" ry="3.4"/>
+          </g>
+        </svg>
+        </div>
+      </div>
+      <div class="cap-row"><div class="cap">hover to drop the cats</div><div class="cap">one contour &middot; two readings</div></div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>04 &middot; Unexpected</h3>
+      <dl>
+        <dt>figure</dt><dd>two cats, profile</dd>
+        <dt>ground</dt><dd>one money pouch</dd>
+        <dt>shared</dt><dd>every point of the edge</dd>
+        <dt>inks</dt><dd>#f0b429 &middot; #e4533c</dd>
+      </dl>
+      <p class="note">
+        Rubin&rsquo;s vase, run on your two inks. The pouch&rsquo;s left and right contours
+        <em>are</em> the cats&rsquo; faces &mdash; forehead, brow, nose, lip, chin, throat &mdash;
+        not approximately but to the coordinate. The gold half and the vermilion half are mirrored
+        copies of one path, so the illusion cannot drift out of alignment.
+      </p>
+      <p class="note">
+        Most people see the pouch first, because the vermilion sits on the centre line where you
+        look. Then the cats arrive and the pouch becomes hard to hold onto. <strong>Hover the mark
+        and the cats step back</strong> so you can flip it deliberately.
+      </p>
+      <div class="verdict">
+        Highest ceiling, narrowest tolerance. It dies at 16px &mdash; a gestalt trick needs enough
+        pixels to be tricked by &mdash; so this rung ships with 01 underneath it for small sizes.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 05 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="head">
+    <span class="id">05</span>
+    <h2>Your Cat</h2>
+    <span class="risk">risk &#9632;&#9632;&#9632;&#9632;&#9632; total</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="specimens" id="specimens"></div>
+
+      <div class="console">
+        <div class="knobs">
+          <div class="knob"><label for="k-trend">30d trend</label>
+            <input id="k-trend" type="range" min="-100" max="100" value="55"><output id="o-trend"></output></div>
+          <div class="knob"><label for="k-balance">balance</label>
+            <input id="k-balance" type="range" min="0" max="100" value="62"><output id="o-balance"></output></div>
+          <div class="knob"><label for="k-cats">categories</label>
+            <input id="k-cats" type="range" min="2" max="8" value="5"><output id="o-cats"></output></div>
+          <div class="knob"><label for="k-txns">transactions</label>
+            <input id="k-txns" type="range" min="0" max="100" value="48"><output id="o-txns"></output></div>
+        </div>
+      </div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>05 &middot; Flabbergasted</h3>
+      <p class="note" style="margin-top:0">
+        The mark stops being a picture of a cat and becomes a <strong>reading</strong> of one.
+        Every line of the drawing is bound to a number the app already has:
+      </p>
+      <table class="map">
+        <tr><th>geometry</th><th>bound to</th></tr>
+        <tr><td>ear angle</td><td>30-day net trend</td></tr>
+        <tr><td>body width</td><td>balance vs. your median</td></tr>
+        <tr><td>whiskers</td><td>one per active category</td></tr>
+        <tr><td>fur ticks</td><td>transactions this month</td></tr>
+        <tr><td>tail</td><td>the 30-day net line, literally</td></tr>
+        <tr><td>eyes</td><td>the existing <code>catState</code></td></tr>
+      </table>
+      <p class="note">
+        The tail is not a tail-shaped decoration. It is the sparkline, drawn as a tail. A flat month
+        gives a straight tail; a volatile one gives a kinked one. Drag the knobs and watch the mark
+        re-derive itself &mdash; that is the actual generator running, not three saved drawings.
+      </p>
+      <div class="verdict">
+        Nobody else has your cat, and yours changes as you spend. That is either the most memorable
+        thing on this page or a support burden about why the logo moved &mdash; and both are true.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p class="eyebrow">Where this leaves you</p>
+  <ul>
+    <li><strong>Every one of these is production vector.</strong> Nothing here is a render or a
+      trace. Whichever rung you point at, the paths in this file are the paths that ship.</li>
+    <li><strong>02, 03 and 05 are generated, not drawn</strong> &mdash; they are ~40 lines of
+      geometry each. That makes them cheap to tune and impossible to hand off as a static asset,
+      which is a real trade, not a footnote.</li>
+    <li><strong>Vermilion still never touches the fur.</strong> On 01 it is the chop, collar and
+      koban; on 04 it is the pouch, which is the ground the cats are cut out of. The rule held on
+      all five without being argued with.</li>
+    <li><strong>04 and 05 need 01 underneath them.</strong> Neither survives a 16px favicon, so the
+      conventional lockup is infrastructure regardless of which rung wins.</li>
+  </ul>
+</footer>
+
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="riso-grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.5" intercept="0.32"/></feComponentTransfer>
+  </filter>
+</svg>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────
+   Two of the five plates have no cat drawn in them. They have a cat
+   DEFINED — as geometry — and the marks below are what that geometry
+   prints. Both functions are pure: same input, same path data, every
+   time, so nothing on this page jitters when it re-renders.
+   ───────────────────────────────────────────────────────────────────── */
+
+var LAC = '#2e2114', GOLD = '#f0b429', VERM = '#e4533c', PAPER = '#fbf6ec';
+
+/* ── 02 · Ledger ──────────────────────────────────────────────────────
+   The silhouette is sampled on a 6.6px pitch and every scanline is
+   emitted as a statement row: a long bar for the payee, a short
+   right-aligned bar for the amount. Nothing traces an outline. */
+function ledgerMark() {
+  var CX = 118, CY = 76, R = 42, out = [];
+
+  function bar(x, y, w, fill) {
+    return '<rect x="' + r2(x) + '" y="' + r2(y) + '" width="' + r2(w) +
+           '" height="4" rx="2" fill="' + fill + '"/>';
+  }
+
+  for (var y = 14; y <= 182; y += 6.6) {
+    var segs = [], d, hw;
+
+    d = R * R - (y - CY) * (y - CY);                       // head
+    if (d > 0) { d = Math.sqrt(d); segs.push([CX - d, CX + d]); }
+
+    if (y >= 12 && y <= 50) {                              // two ears
+      hw = 27 * ((y - 12) / 38);
+      segs.push([82 - hw, 82 + hw]);
+      segs.push([154 - hw, 154 + hw]);
+    }
+
+    if (y >= 114) {                                        // body
+      hw = 40 + 16 * ((y - 114) / 68);
+      segs.push([CX - hw, CX + hw]);
+    }
+
+    d = 17 * 17 - (y - 110) * (y - 110);                   // raised paw
+    if (d > 0) { d = Math.sqrt(d); segs.push([168 - d, 168 + d]); }
+
+    segs.sort(function (a, b) { return a[0] - b[0]; });
+    var merged = [];
+    for (var i = 0; i < segs.length; i++) {
+      var last = merged[merged.length - 1];
+      if (last && segs[i][0] <= last[1] + 1) last[1] = Math.max(last[1], segs[i][1]);
+      else merged.push([segs[i][0], segs[i][1]]);
+    }
+
+    for (var j = 0; j < merged.length; j++) {
+      var x0 = merged[j][0], x1 = merged[j][1], w = x1 - x0;
+      if (w < 3) continue;
+      if (w < 26) {
+        out.push(bar(x0, y, w, LAC));
+      } else {
+        out.push(bar(x0, y, w - 15, LAC));
+        out.push(bar(x1 - 11, y, 11, GOLD));
+      }
+    }
+  }
+
+  return '<svg width="330" height="264" viewBox="0 0 250 200" role="img"' +
+         ' aria-label="A fortune cat assembled out of bank-statement rows">' +
+         '<g class="ink">' + out.join('') + '</g>' +
+         '<g fill="' + PAPER + '"><ellipse cx="118" cy="88" rx="22" ry="14"/></g>' +
+         '<g class="ink" fill="none" stroke="' + LAC + '" stroke-width="3" stroke-linecap="round">' +
+           '<path d="M96 66 q8 7 16 0"/><path d="M124 66 q8 7 16 0"/>' +
+           '<path d="M114 81 l8 0 l-4 5 z" fill="' + LAC + '" stroke="none"/>' +
+           '<path d="M110 90 q8 6 16 0"/>' +
+         '</g></svg>';
+}
+
+/* ── 05 · Your Cat ────────────────────────────────────────────────────
+   Every limb is bound to a number the app already holds. trend and
+   balance arrive 0..1; cats is a count; txns is 0..1. */
+function moneyCat(p) {
+  var CX = 96, t = p.trend, b = p.balance;
+  var hw1 = 26 + 16 * b, hw2 = 34 + 22 * b;
+  var apexX = 58 + 12 * t, apexY = 30 - 20 * t;
+  var s = [], i, j, k;
+
+  s.push('<g class="ink" fill="' + VERM + '"><path d="M' + r2(CX - hw1) + ' 95 L' +
+         r2(CX + hw1) + ' 95 L' + r2(CX + hw1 - 4) + ' 106 L' + r2(CX - hw1 + 4) + ' 106 Z"/></g>');
+
+  var pts = [], x0 = CX + hw2 - 2;
+  for (j = 0; j < 8; j++) {
+    var v = clamp(0.45 + (t - 0.5) * 0.85 * (j / 7) + 0.12 * Math.sin(j * 1.9 + p.cats), 0, 1);
+    pts.push(r2(x0 + j * (58 / 7)) + ' ' + r2(146 - v * 34));
+  }
+  s.push('<g class="ink" fill="none" stroke="' + GOLD + '" stroke-width="7"' +
+         ' stroke-linecap="round" stroke-linejoin="round"><path d="M' + pts.join(' L') + '"/></g>');
+
+  var gold = [];
+  gold.push('<polygon points="68,42 ' + r2(apexX) + ',' + r2(apexY) + ' 94,32"/>');
+  gold.push('<polygon points="124,42 ' + r2(192 - apexX) + ',' + r2(apexY) + ' 98,32"/>');
+  gold.push('<path d="M' + r2(CX - hw1) + ' 96 L' + r2(CX + hw1) + ' 96 C' +
+            r2(CX + hw2) + ' 116 ' + r2(CX + hw2) + ' 138 ' + r2(CX + hw2) + ' 154 L' +
+            r2(CX - hw2) + ' 154 C' + r2(CX - hw2) + ' 138 ' + r2(CX - hw2) + ' 116 ' +
+            r2(CX - hw1) + ' 96 Z"/>');
+  gold.push('<circle cx="96" cy="66" r="36"/>');
+  s.push('<g class="ink" fill="' + GOLD + '">' + gold.join('') + '</g>');
+
+  var wh = [];
+  for (i = 0; i < p.cats; i++) {
+    var a = (-14 + 28 * (p.cats === 1 ? 0.5 : i / (p.cats - 1))) * Math.PI / 180;
+    var dx = 24 * Math.cos(a), dy = 24 * Math.sin(a);
+    wh.push('<path d="M62 72 L' + r2(62 - dx) + ' ' + r2(72 + dy) + '"/>');
+    wh.push('<path d="M130 72 L' + r2(130 + dx) + ' ' + r2(72 + dy) + '"/>');
+  }
+  s.push('<g class="ink" fill="none" stroke="' + LAC + '" stroke-width="1.2"' +
+         ' stroke-linecap="round" opacity="0.42">' + wh.join('') + '</g>');
+
+  var ticks = [], n = Math.round(p.txns * 16), span = Math.max(1, Math.round(2 * hw2 - 12));
+  for (k = 0; k < n; k++) {
+    ticks.push('<path d="M' + r2(CX - hw2 + 6 + ((k * 37) % span)) + ' ' +
+               r2(108 + ((k * 53) % 42)) + ' l0 5"/>');
+  }
+  s.push('<g class="ink" fill="none" stroke="' + LAC + '" stroke-width="1.5"' +
+         ' stroke-linecap="round" opacity="0.4">' + ticks.join('') + '</g>');
+
+  s.push('<g fill="' + PAPER + '"><ellipse cx="96" cy="80" rx="18" ry="11.5"/></g>');
+
+  var eyes;
+  if (t > 0.58)      eyes = '<path d="M72 60 q8 7 16 0"/><path d="M104 60 q8 7 16 0"/>';
+  else if (t > 0.4)  eyes = '<circle cx="80" cy="62" r="3.4" fill="' + LAC + '"/>' +
+                            '<circle cx="112" cy="62" r="3.4" fill="' + LAC + '"/>';
+  else               eyes = '<circle cx="80" cy="62" r="6.5"/><circle cx="112" cy="62" r="6.5"/>' +
+                            '<circle cx="80" cy="62" r="2.2" fill="' + LAC + '"/>' +
+                            '<circle cx="112" cy="62" r="2.2" fill="' + LAC + '"/>';
+
+  s.push('<g class="ink" fill="none" stroke="' + LAC + '" stroke-width="3" stroke-linecap="round">' +
+         eyes + '<path d="M92 74 l8 0 l-4 5 z" fill="' + LAC + '" stroke="none"/>' +
+         '<path d="M88 83 q8 6 16 0" stroke-width="2.2"/></g>');
+
+  return '<svg width="200" height="150" viewBox="0 0 240 180" role="img" aria-label="' +
+         (p.label || 'A cat derived from one month of cash flow') + '">' + s.join('') + '</svg>';
+}
+
+function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+function r2(n) { return Math.round(n * 100) / 100; }
+
+
+/* ── wiring ───────────────────────────────────────────────────────── */
+document.getElementById('ledger-stage').innerHTML = ledgerMark();
+
+var FIXED_LEAN  = { trend: 0.16, balance: 0.20, cats: 7, txns: 0.88, label: 'A lean month: flat trend, wide-eyed, many small categories' };
+var FIXED_FLUSH = { trend: 0.88, balance: 0.92, cats: 3, txns: 0.28, label: 'A flush month: rising tail, broad body, few categories' };
+
+var knobs = { trend: null, balance: null, cats: null, txns: null };
+Object.keys(knobs).forEach(function (k) { knobs[k] = document.getElementById('k-' + k); });
+
+function readKnobs() {
+  return {
+    trend:   (+knobs.trend.value + 100) / 200,
+    balance: +knobs.balance.value / 100,
+    cats:    +knobs.cats.value,
+    txns:    +knobs.txns.value / 100,
+    label:   'A cat derived live from the sliders below'
+  };
+}
+
+function specimen(svg, who) {
+  return '<div class="specimen">' + svg + '<div class="who">' + who + '</div></div>';
+}
+
+function paint() {
+  var p = readKnobs();
+  document.getElementById('specimens').innerHTML =
+    specimen(moneyCat(FIXED_LEAN),  'February') +
+    specimen(moneyCat(p),           '&larr; yours &rarr;') +
+    specimen(moneyCat(FIXED_FLUSH), 'May');
+
+  var sign = +knobs.trend.value > 0 ? '+' : '';
+  document.getElementById('o-trend').textContent   = sign + knobs.trend.value + '%';
+  document.getElementById('o-balance').textContent = knobs.balance.value + '%';
+  document.getElementById('o-cats').textContent    = knobs.cats.value;
+  document.getElementById('o-txns').textContent    = Math.round(knobs.txns.value * 2.4);
+}
+
+Object.keys(knobs).forEach(function (k) { knobs[k].addEventListener('input', paint); });
+paint();
+</script>
