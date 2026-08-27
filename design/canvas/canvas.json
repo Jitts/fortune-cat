@@ -1,29 +1,30 @@
 {
-  "pages": [
-    { "id": "page-a", "name": "A · Lacquer" },
-    { "id": "page-c", "name": "C · Night Shrine" },
-    { "id": "page-r1", "name": "Round 1" }
-  ],
   "artboards": [
-    { "file": "Main.dc.html", "title": "A · Lacquer (round 1 — the parent)", "page": "page-a", "x": 0, "y": 0, "w": 1440, "h": 3400 },
-    { "file": "A1Scroll.dc.html", "title": "A1 · Scroll — the ledger fills as you scroll", "page": "page-a", "x": 1600, "y": 0, "w": 1440, "h": 940, "expand": "fill" },
-    { "file": "A2Explosive.dc.html", "title": "A2 · Explosive — struck gold, broken grid", "page": "page-a", "x": 3200, "y": 0, "w": 1440, "h": 3300 },
-    { "file": "A3Interactive.dc.html", "title": "A3 · Interactive — the hero IS the product", "page": "page-a", "x": 4800, "y": 0, "w": 1440, "h": 2560, "is_interactive": true },
+    { "file": "Main.dc.html", "title": "A · Lacquer (round 1 — the parent)", "x": 0, "y": 0, "w": 1440, "h": 3400 },
+    { "file": "A1Scroll.dc.html", "title": "A1 · Scroll — the ledger fills as you scroll", "x": 1600, "y": 0, "w": 1440, "h": 940, "expand": "fill" },
+    { "file": "A2Explosive.dc.html", "title": "A2 · Explosive — struck gold, broken grid", "x": 3200, "y": 0, "w": 1440, "h": 3300 },
+    { "file": "A3Interactive.dc.html", "title": "A3 · Interactive — the hero IS the product", "x": 4800, "y": 0, "w": 1440, "h": 2560, "is_interactive": true },
 
-    { "file": "DirectionC.dc.html", "title": "C · Night Shrine (round 1 — the parent)", "page": "page-c", "x": 0, "y": 0, "w": 1440, "h": 3520 },
-    { "file": "C1Scroll.dc.html", "title": "C1 · Scroll — you walk under the gate", "page": "page-c", "x": 1600, "y": 0, "w": 1440, "h": 940, "expand": "fill" },
-    { "file": "C2Explosive.dc.html", "title": "C2 · Explosive — the shrine at full blaze", "page": "page-c", "x": 3200, "y": 0, "w": 1440, "h": 4400 },
-    { "file": "C3Interactive.dc.html", "title": "C3 · Interactive — the whole ritual, playable", "page": "page-c", "x": 4800, "y": 0, "w": 1440, "h": 3000, "is_interactive": true },
+    { "file": "DirectionC.dc.html", "title": "C · Night Shrine (round 1 — the parent)", "x": 0, "y": 3900, "w": 1440, "h": 3520 },
+    { "file": "C1Scroll.dc.html", "title": "C1 · Scroll — you walk under the gate", "x": 1600, "y": 3900, "w": 1440, "h": 940, "expand": "fill" },
+    { "file": "C2Explosive.dc.html", "title": "C2 · Explosive — the shrine at full blaze", "x": 3200, "y": 3900, "w": 1440, "h": 4400 },
+    { "file": "C3Interactive.dc.html", "title": "C3 · Interactive — SHIPPED to the real page", "x": 4800, "y": 3900, "w": 1440, "h": 3000, "is_interactive": true },
 
-    { "file": "DirectionB.dc.html", "title": "B · The Receipt (round 1 — not carried forward)", "page": "page-r1", "x": 0, "y": 0, "w": 1440, "h": 3260 }
+    { "file": "DirectionB.dc.html", "title": "B · The Receipt (round 1 — not carried forward)", "x": 0, "y": 8800, "w": 1440, "h": 3260 }
   ],
   "annotations": [
+    {
+      "id": "note-how-to-read",
+      "x": -680,
+      "y": 0,
+      "w": 520,
+      "text": "HOW TO READ THIS CANVAS\n\nTop row — the A · Lacquer lineage: the round-1 parent, then scroll / explosive / interactive.\n\nSecond row — the C · Night Shrine lineage, same three spin-offs. C3 (far right) is the one now built into app/page.tsx.\n\nBottom — B · The Receipt, round 1, parked.\n\nAll nine sit on ONE canvas: zoom out to see everything, or click an artboard's title to focus it. Give it a few seconds on first open — nine full landing pages have to paint before anything is legible.\n\nThe two SCROLL artboards (A1, C1) are deliberately one viewport tall. Expand them and scroll — that is the whole point of those two."
+    },
     {
       "id": "note-a-parent",
       "x": 0,
       "y": -320,
       "w": 440,
-      "page": "page-a",
       "text": "THE PARENT — round 1, unchanged.\n\nKept here so you can see what the three to its right are departing from. Static, one screen of ideas per section."
     },
     {
@@ -31,7 +32,6 @@
       "x": 1600,
       "y": -320,
       "w": 440,
-      "page": "page-a",
       "text": "A1 · SCROLL\n\nThe axis: scroll IS the demo.\n\nThe pitch is not described, it is performed. A pinned left column holds still while raw bank messages print into finished ledger rows beside it. The gold swash under the headline draws itself. $486.20 counts up from zero, the luck ring fills, the bars grow. A lantern rail down the left lights one lantern per section — the app's own streak metaphor doing double duty as a progress bar.\n\nBuilt on native CSS scroll timelines (view() / scroll()), so it is roughly 60 lines of CSS and no JavaScript library — and it ports into the real page unchanged.\n\nTradeoff: it is five screens of scrolling before the offer is fully made, which punishes a visitor who wanted the price in three seconds. Also the single technique carrying the page is Chromium-only; elsewhere the animation is skipped and the page is merely static (never broken).\n\nOPEN THIS ONE EXPANDED — the frame is one viewport tall on purpose so it actually scrolls."
     },
     {
@@ -39,7 +39,6 @@
       "x": 3200,
       "y": -320,
       "w": 440,
-      "page": "page-a",
       "text": "A2 · EXPLOSIVE\n\nThe axis: same warm palette, ten times the volume.\n\n178px headline in gold leaf with a live sheen crossing the letterforms. Real grain over every surface (SVG turbulence, not a texture file). Oversized koban coins drifting at three different speeds. A 1010px ledger slab tilted −1.6° and breaking out of the fold. A black ticker of real captured rows. Then a 12-column grid the cards deliberately refuse to sit inside — rotated, overlapping, one flooded vermilion, one flooded gold.\n\nTradeoff: this is a shout, and a shout is tiring. It also raises a promise the signed-in app does not keep — the dashboard is calm and this is not, so the first screen after sign-up would feel like a different product. Worth it only if you are also willing to push the app's chrome this way."
     },
     {
@@ -47,67 +46,59 @@
       "x": 4800,
       "y": -320,
       "w": 440,
-      "page": "page-a",
-      "text": "A3 · INTERACTIVE\n\nThe axis: stop describing the product, hand it over.\n\nThe hero is a working capture demo. Tap any of five real bank-message shapes and watch it parse — merchant, amount, currency, category — and print into the ledger. The pouch total recomputes, the luck ring moves, and the cat's face changes, all from lib/catState's actual rule (net decides the mood, nothing else). A foreign charge shows its ECB conversion. Then shake the omikuji box and the slip unfurls.\n\nNo sign-up, no email, no video. The visitor has used the product before deciding anything.\n\nTradeoff: the demo has to be flawless, because it IS the pitch — one wrong number here is worse than no demo. And a visitor who does not tap anything sees an empty ledger and a headline, which is a weaker static page than A1 or A2."
+      "text": "A3 · INTERACTIVE\n\nThe axis: stop describing the product, hand it over.\n\nThe hero is a working capture demo. Tap any of five real bank-message shapes and watch it parse — merchant, amount, currency, category — and print into the ledger. The pouch total recomputes, the luck ring moves, and the cat's face changes, all from lib/catState's actual rule (net decides the mood, nothing else). A foreign charge shows its ECB conversion. Then shake the omikuji box and the slip unfurls.\n\nNo sign-up, no email, no video. The visitor has used the product before deciding anything.\n\nTwo bugs found and fixed here since the last pass: the pouch rendered negatives as \"$-60.40\" (minus on the wrong side of the symbol — it had its own money formatter), and \"← put it back\" was wired to reset and wiped the whole ledger. Both now covered by a runnable check against the real renderVals.\n\nTradeoff: the demo has to be flawless, because it IS the pitch. And a visitor who taps nothing sees an empty ledger and a headline, which is a weaker static page than A1 or A2."
     },
     {
       "id": "note-a-scope",
       "x": 1600,
-      "y": 1120,
+      "y": 1100,
       "w": 620,
-      "page": "page-a",
-      "text": "All three still use only real product facts and the exact globals.css tokens — Bricolage / Hanken / JetBrains Mono, 0.7rem button radius, #f6d878→#e8b64a leaf gradient.\n\nSample figures ($486.20, 67%, 68 rows) are illustrative, same as the live LandingDemo. Still no testimonials or user counts anywhere — there are none to cite yet.\n\nEvery animation is wrapped in prefers-reduced-motion. Desktop 1440 only."
+      "text": "All three use only real product facts and the exact globals.css tokens — Bricolage / Hanken / JetBrains Mono, 0.7rem button radius, #f6d878→#e8b64a leaf gradient.\n\nSample figures ($486.20, 67%, 68 rows) are illustrative, same as the live LandingDemo. Still no testimonials or user counts anywhere — there are none to cite yet.\n\nEvery animation is wrapped in prefers-reduced-motion. Desktop 1440 only."
     },
 
     {
       "id": "note-c-parent",
       "x": 0,
-      "y": -320,
+      "y": 3580,
       "w": 440,
-      "page": "page-c",
       "text": "THE PARENT — round 1, unchanged.\n\nKept for comparison. Torii, lantern string, ema plaques, all static."
     },
     {
       "id": "note-c1",
       "x": 1600,
-      "y": -320,
+      "y": 3580,
       "w": 440,
-      "page": "page-c",
       "text": "C1 · SCROLL\n\nThe axis: the scroll is a walk to the shrine.\n\nYou approach at night. Two star layers drift at different rates, the moon rises. Then the gate pins to the screen and grows from distant to overhead as you scroll — at the moment it passes over you, the answer to \"what do you hand over at the gate?\" resolves to a single word: Nothing. Past it, the hall lights lantern by lantern, the luck ring fills, and the slip unfurls from a scroll timeline.\n\nThe gate sequence uses a named view-timeline on the tall wrapper with a sticky child, which is the only reliable way to pin-and-scrub in pure CSS.\n\nTradeoff: the metaphor now costs the visitor real time — nearly three screens of scrolling buy one word. Beautiful if they are willing; infuriating if they came to compare pricing.\n\nOPEN THIS ONE EXPANDED — the frame is one viewport tall on purpose."
     },
     {
       "id": "note-c2",
       "x": 3200,
-      "y": -320,
+      "y": 3580,
       "w": 440,
-      "page": "page-c",
       "text": "C2 · EXPLOSIVE\n\nThe axis: every dial past its stop.\n\n208px foil headline. A twenty-ray sunburst rotating behind everything on a 90-second cycle. The luck medallion at 500px with its reeded rim actually turning. A 440px 金吉 watermark bled off the right edge. A full-bleed vermilion flood with 104px knockout type. The fortune slip blown up to 860px so the slip itself becomes a section.\n\nTradeoff: the most striking of the six and the least defensible — at this scale the cultural motif stops being flavour and becomes the entire brand claim, which is a real bet on who you are selling to. It is also the heaviest page to build and the easiest to date badly."
     },
     {
       "id": "note-c3",
       "x": 4800,
-      "y": -320,
+      "y": 3580,
       "w": 440,
-      "page": "page-c",
-      "text": "C3 · INTERACTIVE\n\nThe axis: the shrine is playable, and every toy is real product logic.\n\nFour live things. Shake the omikuji box — it shakes, the slip slides out, the seal presses. Pick a month (good / break-even / tight) and the cat's ears, eyes and mouth change, the ring re-fills and recolours, the verdict rewrites — straight from lib/catState, where net alone decides the mood. Set money aside and the daruma's second eye grows from nothing to fully painted, glowing at 100%. Tap the lanterns to build a streak.\n\nEvery interaction is a feature the product actually has, which is the point: nothing here is a landing-page toy.\n\nTradeoff: the boldest and the riskiest. It is four interactions deep before it makes an offer, and a visitor who plays with the cat for a minute and leaves has converted nothing. It also sets the highest bar of the six — if the real app feels less alive than its landing page, that is a problem you created here."
+      "text": "C3 · INTERACTIVE — THIS IS THE ONE THAT SHIPPED\n\nNow built into app/page.tsx and running on localhost:3000, on branch landing-night-shrine (committed, not pushed).\n\nThe axis: the shrine is playable, and every toy is real product logic. Shake the omikuji box. Pick a month (good / break-even / tight) and the cat's ears, eyes and mouth change, the ring re-fills and recolours — straight from lib/catState, where net alone decides the mood. Set money aside and the daruma's second eye grows to fully painted. Tap the lanterns to build a streak.\n\nIn the real build these reuse the app's OWN components — LuckRing, catState, Daruma, Lantern — not copies, so the landing page and the dashboard cannot drift apart. The captions use CatRail's exact three strings.\n\nTradeoff: it is four interactions deep before it makes an offer, and it sets the highest bar of the six — if the real app feels less alive than its landing page, that is a problem you created here."
     },
     {
       "id": "note-c-scope",
       "x": 1600,
-      "y": 1120,
+      "y": 5000,
       "w": 620,
-      "page": "page-c",
-      "text": "Same rules as the A page: real product facts only, real tokens, no invented proof.\n\nThe cat, daruma, lantern and koban are all drawn from the shipped SVG components' actual paths, so anything picked here traces straight back into the real React components.\n\nEvery animation is wrapped in prefers-reduced-motion. Desktop 1440 only."
+      "text": "Same rules as the A row: real product facts only, real tokens, no invented proof.\n\nThe cat, daruma, lantern and koban are all drawn from the shipped SVG components' actual paths, so anything picked here traces straight back into the real React.\n\nEvery animation is wrapped in prefers-reduced-motion. Desktop 1440 only."
     },
 
     {
       "id": "note-b",
       "x": 0,
-      "y": -280,
+      "y": 8480,
       "w": 460,
-      "page": "page-r1",
       "text": "B · THE RECEIPT — round 1, not carried forward.\n\nParked here rather than deleted. The one line worth stealing into whichever direction wins is the punchline: 'Typed in by you .... 0 rows'."
     }
   ],
-  "launch": { "view": "canvas", "page": "page-a" }
+  "launch": { "view": "canvas" }
 }
