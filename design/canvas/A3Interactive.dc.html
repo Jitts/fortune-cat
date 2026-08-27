@@ -1,0 +1,367 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #f6f5f3; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #1e1913; -webkit-font-smoothing: antialiased; }
+    a { color: #8a5f10; text-decoration: none; } a:hover { color: #6f4e0d; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .kicker { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em; color: #8a5f10; }
+    .btn-gold { background: linear-gradient(180deg, #f6d878, #e8b64a); color: #2a1e05; box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 6px 18px -8px rgba(150,105,20,0.7); }
+
+    /* the app's own receipt print-in, reused verbatim */
+    @keyframes print-in { from { opacity: 0; transform: translateY(8px); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(0 0 0 0); } }
+    .print-in { animation: print-in 460ms cubic-bezier(0.16,1,0.3,1) both; }
+    @keyframes seal-press { 0% { opacity: 0; transform: rotate(6deg) scale(1.6); } 60% { opacity: 1; transform: rotate(6deg) scale(0.92); } 100% { transform: rotate(6deg) scale(1); } }
+    .seal-press { animation: seal-press 420ms cubic-bezier(0.34,1.4,0.5,1) both; }
+    @keyframes shake { 0%,100% { transform: rotate(0deg); } 20% { transform: rotate(-4deg) translateX(-5px); } 40% { transform: rotate(5deg) translateX(6px); } 60% { transform: rotate(-3deg) translateX(-4px); } 80% { transform: rotate(3deg) translateX(3px); } }
+    .shaking { animation: shake 520ms ease-in-out; }
+    @keyframes unfurl { from { opacity: 0; transform: translateY(-14px) scaleY(0.4); } to { opacity: 1; transform: none; } }
+    .unfurl { transform-origin: top; animation: unfurl 520ms cubic-bezier(0.16,1,0.3,1) both; }
+    @media (prefers-reduced-motion: reduce) { .print-in, .seal-press, .shaking, .unfurl { animation: none; } }
+
+    .tap { cursor: pointer; transition: transform 150ms cubic-bezier(0.25,1,0.5,1), box-shadow 150ms cubic-bezier(0.25,1,0.5,1), border-color 150ms; user-select: none; }
+    .tap:hover { transform: translateY(-2px); }
+    .tap:active { transform: scale(0.98); }
+    .ring-anim { transition: stroke-dashoffset 700ms cubic-bezier(0.16,1,0.3,1); }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #f6f5f3;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 100px; border-bottom: 1px solid #e6e1d9;">
+    <span class="disp" style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em;">Fortune&nbsp;Cat</span>
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <span class="mono" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #73695a;">this page is the app</span>
+      <span class="btn-gold" style="display: inline-flex; border-radius: 0.7rem; padding: 10px 20px; font-size: 14px; font-weight: 600;">Get started</span>
+    </div>
+  </div>
+
+  <!-- ══ HERO: the working demo ══ -->
+  <div style="position: relative; overflow: hidden; padding: 76px 100px 90px;">
+    <div style="position: absolute; right: -180px; top: -80px; width: 620px; height: 620px; border-radius: 999px; opacity: 0.5; filter: blur(70px); background: radial-gradient(circle, rgba(232,182,74,0.3), transparent 62%);"></div>
+
+    <div style="position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start;">
+
+      <!-- LEFT: pitch + the tray you tap -->
+      <div>
+        <p class="kicker" style="margin: 0;">try it right here</p>
+        <h1 class="disp" style="margin: 20px 0 0; font-size: 66px; font-weight: 800; line-height: 0.98; letter-spacing: -0.035em;">Forward a text.<br>Watch it become<br>a ledger.</h1>
+        <p style="margin: 22px 0 0; max-width: 470px; font-size: 18px; line-height: 1.65; color: #5c5346;">These are the kinds of messages your bank already sends you. Tap one and watch what Fortune Cat does with it &mdash; the same rules that run in the real app, no sign-up.</p>
+
+        <p class="mono" style="margin: 34px 0 12px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #73695a;">Tap to forward &darr;</p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <sc-for list="{{ samples }}" as="s" hint-placeholder-count="5">
+            <div class="tap" onClick="{{ s.pick }}" style="display: flex; align-items: center; gap: 14px; border-radius: 14px; padding: 14px 16px; background: {{ s.bg }}; border: 1px solid {{ s.border }}; opacity: {{ s.opacity }};">
+              <span class="mono" style="width: 62px; flex-shrink: 0; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; color: #8a5f10;">{{ s.channel }}</span>
+              <span class="mono" style="flex: 1; min-width: 0; font-size: 12px; line-height: 1.55; color: #5c5346;">{{ s.raw }}</span>
+              <span class="mono" style="flex-shrink: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{ s.cueColor }};">{{ s.cue }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 16px; margin-top: 22px;">
+          <span class="tap mono" onClick="{{ reset }}" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #73695a; border-bottom: 1px solid #d8d1c5; padding-bottom: 2px;">Clear the ledger</span>
+          <span class="mono" style="font-size: 11px; color: #b8b0a2;">{{ countLabel }}</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: the live panel -->
+      <div style="background: #ffffff; border: 1px solid #e6e1d9; border-radius: 22px; padding: 26px; box-shadow: 0 34px 84px -50px rgba(0,0,0,0.55);">
+
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid #edeae5;">
+          <div>
+            <p class="mono" style="margin: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: #73695a;">In your pouch</p>
+            <p class="disp" style="margin: 5px 0 0; font-size: 52px; font-weight: 800; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums;">{{ pouch }}</p>
+            <p style="margin: 5px 0 0; font-size: 12px; color: #73695a;">{{ pouchNote }}</p>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 76px; height: 76px; display: {{ cat.savingDisplay }};">
+              <svg width="76" height="76" viewBox="0 0 100 100" style="overflow: visible;">
+                <defs><linearGradient id="a3-c1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d888"></stop><stop offset="1" stop-color="#e8bd54"></stop></linearGradient></defs>
+                <path d="M27 38 L30 15 L46 31 Z" fill="url(#a3-c1)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <path d="M73 38 L70 15 L54 31 Z" fill="url(#a3-c1)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <path d="M31 33 L33 22 L41 30 Z" fill="#fbf3dd"></path><path d="M69 33 L67 22 L59 30 Z" fill="#fbf3dd"></path>
+                <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z" fill="url(#a3-c1)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <circle cx="78" cy="55" r="8" fill="url(#a3-c1)" stroke="#6f4e0d" stroke-width="2"></circle>
+                <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"></ellipse>
+                <circle cx="50" cy="46" r="27" fill="url(#a3-c1)" stroke="#6f4e0d" stroke-width="2"></circle>
+                <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"></ellipse>
+                <path d="M36 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+                <path d="M54 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+                <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"></path>
+                <path d="M45 54 q5 4 10 0" stroke="#6f4e0d" stroke-width="1.8" fill="none" stroke-linecap="round"></path>
+                <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+                <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"></circle>
+              </svg>
+            </div>
+            <div style="width: 76px; height: 76px; display: {{ cat.evenDisplay }};">
+              <svg width="76" height="76" viewBox="0 0 100 100" style="overflow: visible;">
+                <defs><linearGradient id="a3-c2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d888"></stop><stop offset="1" stop-color="#e8bd54"></stop></linearGradient></defs>
+                <path d="M27 38 L30 15 L46 31 Z" fill="url(#a3-c2)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <path d="M73 38 L70 15 L54 31 Z" fill="url(#a3-c2)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <path d="M31 33 L33 22 L41 30 Z" fill="#fbf3dd"></path><path d="M69 33 L67 22 L59 30 Z" fill="#fbf3dd"></path>
+                <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z" fill="url(#a3-c2)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <circle cx="78" cy="55" r="8" fill="url(#a3-c2)" stroke="#6f4e0d" stroke-width="2"></circle>
+                <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"></ellipse>
+                <circle cx="50" cy="46" r="27" fill="url(#a3-c2)" stroke="#6f4e0d" stroke-width="2"></circle>
+                <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"></ellipse>
+                <circle cx="41" cy="44" r="2.7" fill="#6f4e0d"></circle><circle cx="59" cy="44" r="2.7" fill="#6f4e0d"></circle>
+                <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"></path>
+                <path d="M46 55 h8" stroke="#6f4e0d" stroke-width="1.8" stroke-linecap="round"></path>
+                <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+                <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"></circle>
+              </svg>
+            </div>
+            <div style="width: 76px; height: 76px; display: {{ cat.burningDisplay }};">
+              <svg width="76" height="76" viewBox="0 0 100 100" style="overflow: visible;">
+                <defs><linearGradient id="a3-c3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d888"></stop><stop offset="1" stop-color="#e8bd54"></stop></linearGradient></defs>
+                <path d="M22 42 L20 20 L41 33 Z" fill="url(#a3-c3)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <path d="M78 42 L80 20 L59 33 Z" fill="url(#a3-c3)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z" fill="url(#a3-c3)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+                <circle cx="78" cy="55" r="8" fill="url(#a3-c3)" stroke="#6f4e0d" stroke-width="2"></circle>
+                <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"></ellipse>
+                <circle cx="50" cy="46" r="27" fill="url(#a3-c3)" stroke="#6f4e0d" stroke-width="2"></circle>
+                <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"></ellipse>
+                <circle cx="41" cy="44" r="4.6" fill="#ffffff" stroke="#6f4e0d" stroke-width="1.5"></circle>
+                <circle cx="59" cy="44" r="4.6" fill="#ffffff" stroke="#6f4e0d" stroke-width="1.5"></circle>
+                <circle cx="41" cy="45" r="2" fill="#6f4e0d"></circle><circle cx="59" cy="45" r="2" fill="#6f4e0d"></circle>
+                <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"></path>
+                <ellipse cx="50" cy="57" rx="3" ry="3.6" fill="none" stroke="#6f4e0d" stroke-width="1.6"></ellipse>
+                <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+                <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"></circle>
+              </svg>
+            </div>
+
+            <svg width="74" height="74" viewBox="0 0 100 100">
+              <g transform="rotate(-90 50 50)">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#e6e1d9" stroke-width="7"></circle>
+                <circle class="ring-anim" cx="50" cy="50" r="45" fill="none" stroke="{{ ring.color }}" stroke-width="7" stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="{{ ring.offset }}"></circle>
+              </g>
+              <text x="50" y="56" text-anchor="middle" font-size="19" font-weight="800" fill="#1e1913" font-family="'Bricolage Grotesque', sans-serif">{{ ring.label }}</text>
+            </svg>
+          </div>
+        </div>
+
+        <p style="margin: 14px 0 0; font-size: 14px; font-weight: 600; color: {{ cat.verdictColor }};">{{ cat.verdict }}</p>
+
+        <div style="margin-top: 18px; min-height: 292px;">
+          <div style="display: {{ emptyDisplay }}; border: 1px dashed #ddd6c9; border-radius: 14px; padding: 46px 20px; text-align: center;">
+            <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #b8b0a2;">the ledger is empty</p>
+            <p style="margin: 10px 0 0; font-size: 14px; color: #73695a;">Tap a message on the left. Nothing here was ever typed by hand.</p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 9px;">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="3">
+              <div class="print-in" style="display: flex; align-items: center; gap: 12px; border-radius: 13px; border: 1px solid #e6e1d9; padding: 12px 14px;">
+                <span style="width: 9px; height: 9px; flex-shrink: 0; border-radius: 999px; background: {{ r.dot }};"></span>
+                <div style="flex: 1; min-width: 0;">
+                  <p style="margin: 0; font-size: 14px; font-weight: 600;">{{ r.merchant }}</p>
+                  <p style="margin: 2px 0 0; font-size: 11.5px; color: #73695a;">{{ r.detail }}</p>
+                </div>
+                <span class="mono" style="flex-shrink: 0; border-radius: 999px; background: {{ r.tagBg }}; color: {{ r.tagColor }}; padding: 2px 8px; font-size: 9px; font-weight: 600;">{{ r.tag }}</span>
+                <span style="flex-shrink: 0; font-size: 14px; font-weight: 700; color: {{ r.amountColor }}; font-variant-numeric: tabular-nums;">{{ r.amount }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ what it read out of the message ══ -->
+  <div style="border-top: 1px solid #e6e1d9; background: #ffffff; padding: 66px 100px;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 30px;">
+      <h2 class="disp" style="margin: 0; max-width: 620px; font-size: 34px; font-weight: 800; line-height: 1.1; letter-spacing: -0.025em;">Four fields, pulled by rules. No model guessing at your money.</h2>
+      <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #73695a;">deterministic &middot; auditable</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 34px;">
+      <div style="border: 1px solid #e6e1d9; border-radius: 16px; padding: 22px;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a5f10;">merchant</p>
+        <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #5c5346;">Matched against a merchant table, then a category. You can correct it once and it sticks.</p>
+      </div>
+      <div style="border: 1px solid #e6e1d9; border-radius: 16px; padding: 22px;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a5f10;">amount</p>
+        <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #5c5346;">Read exactly as written. Never rounded, never estimated, never inferred from a balance.</p>
+      </div>
+      <div style="border: 1px solid #e6e1d9; border-radius: 16px; padding: 22px;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a5f10;">currency</p>
+        <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #5c5346;">A foreign charge is converted into your own currency at ECB reference rates, and says so on the row.</p>
+      </div>
+      <div style="border: 1px solid #e6e1d9; border-radius: 16px; padding: 22px;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a5f10;">date</p>
+        <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #5c5346;">Filed against your own calendar day, in your own time zone &mdash; not the server&rsquo;s.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ draw the slip ══ -->
+  <div style="border-top: 1px solid #e6e1d9; padding: 84px 100px;">
+    <div style="display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 70px; align-items: center;">
+      <div>
+        <p class="kicker" style="margin: 0;">the daily ritual</p>
+        <h2 class="disp" style="margin: 16px 0 0; font-size: 42px; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em;">Then draw your slip.</h2>
+        <p style="margin: 16px 0 0; max-width: 420px; font-size: 17px; line-height: 1.7; color: #5c5346;">One reading a day, seeded from your own numbers and your own date. It says the same thing all day &mdash; you cannot shake a better answer out of it.</p>
+        <p class="mono" style="margin: 24px 0 0; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #b8b0a2;">{{ slipHint }}</p>
+      </div>
+
+      <div style="display: flex; justify-content: center;">
+        <div style="display: {{ slipBoxDisplay }};">
+          <div class="tap {{ shakeClass }}" onClick="{{ drawSlip }}" style="width: 240px; padding: 34px 26px; border-radius: 14px; background: linear-gradient(180deg, #c0451f, #8d2616); text-align: center; box-shadow: 0 26px 54px -28px rgba(140,40,20,0.9);">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#f6d878" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M5 8h14v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"></path><path d="M3 5h18v3H3z"></path><path d="M12 8v13"></path></svg>
+            <p style="margin: 0; font-size: 17px; font-weight: 700; color: #f6ecd3;">Shake the box</p>
+            <p class="mono" style="margin: 8px 0 0; font-size: 10px; letter-spacing: 0.16em; color: #eec0b4;">DRAW TODAY&rsquo;S FORTUNE</p>
+          </div>
+        </div>
+
+        <div style="display: {{ slipDisplay }}; width: 460px;">
+          <div class="unfurl" style="background: #f6ecd3; border-radius: 16px; padding: 28px 30px; border-top: 3px solid #b1301b; background-image: repeating-linear-gradient(0deg, transparent 0 22px, rgba(177,48,27,0.06) 22px 23px); box-shadow: 0 26px 60px -34px rgba(0,0,0,0.55);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+              <div style="flex: 1; min-width: 0;">
+                <p class="mono" style="margin: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #b1301b;">{{ slip.omen }}</p>
+                <p style="margin: 14px 0 0; font-size: 19px; font-weight: 600; line-height: 1.5; color: #2a1e05;">{{ slip.headline }}</p>
+                <p style="margin: 12px 0 0; font-size: 16px; font-weight: 600; line-height: 1.6; color: #0e6f52;">{{ slip.tip }}</p>
+              </div>
+              <span class="seal-press" style="width: 40px; height: 40px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: #b1301b; color: #fff; border-radius: 6px; font-size: 20px; font-weight: 700; box-shadow: 0 2px 8px -2px rgba(177,48,27,0.7);">&#x5409;</span>
+            </div>
+            <p class="tap mono" onClick="{{ reset }}" style="margin: 20px 0 0; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a7757;">&larr; put it back</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CLOSE ══ -->
+  <div style="border-top: 1px solid #e6e1d9; background: #ffffff; position: relative; overflow: hidden; padding: 88px 100px; text-align: center;">
+    <div style="position: absolute; left: 50%; top: -140px; margin-left: -280px; width: 560px; height: 560px; border-radius: 999px; opacity: 0.5; filter: blur(70px); background: radial-gradient(circle, rgba(232,182,74,0.32), transparent 62%);"></div>
+    <div style="position: relative;">
+      <h2 class="disp" style="margin: 0 auto; max-width: 660px; font-size: 48px; font-weight: 800; line-height: 1.04; letter-spacing: -0.035em;">You just used it. Now point it at your real inbox.</h2>
+      <p style="margin: 16px auto 0; max-width: 480px; font-size: 17px; line-height: 1.6; color: #5c5346;">Same rules, your own messages. Free to start &mdash; $9 once for Pro, and free while the beta runs.</p>
+      <div style="display: flex; justify-content: center; gap: 12px; margin-top: 30px;">
+        <span class="btn-gold tap" style="display: inline-flex; border-radius: 0.7rem; padding: 17px 34px; font-size: 15px; font-weight: 600;">Start tracking &mdash; it&rsquo;s free</span>
+        <span class="tap" style="display: inline-flex; border-radius: 0.7rem; padding: 17px 30px; font-size: 15px; font-weight: 600; color: #5c5346; box-shadow: inset 0 0 0 1px #e6e1d9;">See what Pro adds</span>
+      </div>
+      <p class="mono" style="margin: 20px 0 0; font-size: 12px; color: #73695a;">no card &middot; no bank login &middot; export or delete any time</p>
+    </div>
+  </div>
+
+  <div style="border-top: 1px solid #e6e1d9; background: #f6f5f3; padding: 34px 100px; display: flex; align-items: center; justify-content: space-between;">
+    <span class="disp" style="font-size: 17px; font-weight: 800;">Fortune&nbsp;Cat</span>
+    <div style="display: flex; gap: 22px; font-size: 13px; color: #73695a;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":2760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const SAMPLES = [
+      { id: 'cafe',  channel: 'SMS',     raw: 'Card ending 4417 used for 12.40 at CORNER CAFE.',
+        merchant: 'Corner Cafe',      detail: 'Food & drink',                            amount: -12.40, tag: 'auto',    cue: 'TAP' },
+      { id: 'spot',  channel: 'EMAIL',   raw: 'Transaction alert: USD 14.99 — SPOTIFY USA',
+        merchant: 'Spotify',          detail: 'Entertainment · converted at ECB rate', amount: -20.11, tag: 'FX',      cue: 'TAP' },
+      { id: 'telco', channel: 'SMS',     raw: 'GIRO deduction 48.00 — TELCO MONTHLY BILL.',
+        merchant: 'Telco bill',       detail: 'Utilities · seen every month',        amount: -48.00, tag: 'repeats', cue: 'TAP' },
+      { id: 'mart',  channel: 'RECEIPT', raw: 'Photo of a receipt — read on your device.',
+        merchant: 'Fairmart Grocery', detail: 'Groceries',                               amount: -63.85, tag: 'auto',    cue: 'TAP' },
+      { id: 'pay',   channel: 'EMAIL',   raw: 'Salary credited: 4,200.00 to account 4417.',
+        merchant: 'Salary',           detail: 'Income · recognised as recurring',    amount: 4200,   tag: 'repeats', cue: 'TAP' }
+    ];
+    const SLIPS = [
+      { omen: 'Today — Great omen · 大吉', headline: 'Money in outpaces money out — the pouch grows.', tip: 'Set aside $50 while the wind is fair.' },
+      { omen: 'Today — Good omen · 小吉',  headline: 'Steady hands — spending is on pace this month.', tip: 'Keep today under $34 and the week closes ahead.' }
+    ];
+
+    const st = this.state || {};
+    const added = st.added || [];
+    const money = (n) => (n < 0 ? '−' : '+') + '$' + Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const rows = added.map((id) => {
+      const s = SAMPLES.find((x) => x.id === id);
+      const income = s.amount > 0;
+      return {
+        merchant: s.merchant, detail: s.detail, tag: s.tag,
+        amount: money(s.amount),
+        amountColor: income ? '#0e6f52' : '#1e1913',
+        dot: income ? '#0e6f52' : (s.tag === 'FX' ? '#b1301b' : '#e8b64a'),
+        tagBg: income || s.tag === 'auto' ? '#dcefe6' : '#f7eccf',
+        tagColor: income || s.tag === 'auto' ? '#0e6f52' : '#8a5f10'
+      };
+    });
+
+    const samples = SAMPLES.map((s) => {
+      const used = added.indexOf(s.id) !== -1;
+      return {
+        channel: s.channel, raw: s.raw,
+        cue: used ? 'FILED' : s.cue,
+        cueColor: used ? '#0e6f52' : '#b8b0a2',
+        bg: used ? '#f1f5f2' : '#ffffff',
+        border: used ? '#cfe3d8' : '#e6e1d9',
+        opacity: used ? '0.62' : '1',
+        pick: () => { if (!used) this.setState({ added: added.concat([s.id]) }); }
+      };
+    });
+
+    const income = added.reduce((t, id) => { const s = SAMPLES.find((x) => x.id === id); return t + (s.amount > 0 ? s.amount : 0); }, 0);
+    const spent  = added.reduce((t, id) => { const s = SAMPLES.find((x) => x.id === id); return t + (s.amount < 0 ? -s.amount : 0); }, 0);
+    const net = income - spent;
+
+    // lib/catState.ts, verbatim: net decides the mood, nothing else.
+    const mood = net < 0 ? 'burning' : net > 0 ? 'saving' : 'even';
+    const VERDICT = {
+      saving:  { text: 'Ears up — more came in than went out.',            color: '#0e6f52' },
+      even:    { text: 'Watchful — nothing captured yet, nothing to judge.', color: '#73695a' },
+      burning: { text: 'Ears back — spending is ahead of income so far.',   color: '#c0361d' }
+    };
+    const keptPct = income > 0 ? Math.max(0, Math.round((net / income) * 100)) : 0;
+    const CIRC = 282.7;
+
+    const drawn = !!st.slip;
+    return {
+      samples: samples,
+      rows: rows,
+      emptyDisplay: rows.length ? 'none' : 'block',
+      countLabel: added.length + ' of ' + SAMPLES.length + ' forwarded · 0 typed',
+      pouch: added.length ? '$' + net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '$0.00',
+      pouchNote: added.length ? 'income minus spending, so far' : 'waiting for its first message',
+      cat: {
+        savingDisplay:  mood === 'saving'  ? 'block' : 'none',
+        evenDisplay:    mood === 'even'    ? 'block' : 'none',
+        burningDisplay: mood === 'burning' ? 'block' : 'none',
+        verdict: VERDICT[mood].text,
+        verdictColor: VERDICT[mood].color
+      },
+      ring: {
+        offset: CIRC * (1 - Math.min(100, keptPct) / 100),
+        color: net < 0 ? '#c0361d' : '#e8b64a',
+        label: keptPct + '%'
+      },
+      slipBoxDisplay: drawn ? 'none' : 'block',
+      slipDisplay: drawn ? 'block' : 'none',
+      slip: drawn ? st.slip : SLIPS[1],
+      slipHint: drawn ? 'the same slip stays all day' : 'tap the box →',
+      shakeClass: st.shaking ? 'shaking' : '',
+      drawSlip: () => {
+        if (st.shaking || drawn) return;
+        this.setState({ shaking: true });
+        setTimeout(() => this.setState({ shaking: false, slip: net >= 0 ? SLIPS[0] : SLIPS[1] }), 520);
+      },
+      reset: () => this.setState({ added: [], slip: null, shaking: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

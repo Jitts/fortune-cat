@@ -5,7 +5,7 @@
  * Shrine theme) struck lanterns light up with a warm gold glow, as if a
  * candle were lit inside. Unstruck slots stay dim/unpainted in both themes.
  */
-function Lantern({ lit }: { lit: boolean }) {
+export function Lantern({ lit }: { lit: boolean }) {
   // Drawn 1:1 with the viewBox — at the old 16x21 the art was downscaled and
   // the rib lines and caps blurred into a dot. Six of these plus gaps is
   // ~140px, comfortable in the 270px rail.

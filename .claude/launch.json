@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "fortune-cat-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "dev-server.cmd"],
       "port": 3000
     }
   ]

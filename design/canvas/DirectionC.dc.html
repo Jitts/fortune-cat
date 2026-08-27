@@ -1,0 +1,332 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #060915; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #f7f1e6; -webkit-font-smoothing: antialiased; }
+    a { color: #edc35b; text-decoration: none; }
+    a:hover { color: #f6d878; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .foil { background: linear-gradient(168deg, #fdf0c4 4%, #edc35b 26%, #b9832a 44%, #f6d878 62%, #edc35b 82%, #8a5f10 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .vert { writing-mode: vertical-rl; text-orientation: mixed; }
+    .glow { filter: drop-shadow(0 0 10px rgba(237,195,91,0.55)); }
+    .stars {
+      background-image:
+        radial-gradient(1.6px 1.6px at 7% 12%, rgba(247,241,230,0.95), transparent),
+        radial-gradient(1.2px 1.2px at 18% 32%, rgba(237,195,91,0.8), transparent),
+        radial-gradient(1px 1px at 26% 8%, rgba(247,241,230,0.7), transparent),
+        radial-gradient(1.8px 1.8px at 38% 22%, rgba(237,195,91,0.9), transparent),
+        radial-gradient(1px 1px at 46% 6%, rgba(247,241,230,0.6), transparent),
+        radial-gradient(1.4px 1.4px at 58% 30%, rgba(247,241,230,0.85), transparent),
+        radial-gradient(1.1px 1.1px at 67% 11%, rgba(237,195,91,0.75), transparent),
+        radial-gradient(1.7px 1.7px at 78% 26%, rgba(247,241,230,0.9), transparent),
+        radial-gradient(1px 1px at 88% 9%, rgba(237,195,91,0.7), transparent),
+        radial-gradient(1.3px 1.3px at 94% 34%, rgba(247,241,230,0.8), transparent),
+        radial-gradient(1px 1px at 12% 48%, rgba(247,241,230,0.5), transparent),
+        radial-gradient(1.5px 1.5px at 84% 52%, rgba(237,195,91,0.6), transparent);
+    }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #060915;">
+
+  <!-- ============ HERO: the shrine at night ============ -->
+  <div class="stars" style="position: relative; height: 980px; overflow: hidden; background-color: #060915; background-image: radial-gradient(ellipse 1200px 620px at 50% 96%, rgba(177,48,27,0.30), transparent 72%), radial-gradient(ellipse 900px 500px at 50% 22%, rgba(237,195,91,0.16), transparent 70%);">
+
+    <!-- moon -->
+    <div style="position: absolute; left: 1136px; top: 92px; width: 132px; height: 132px; border-radius: 999px; background: radial-gradient(circle at 36% 32%, #fdf6e2, #edc35b 62%, #b9832a); box-shadow: 0 0 90px 24px rgba(237,195,91,0.22);"></div>
+
+    <!-- header -->
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between; padding: 26px 72px; z-index: 6;">
+      <span class="disp" style="font-size: 21px; font-weight: 800; letter-spacing: -0.02em; color: #f7f1e6;">Fortune&nbsp;Cat</span>
+      <div style="display: flex; align-items: center; gap: 26px;">
+        <span class="mono" style="font-size: 12px; letter-spacing: 0.1em; color: #8f97b8;">The visit</span>
+        <span class="mono" style="font-size: 12px; letter-spacing: 0.1em; color: #8f97b8;">The offering</span>
+        <span class="mono" style="font-size: 12px; letter-spacing: 0.1em; color: #8f97b8;">Log in</span>
+        <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 11px 22px; font-size: 14px; font-weight: 700; box-shadow: 0 0 26px -4px rgba(237,195,91,0.6);">Enter</span>
+      </div>
+    </div>
+
+    <!-- lantern string -->
+    <div style="position: absolute; left: 0; top: 108px; width: 1440px; z-index: 4;">
+      <svg width="1440" height="96" viewBox="0 0 1440 96">
+        <path d="M-10 14 Q720 56 1450 14" fill="none" stroke="#333f70" stroke-width="2"></path>
+        <g class="glow">
+          <g transform="translate(150,26) scale(1.85)">
+            <path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path>
+            <path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path>
+            <g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g>
+            <path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path>
+            <line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line>
+          </g>
+          <g transform="translate(370,36) scale(1.85)">
+            <path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path>
+            <path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path>
+            <g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g>
+            <path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path>
+            <line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line>
+          </g>
+          <g transform="translate(590,44) scale(1.85)">
+            <path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path>
+            <path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path>
+            <g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g>
+            <path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path>
+            <line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line>
+          </g>
+          <g transform="translate(810,44) scale(1.85)">
+            <path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path>
+            <path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path>
+            <g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g>
+            <path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path>
+            <line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line>
+          </g>
+          <g transform="translate(1030,36) scale(1.85)">
+            <path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path>
+            <path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path>
+            <g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g>
+            <path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path>
+            <line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line>
+          </g>
+          <g transform="translate(1250,26) scale(1.85)">
+            <path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path>
+            <path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path>
+            <g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g>
+            <path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path>
+            <line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- torii gate -->
+    <div style="position: absolute; left: 50%; bottom: 0; margin-left: -420px; z-index: 2; opacity: 0.88;">
+      <svg width="840" height="620" viewBox="0 0 600 440">
+        <g fill="#8d2616">
+          <path d="M112 58 L146 58 L154 440 L104 440 Z"></path>
+          <path d="M488 58 L454 58 L446 440 L496 440 Z"></path>
+        </g>
+        <rect x="84" y="120" width="432" height="24" fill="#b1301b"></rect>
+        <rect x="290" y="72" width="20" height="48" fill="#b1301b"></rect>
+        <path d="M28 40 Q300 12 572 40 L572 60 Q300 34 28 60 Z" fill="#b1301b"></path>
+        <path d="M46 62 Q300 38 554 62 L554 76 Q300 54 46 76 Z" fill="#8d2616"></path>
+      </svg>
+    </div>
+
+    <!-- vertical rails -->
+    <div class="mono vert" style="position: absolute; left: 30px; top: 240px; font-size: 11px; letter-spacing: 0.42em; color: #4a5589; z-index: 5;">NO BANK LOGIN &middot; ANY CURRENCY</div>
+    <div class="mono vert" style="position: absolute; right: 30px; top: 240px; font-size: 11px; letter-spacing: 0.42em; color: #4a5589; z-index: 5;">&#x91D1; &middot; FREE TO START &middot; &#x5409;</div>
+
+    <!-- headline -->
+    <div style="position: relative; z-index: 5; text-align: center; padding: 172px 120px 0;">
+      <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.42em; text-transform: uppercase; color: #edc35b;">Draw today&rsquo;s fortune</p>
+      <h1 class="disp foil" style="margin: 26px auto 0; max-width: 1120px; font-size: 132px; font-weight: 800; line-height: 0.86; letter-spacing: -0.045em;">Your money<br>logs itself.</h1>
+      <p style="margin: 34px auto 0; max-width: 560px; font-size: 18px; line-height: 1.7; color: #bcc3dd;">Forward what your bank already sends you. Come back once a day for one number, one omen, and a cat whose face is just this month&rsquo;s arithmetic.</p>
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 40px;">
+        <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 17px 38px; font-size: 15px; font-weight: 700; box-shadow: 0 0 40px -6px rgba(237,195,91,0.7);">Begin &mdash; it&rsquo;s free</span>
+        <span style="border: 1px solid #333f70; color: #bcc3dd; border-radius: 999px; padding: 17px 34px; font-size: 15px; font-weight: 600;">See what Pro adds</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THE DRAW ============ -->
+  <div style="position: relative; background: #0a0e1c; padding: 110px 120px; overflow: hidden;">
+    <div style="position: absolute; left: -180px; top: 40px; width: 620px; height: 620px; border-radius: 999px; filter: blur(90px); background: radial-gradient(circle, rgba(237,195,91,0.14), transparent 66%);"></div>
+
+    <div style="position: relative; display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 88px; align-items: center;">
+
+      <div style="display: flex; justify-content: center;">
+        <div style="position: relative;">
+          <svg width="300" height="300" viewBox="0 0 100 100" class="glow">
+            <defs>
+              <linearGradient id="c-lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d888"></stop><stop offset="1" stop-color="#e8bd54"></stop></linearGradient>
+            </defs>
+            <g stroke="#333f70" stroke-width="1">
+              <line x1="98.5" y1="50" x2="96" y2="50"></line><line x1="94.3" y1="62.6" x2="92" y2="61.5"></line>
+              <line x1="84.3" y1="84.3" x2="82.5" y2="82.5"></line><line x1="62.6" y1="94.3" x2="61.5" y2="92"></line>
+              <line x1="50" y1="98.5" x2="50" y2="96"></line><line x1="37.4" y1="94.3" x2="38.5" y2="92"></line>
+              <line x1="15.7" y1="84.3" x2="17.5" y2="82.5"></line><line x1="5.7" y1="62.6" x2="8" y2="61.5"></line>
+              <line x1="1.5" y1="50" x2="4" y2="50"></line><line x1="5.7" y1="37.4" x2="8" y2="38.5"></line>
+              <line x1="15.7" y1="15.7" x2="17.5" y2="17.5"></line><line x1="37.4" y1="5.7" x2="38.5" y2="8"></line>
+              <line x1="50" y1="1.5" x2="50" y2="4"></line><line x1="62.6" y1="5.7" x2="61.5" y2="8"></line>
+              <line x1="84.3" y1="15.7" x2="82.5" y2="17.5"></line><line x1="94.3" y1="37.4" x2="92" y2="38.5"></line>
+            </g>
+            <g transform="rotate(-90 50 50)">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#333f70" stroke-width="6"></circle>
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#edc35b" stroke-width="6" stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="93.3"></circle>
+            </g>
+            <g transform="translate(23,23) scale(0.54)">
+              <path d="M27 38 L30 15 L46 31 Z" fill="url(#c-lg)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M73 38 L70 15 L54 31 Z" fill="url(#c-lg)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M31 33 L33 22 L41 30 Z" fill="#fbf3dd"></path><path d="M69 33 L67 22 L59 30 Z" fill="#fbf3dd"></path>
+              <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z" fill="url(#c-lg)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <circle cx="78" cy="55" r="8" fill="url(#c-lg)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"></ellipse>
+              <circle cx="50" cy="46" r="27" fill="url(#c-lg)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"></ellipse>
+              <path d="M36 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <path d="M54 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"></path>
+              <path d="M45 54 q5 4 10 0" stroke="#6f4e0d" stroke-width="1.8" fill="none" stroke-linecap="round"></path>
+              <path d="M28 45 l-9 -2 M28 49 l-9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M72 45 l9 -2 M72 49 l9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"></circle>
+              <ellipse cx="82" cy="70" rx="10" ry="7" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.6" transform="rotate(-14 82 70)"></ellipse>
+            </g>
+          </svg>
+          <p class="mono" style="margin: 20px 0 0; text-align: center; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: #8f97b8;">67% of income kept</p>
+          <p style="margin: 8px 0 0; text-align: center; font-size: 15px; color: #bcc3dd;">Ears up &mdash; luck is running with you.</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase; color: #edc35b;">The daily slip</p>
+        <h2 class="disp" style="margin: 18px 0 0; font-size: 52px; font-weight: 800; line-height: 1.02; letter-spacing: -0.035em; color: #f7f1e6;">One number.<br>Once a day.</h2>
+        <p style="margin: 20px 0 0; max-width: 460px; font-size: 17px; line-height: 1.75; color: #bcc3dd;">Not a dashboard to study. The slip reads your real cash flow and hands you the one figure today can hold &mdash; and the same slip stays the same all day, so you cannot reroll your way to a better answer.</p>
+
+        <div style="position: relative; margin-top: 36px; max-width: 480px; transform: rotate(-1.4deg);">
+          <div style="background: #f6ecd3; border-radius: 4px; padding: 28px 30px; box-shadow: 0 30px 70px -30px rgba(0,0,0,0.85);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+              <div style="flex: 1; min-width: 0;">
+                <p class="mono" style="margin: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #b1301b;">Today &mdash; Great omen &middot; &#x5927;&#x5409;</p>
+                <p style="margin: 14px 0 0; font-size: 19px; font-weight: 600; line-height: 1.5; color: #2a1e05;">Money in outpaces money out &mdash; the pouch grows.</p>
+                <p style="margin: 12px 0 0; font-size: 16px; font-weight: 600; line-height: 1.6; color: #0e6f52;">Set aside $50 while the wind is fair.</p>
+                <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed #b6a684; display: flex; justify-content: space-between; align-items: baseline;">
+                  <span class="mono" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a7757;">Safe to spend, till 31 Aug</span>
+                  <span class="disp" style="font-size: 26px; font-weight: 800; color: #2a1e05; font-variant-numeric: tabular-nums;">$486.20</span>
+                </div>
+              </div>
+              <span style="width: 42px; height: 42px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: #b1301b; color: #f6ecd3; border-radius: 2px; font-size: 21px; font-weight: 700; box-shadow: 0 2px 8px -2px rgba(177,48,27,0.7);">&#x5409;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THE EMA WALL ============ -->
+  <div style="background: #060915; padding: 110px 120px; position: relative;">
+    <div style="text-align: center;">
+      <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; color: #edc35b;">Hang your wish</p>
+      <h2 class="disp" style="margin: 20px auto 0; max-width: 720px; font-size: 48px; font-weight: 800; line-height: 1.05; letter-spacing: -0.035em; color: #f7f1e6;">Every tracker asks you to do the work.</h2>
+      <p style="margin: 16px auto 0; max-width: 520px; font-size: 17px; line-height: 1.7; color: #8f97b8;">This one was born to do it for you.</p>
+    </div>
+
+    <svg width="1200" height="30" viewBox="0 0 1200 30" style="display: block; margin: 54px auto 0;">
+      <path d="M0 6 Q600 30 1200 6" fill="none" stroke="#333f70" stroke-width="2"></path>
+    </svg>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 44px; margin-top: -8px; max-width: 1200px; margin-left: auto; margin-right: auto;">
+
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <svg width="30" height="34" viewBox="0 0 30 34"><path d="M15 0 L4 30" stroke="#b1301b" stroke-width="2"></path><path d="M15 0 L26 30" stroke="#b1301b" stroke-width="2"></path></svg>
+        <div style="width: 100%; background: #f6ecd3; padding: 42px 30px 32px; clip-path: polygon(50% 0, 100% 16%, 100% 100%, 0 100%, 0 16%); box-shadow: 0 26px 56px -26px rgba(0,0,0,0.8);">
+          <p class="mono" style="margin: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #b1301b; text-align: center;">capture</p>
+          <h3 class="disp" style="margin: 12px 0 0; font-size: 23px; font-weight: 700; letter-spacing: -0.02em; color: #2a1e05; text-align: center;">It fills itself</h3>
+          <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.75; color: #4a3f2c; text-align: center;">Trackers die because typing every coffee is a chore. Fortune Cat reads the alerts your bank already sends. Overseas charges land in your own currency at ECB rates.</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <svg width="30" height="34" viewBox="0 0 30 34"><path d="M15 0 L4 30" stroke="#b1301b" stroke-width="2"></path><path d="M15 0 L26 30" stroke="#b1301b" stroke-width="2"></path></svg>
+        <div style="width: 100%; background: #f6ecd3; padding: 42px 30px 32px; clip-path: polygon(50% 0, 100% 16%, 100% 100%, 0 100%, 0 16%); box-shadow: 0 26px 56px -26px rgba(0,0,0,0.8);">
+          <p class="mono" style="margin: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #b1301b; text-align: center;">goals</p>
+          <h3 class="disp" style="margin: 12px 0 0; font-size: 23px; font-weight: 700; letter-spacing: -0.02em; color: #2a1e05; text-align: center;">Make a wish</h3>
+          <div style="display: flex; justify-content: center; margin-top: 14px;">
+            <svg width="52" height="56" viewBox="0 0 100 108">
+              <defs>
+                <linearGradient id="c-dar" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#cf6a58"></stop><stop offset="0.5" stop-color="#b1301b"></stop><stop offset="1" stop-color="#8d2616"></stop></linearGradient>
+                <clipPath id="c-clip"><path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z"></path></clipPath>
+              </defs>
+              <path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z" fill="url(#c-dar)" stroke="#6d1d10" stroke-width="2"></path>
+              <g clip-path="url(#c-clip)"><rect x="9" y="88" width="82" height="18" fill="#f6d878"></rect><circle cx="50" cy="97" r="6.5" fill="#b1301b" opacity="0.9"></circle></g>
+              <ellipse cx="50" cy="47" rx="29" ry="32" fill="#f6ecd3" stroke="#6d1d10" stroke-width="1.6"></ellipse>
+              <path d="M24 38C30 30 39 30 45 37" fill="none" stroke="#2a1e05" stroke-width="3.4" stroke-linecap="round"></path>
+              <path d="M55 37C61 30 70 30 76 38" fill="none" stroke="#2a1e05" stroke-width="3.4" stroke-linecap="round"></path>
+              <circle cx="36" cy="52" r="10.5" fill="#ffffff" stroke="#2a1e05" stroke-width="1.8"></circle>
+              <circle cx="64" cy="52" r="10.5" fill="#ffffff" stroke="#2a1e05" stroke-width="1.8"></circle>
+              <circle cx="36" cy="52" r="5" fill="#2a1e05"></circle><circle cx="64" cy="52" r="3.4" fill="#2a1e05"></circle>
+              <path d="M31 75C37 82 46 82 50 76C54 82 63 82 69 75" fill="none" stroke="#2a1e05" stroke-width="2.6" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.75; color: #4a3f2c; text-align: center;">One eye painted when you set the goal. The second painted in the day you reach it.</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <svg width="30" height="34" viewBox="0 0 30 34"><path d="M15 0 L4 30" stroke="#b1301b" stroke-width="2"></path><path d="M15 0 L26 30" stroke="#b1301b" stroke-width="2"></path></svg>
+        <div style="width: 100%; background: #f6ecd3; padding: 42px 30px 32px; clip-path: polygon(50% 0, 100% 16%, 100% 100%, 0 100%, 0 16%); box-shadow: 0 26px 56px -26px rgba(0,0,0,0.8);">
+          <p class="mono" style="margin: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #b1301b; text-align: center;">the road ahead</p>
+          <h3 class="disp" style="margin: 12px 0 0; font-size: 23px; font-weight: 700; letter-spacing: -0.02em; color: #2a1e05; text-align: center;">See the lean day</h3>
+          <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.75; color: #4a3f2c; text-align: center;">The radar learns your bills and paydays, then projects your balance for every day ahead &mdash; so you meet the thin week before it arrives, not after.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ THE OFFERING BOX ============ -->
+  <div style="background: #0a0e1c; padding: 110px 120px; position: relative; overflow: hidden;">
+    <div style="position: absolute; left: 50%; top: -100px; margin-left: -400px; width: 800px; height: 600px; filter: blur(100px); background: radial-gradient(circle, rgba(237,195,91,0.16), transparent 66%);"></div>
+
+    <div style="position: relative; max-width: 940px; margin: 0 auto; text-align: center;">
+      <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; color: #edc35b;">The offering</p>
+      <h2 class="disp" style="margin: 20px 0 0; font-size: 54px; font-weight: 800; line-height: 1.02; letter-spacing: -0.035em; color: #f7f1e6;">Cast one coin. Once.</h2>
+      <p style="margin: 18px auto 0; max-width: 540px; font-size: 17px; line-height: 1.7; color: #bcc3dd;">A money-saving app that bills you monthly is a leak, not a fix. One payment unlocks every engine, and it stays unlocked.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 52px; text-align: left;">
+
+        <div style="background: #10162a; border: 1px solid #333f70; border-radius: 20px; padding: 34px;">
+          <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #8f97b8;">Free</p>
+          <p class="disp" style="margin: 12px 0 0; font-size: 46px; font-weight: 800; letter-spacing: -0.03em; color: #f7f1e6;">$0</p>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #8f97b8;">forever, no card</p>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 26px;">
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5ec9a0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M5 13l4 4L19 7"></path></svg><span style="font-size: 15px; color: #bcc3dd;">Auto-capture from forwarded SMS and email</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5ec9a0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M5 13l4 4L19 7"></path></svg><span style="font-size: 15px; color: #bcc3dd;">Safe-to-Spend and the daily fortune slip</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5ec9a0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M5 13l4 4L19 7"></path></svg><span style="font-size: 15px; color: #bcc3dd;">Monthly budgets, statements, CSV export</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><span style="width: 16px; flex-shrink: 0; color: #4a5589; margin-top: 1px;">&mdash;</span><span style="font-size: 15px; color: #8f97b8;">1 inbox &middot; last 10 transactions</span></div>
+          </div>
+        </div>
+
+        <div style="background: linear-gradient(180deg, #1a1508, #10162a 60%); border: 1px solid #b9832a; border-radius: 20px; padding: 34px; position: relative; box-shadow: 0 0 60px -20px rgba(237,195,91,0.4);">
+          <span class="mono" style="position: absolute; top: 22px; right: 26px; border-radius: 999px; background: #3a2f18; color: #edc35b; padding: 4px 12px; font-size: 10px; font-weight: 600; letter-spacing: 0.14em;">FREE IN BETA</span>
+          <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #edc35b;">Pro</p>
+          <p class="disp" style="margin: 12px 0 0; font-size: 46px; font-weight: 800; letter-spacing: -0.03em; color: #f7f1e6;">$9 <span style="font-size: 19px; font-weight: 600; color: #8f97b8;">once</span></p>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #8f97b8;">no subscription, no renewal</p>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 26px;">
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#edc35b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M5 13l4 4L19 7"></path></svg><span style="font-size: 15px; color: #f7f1e6;">The month ahead &mdash; your balance projected daily</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#edc35b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M5 13l4 4L19 7"></path></svg><span style="font-size: 15px; color: #f7f1e6;">Recurring radar &amp; subscription kill-chain</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#edc35b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M5 13l4 4L19 7"></path></svg><span style="font-size: 15px; color: #f7f1e6;">Fortune Goals and a confirmed real balance</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#edc35b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M5 13l4 4L19 7"></path></svg><span style="font-size: 15px; color: #f7f1e6;">3 inboxes &middot; full history &middot; deep analytics</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 48px;">
+        <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 18px 44px; font-size: 15px; font-weight: 700; box-shadow: 0 0 44px -6px rgba(237,195,91,0.7);">Begin &mdash; it&rsquo;s free</span>
+        <p class="mono" style="margin: 20px 0 0; font-size: 11px; letter-spacing: 0.16em; color: #8f97b8;">NO CARD &middot; NO BANK LOGIN &middot; EXPORT OR DELETE ANY TIME</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #060915; border-top: 1px solid #171f38; padding: 44px 120px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <span class="disp" style="font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: #f7f1e6;">Fortune&nbsp;Cat</span>
+      <p class="mono" style="margin: 5px 0 0; font-size: 11px; letter-spacing: 0.1em; color: #4a5589;">your money logs itself</p>
+    </div>
+    <div style="display: flex; gap: 24px; font-size: 13px; color: #8f97b8;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

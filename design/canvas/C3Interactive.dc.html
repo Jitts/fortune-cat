@@ -1,0 +1,444 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #060915; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #f7f1e6; -webkit-font-smoothing: antialiased; }
+    a { color: #edc35b; text-decoration: none; } a:hover { color: #f6d878; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .vert { writing-mode: vertical-rl; text-orientation: mixed; }
+    .foil { background: linear-gradient(168deg, #fdf0c4 4%, #edc35b 26%, #b9832a 44%, #f6d878 62%, #edc35b 82%, #8a5f10 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+    .tap { cursor: pointer; user-select: none; transition: transform 160ms cubic-bezier(0.25,1,0.5,1), box-shadow 160ms, border-color 160ms, background-color 160ms, opacity 160ms; }
+    .tap:hover { transform: translateY(-3px); }
+    .tap:active { transform: scale(0.97); }
+
+    @keyframes shake { 0%,100% { transform: rotate(0) translateX(0); } 15% { transform: rotate(-6deg) translateX(-8px); } 32% { transform: rotate(7deg) translateX(9px); } 50% { transform: rotate(-5deg) translateX(-7px); } 68% { transform: rotate(5deg) translateX(6px); } 85% { transform: rotate(-3deg) translateX(-3px); } }
+    .shaking { animation: shake 620ms ease-in-out; }
+    @keyframes slide-out { from { opacity: 0; transform: translateY(-40px) scaleY(0.2) rotate(-6deg); } to { opacity: 1; transform: rotate(-1.6deg); } }
+    .slide-out { transform-origin: top center; animation: slide-out 620ms cubic-bezier(0.16,1,0.3,1) both; }
+    @keyframes seal-press { 0% { opacity: 0; transform: rotate(6deg) scale(1.7); } 60% { opacity: 1; transform: rotate(6deg) scale(0.9); } 100% { transform: rotate(6deg) scale(1); } }
+    .seal-press { animation: seal-press 460ms cubic-bezier(0.34,1.4,0.5,1) both 260ms; }
+    @keyframes pop { 0% { transform: scale(0.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+    .pop { animation: pop 380ms cubic-bezier(0.34,1.4,0.5,1); }
+    @keyframes glowpulse { 0%,100% { opacity: 0.45; } 50% { opacity: 0.9; } }
+    .breathe { animation: glowpulse 5s ease-in-out infinite; }
+    @keyframes tw { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+    .tw { animation: tw 3.4s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .shaking, .slide-out, .seal-press, .pop, .breathe, .tw { animation: none; } }
+
+    .ring-anim { transition: stroke-dashoffset 760ms cubic-bezier(0.16,1,0.3,1), stroke 400ms; }
+    .pupil-anim { transition: r 620ms cubic-bezier(0.16,1,0.3,1); }
+    .fill-anim { transition: width 620ms cubic-bezier(0.16,1,0.3,1); }
+
+    .stars {
+      background-image:
+        radial-gradient(1.4px 1.4px at 9% 16%, rgba(247,241,230,0.8), transparent),
+        radial-gradient(1.1px 1.1px at 24% 38%, rgba(237,195,91,0.7), transparent),
+        radial-gradient(1.6px 1.6px at 41% 12%, rgba(247,241,230,0.85), transparent),
+        radial-gradient(1px 1px at 57% 44%, rgba(237,195,91,0.6), transparent),
+        radial-gradient(1.5px 1.5px at 72% 20%, rgba(247,241,230,0.8), transparent),
+        radial-gradient(1.1px 1.1px at 88% 40%, rgba(237,195,91,0.65), transparent),
+        radial-gradient(1.3px 1.3px at 95% 14%, rgba(247,241,230,0.7), transparent);
+    }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #060915;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 22px 72px; border-bottom: 1px solid rgba(51,63,112,0.5);">
+    <span class="disp" style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em;">Fortune&nbsp;Cat</span>
+    <div style="display: flex; align-items: center; gap: 22px;">
+      <span class="mono" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #8f97b8;">everything here is live &mdash; touch it</span>
+      <span class="tap" style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 11px 24px; font-size: 14px; font-weight: 700;">Enter</span>
+    </div>
+  </div>
+
+  <!-- ══ HERO · the omikuji draw ══ -->
+  <div class="stars" style="position: relative; overflow: hidden; padding: 84px 72px 96px; background-color: #060915; background-image: radial-gradient(ellipse 1100px 620px at 50% 100%, rgba(177,48,27,0.28), transparent 72%), radial-gradient(ellipse 900px 500px at 50% 10%, rgba(237,195,91,0.14), transparent 68%);">
+    <div class="tw" style="position: absolute; left: 210px; top: 160px; width: 4px; height: 4px; border-radius: 999px; background: #f6d878; box-shadow: 0 0 14px 4px rgba(246,216,120,0.8);"></div>
+    <div class="tw" style="position: absolute; right: 260px; top: 240px; width: 5px; height: 5px; border-radius: 999px; background: #fffaeb; box-shadow: 0 0 16px 5px rgba(255,250,235,0.6);"></div>
+    <div class="mono vert" style="position: absolute; left: 26px; top: 200px; font-size: 10px; letter-spacing: 0.44em; color: #3d4877;">NO BANK LOGIN &middot; ANY CURRENCY</div>
+
+    <div style="position: relative; display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 70px; align-items: center;">
+      <div>
+        <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.4em; text-transform: uppercase; color: #edc35b;">no sign-up &mdash; just pull the cord</p>
+        <h1 class="disp foil" style="margin: 26px 0 0; font-size: 96px; font-weight: 800; line-height: 0.88; letter-spacing: -0.045em;">Draw your<br>fortune.</h1>
+        <p style="margin: 26px 0 0; max-width: 470px; font-size: 18px; line-height: 1.7; color: #bcc3dd;">This is the real ritual, running on sample figures. Shake the box, read the slip, then set the month and watch the cat&rsquo;s face change &mdash; that face is pure arithmetic, not decoration.</p>
+        <p class="mono" style="margin: 30px 0 0; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #4a5589;">{{ slipHint }}</p>
+      </div>
+
+      <div style="display: flex; justify-content: center; min-height: 340px; align-items: center;">
+        <div style="display: {{ boxDisplay }};">
+          <div class="tap {{ shakeClass }}" onClick="{{ draw }}" style="width: 268px; padding: 44px 30px; border-radius: 16px; background: linear-gradient(180deg, #c0451f, #8d2616 70%); text-align: center; box-shadow: 0 34px 70px -30px rgba(180,50,25,0.9), 0 0 60px -20px rgba(237,195,91,0.4); border: 2px solid #d9663f;">
+            <svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#f6d878" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;"><path d="M5 8h14v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"></path><path d="M3 5h18v3H3z"></path><path d="M12 8v13"></path><path d="M9 2.5 12 5l3-2.5"></path></svg>
+            <p class="disp" style="margin: 0; font-size: 24px; font-weight: 800; color: #f6ecd3; letter-spacing: -0.02em;">Shake the box</p>
+            <p class="mono" style="margin: 10px 0 0; font-size: 10px; letter-spacing: 0.2em; color: #f0bcae;">&#x304A;&#x307F;&#x304F;&#x3058; &middot; OMIKUJI</p>
+          </div>
+        </div>
+
+        <div style="display: {{ slipDisplay }}; width: 480px;">
+          <div class="slide-out" style="background: #f6ecd3; border-radius: 8px; padding: 30px 32px; border-top: 4px solid #b1301b; background-image: repeating-linear-gradient(0deg, transparent 0 24px, rgba(177,48,27,0.06) 24px 25px); box-shadow: 0 40px 84px -34px rgba(0,0,0,0.95);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 18px;">
+              <div style="flex: 1; min-width: 0;">
+                <p class="mono" style="margin: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: #b1301b;">{{ slip.omen }}</p>
+                <p class="disp" style="margin: 16px 0 0; font-size: 27px; font-weight: 700; line-height: 1.22; letter-spacing: -0.02em; color: #2a1e05;">{{ slip.headline }}</p>
+                <p style="margin: 14px 0 0; font-size: 17px; font-weight: 600; line-height: 1.55; color: #0e6f52;">{{ slip.tip }}</p>
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed #c1b193; display: flex; justify-content: space-between; align-items: baseline;">
+                  <span class="mono" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a7757;">Safe to spend, till 31 Aug</span>
+                  <span class="disp" style="font-size: 30px; font-weight: 800; color: #2a1e05; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;">{{ safe }}</span>
+                </div>
+              </div>
+              <span class="seal-press" style="width: 46px; height: 46px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: #b1301b; color: #f6ecd3; border-radius: 4px; font-size: 23px; font-weight: 700;">&#x5409;</span>
+            </div>
+            <p class="tap mono" onClick="{{ putBack }}" style="margin: 20px 0 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a7757;">&larr; put it back</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ THE CAT RESPONDS ══ -->
+  <div style="position: relative; overflow: hidden; padding: 104px 72px; background: #0a0e1c;">
+    <div class="breathe" style="position: absolute; right: 6%; top: 50%; width: 620px; height: 620px; margin-top: -310px; border-radius: 999px; filter: blur(90px); background: radial-gradient(circle, {{ mood.glow }}, transparent 64%);"></div>
+
+    <div style="position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
+      <div>
+        <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; color: #edc35b;">the cat is the arithmetic</p>
+        <h2 class="disp" style="margin: 20px 0 0; font-size: 62px; font-weight: 800; line-height: 0.96; letter-spacing: -0.04em;">Set the month.<br>Watch her face.</h2>
+        <p style="margin: 20px 0 0; max-width: 450px; font-size: 17px; line-height: 1.75; color: #bcc3dd;">There is no model and no mood generator. Net positive, the ears go up. Net negative, they go back. This is the exact rule the app runs &mdash; a mascot that disagreed with the numbers beside it would not be charm, it would be misinformation.</p>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 34px;">
+          <sc-for list="{{ scenarios }}" as="s" hint-placeholder-count="3">
+            <div class="tap" onClick="{{ s.pick }}" style="display: flex; align-items: center; gap: 18px; border-radius: 16px; padding: 18px 22px; background: {{ s.bg }}; border: 1px solid {{ s.border }};">
+              <span class="mono" style="flex-shrink: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: {{ s.labelColor }}; width: 96px;">{{ s.label }}</span>
+              <span style="flex: 1; min-width: 0; font-size: 15px; color: #bcc3dd;">{{ s.detail }}</span>
+              <span class="disp" style="flex-shrink: 0; font-size: 21px; font-weight: 800; letter-spacing: -0.02em; color: {{ s.netColor }}; font-variant-numeric: tabular-nums;">{{ s.net }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="position: relative; width: 320px; height: 320px;">
+          <svg width="320" height="320" viewBox="0 0 100 100" style="position: absolute; inset: 0; filter: drop-shadow(0 0 22px rgba(237,195,91,0.4));">
+            <g stroke="#333f70" stroke-width="1">
+              <line x1="98.5" y1="50" x2="96" y2="50"></line><line x1="84.3" y1="84.3" x2="82.5" y2="82.5"></line>
+              <line x1="50" y1="98.5" x2="50" y2="96"></line><line x1="15.7" y1="84.3" x2="17.5" y2="82.5"></line>
+              <line x1="1.5" y1="50" x2="4" y2="50"></line><line x1="15.7" y1="15.7" x2="17.5" y2="17.5"></line>
+              <line x1="50" y1="1.5" x2="50" y2="4"></line><line x1="84.3" y1="15.7" x2="82.5" y2="17.5"></line>
+              <line x1="94.3" y1="62.6" x2="92" y2="61.5"></line><line x1="62.6" y1="94.3" x2="61.5" y2="92"></line>
+              <line x1="37.4" y1="94.3" x2="38.5" y2="92"></line><line x1="5.7" y1="62.6" x2="8" y2="61.5"></line>
+              <line x1="5.7" y1="37.4" x2="8" y2="38.5"></line><line x1="37.4" y1="5.7" x2="38.5" y2="8"></line>
+              <line x1="62.6" y1="5.7" x2="61.5" y2="8"></line><line x1="94.3" y1="37.4" x2="92" y2="38.5"></line>
+            </g>
+            <g transform="rotate(-90 50 50)">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#1b2444" stroke-width="6"></circle>
+              <circle class="ring-anim" cx="50" cy="50" r="45" fill="none" stroke="{{ mood.ringColor }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="{{ mood.ringOffset }}"></circle>
+            </g>
+          </svg>
+
+          <div style="position: absolute; left: 78px; top: 78px; width: 164px; height: 164px; display: {{ mood.savingDisplay }};">
+            <svg width="164" height="164" viewBox="0 0 100 100" style="overflow: visible;">
+              <defs><linearGradient id="c3-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d888"></stop><stop offset="1" stop-color="#e8bd54"></stop></linearGradient></defs>
+              <path d="M27 38 L30 15 L46 31 Z" fill="url(#c3-s)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M73 38 L70 15 L54 31 Z" fill="url(#c3-s)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M31 33 L33 22 L41 30 Z" fill="#fbf3dd"></path><path d="M69 33 L67 22 L59 30 Z" fill="#fbf3dd"></path>
+              <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z" fill="url(#c3-s)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <circle cx="78" cy="55" r="8" fill="url(#c3-s)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"></ellipse>
+              <circle cx="50" cy="46" r="27" fill="url(#c3-s)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"></ellipse>
+              <path d="M36 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <path d="M54 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"></path>
+              <path d="M45 54 q5 4 10 0" stroke="#6f4e0d" stroke-width="1.8" fill="none" stroke-linecap="round"></path>
+              <path d="M28 45 l-9 -2 M28 49 l-9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M72 45 l9 -2 M72 49 l9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"></circle>
+              <ellipse cx="82" cy="70" rx="10" ry="7" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.6" transform="rotate(-14 82 70)"></ellipse>
+            </svg>
+          </div>
+
+          <div style="position: absolute; left: 78px; top: 78px; width: 164px; height: 164px; display: {{ mood.evenDisplay }};">
+            <svg width="164" height="164" viewBox="0 0 100 100" style="overflow: visible;">
+              <defs><linearGradient id="c3-e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d888"></stop><stop offset="1" stop-color="#e8bd54"></stop></linearGradient></defs>
+              <path d="M27 38 L30 15 L46 31 Z" fill="url(#c3-e)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M73 38 L70 15 L54 31 Z" fill="url(#c3-e)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M31 33 L33 22 L41 30 Z" fill="#fbf3dd"></path><path d="M69 33 L67 22 L59 30 Z" fill="#fbf3dd"></path>
+              <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z" fill="url(#c3-e)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <circle cx="78" cy="55" r="8" fill="url(#c3-e)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"></ellipse>
+              <circle cx="50" cy="46" r="27" fill="url(#c3-e)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"></ellipse>
+              <circle cx="41" cy="44" r="2.7" fill="#6f4e0d"></circle><circle cx="59" cy="44" r="2.7" fill="#6f4e0d"></circle>
+              <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"></path>
+              <path d="M46 55 h8" stroke="#6f4e0d" stroke-width="1.8" stroke-linecap="round"></path>
+              <path d="M28 45 l-9 -2 M28 49 l-9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M72 45 l9 -2 M72 49 l9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"></circle>
+              <ellipse cx="82" cy="70" rx="10" ry="7" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.6" transform="rotate(-14 82 70)"></ellipse>
+            </svg>
+          </div>
+
+          <div style="position: absolute; left: 78px; top: 78px; width: 164px; height: 164px; display: {{ mood.burningDisplay }};">
+            <svg width="164" height="164" viewBox="0 0 100 100" style="overflow: visible;">
+              <defs><linearGradient id="c3-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d888"></stop><stop offset="1" stop-color="#e8bd54"></stop></linearGradient></defs>
+              <path d="M22 42 L20 20 L41 33 Z" fill="url(#c3-b)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M78 42 L80 20 L59 33 Z" fill="url(#c3-b)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z" fill="url(#c3-b)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <circle cx="78" cy="55" r="8" fill="url(#c3-b)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"></ellipse>
+              <circle cx="50" cy="46" r="27" fill="url(#c3-b)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"></ellipse>
+              <circle cx="41" cy="44" r="4.6" fill="#ffffff" stroke="#6f4e0d" stroke-width="1.5"></circle>
+              <circle cx="59" cy="44" r="4.6" fill="#ffffff" stroke="#6f4e0d" stroke-width="1.5"></circle>
+              <circle cx="41" cy="45" r="2" fill="#6f4e0d"></circle><circle cx="59" cy="45" r="2" fill="#6f4e0d"></circle>
+              <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"></path>
+              <ellipse cx="50" cy="57" rx="3" ry="3.6" fill="none" stroke="#6f4e0d" stroke-width="1.6"></ellipse>
+              <path d="M28 45 l-9 -2 M28 49 l-9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M72 45 l9 -2 M72 49 l9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"></circle>
+              <ellipse cx="82" cy="70" rx="10" ry="7" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.6" transform="rotate(-14 82 70)"></ellipse>
+            </svg>
+          </div>
+        </div>
+
+        <p class="disp" style="margin: 26px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -0.025em; color: {{ mood.color }};">{{ mood.verdict }}</p>
+        <p class="mono" style="margin: 10px 0 0; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #8f97b8;">{{ mood.sub }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ THE DARUMA ══ -->
+  <div style="position: relative; overflow: hidden; padding: 104px 72px; background: #060915;">
+    <div style="position: absolute; left: 50%; top: -40px; margin-left: -420px; width: 840px; height: 560px; filter: blur(100px); background: radial-gradient(circle, rgba(177,48,27,0.24), transparent 66%);"></div>
+
+    <div style="position: relative; display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 80px; align-items: center;">
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <svg width="230" height="248" viewBox="0 0 100 108" style="filter: {{ daruma.filter }};">
+          <defs>
+            <linearGradient id="c3-dar" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#cf6a58"></stop><stop offset="0.5" stop-color="#b1301b"></stop><stop offset="1" stop-color="#8d2616"></stop></linearGradient>
+            <radialGradient id="c3-sheen" cx="0.32" cy="0.24" r="0.5"><stop offset="0" stop-color="#ffffff" stop-opacity="0.5"></stop><stop offset="1" stop-color="#ffffff" stop-opacity="0"></stop></radialGradient>
+            <clipPath id="c3-clip"><path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z"></path></clipPath>
+          </defs>
+          <path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z" fill="url(#c3-dar)" stroke="#6d1d10" stroke-width="2"></path>
+          <path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z" fill="url(#c3-sheen)"></path>
+          <g clip-path="url(#c3-clip)"><rect x="9" y="88" width="82" height="18" fill="#f6d878"></rect><rect x="9" y="88" width="82" height="3" fill="#c9902a" opacity="0.65"></rect><circle cx="50" cy="97" r="6.5" fill="#b1301b" opacity="0.9"></circle></g>
+          <ellipse cx="50" cy="47" rx="29" ry="32" fill="#f6ecd3" stroke="#6d1d10" stroke-width="1.6"></ellipse>
+          <circle cx="28" cy="60" r="4.5" fill="#e0a596" opacity="0.7"></circle><circle cx="72" cy="60" r="4.5" fill="#e0a596" opacity="0.7"></circle>
+          <path d="M24 38C30 30 39 30 45 37" fill="none" stroke="#2a1e05" stroke-width="3.4" stroke-linecap="round"></path>
+          <path d="M55 37C61 30 70 30 76 38" fill="none" stroke="#2a1e05" stroke-width="3.4" stroke-linecap="round"></path>
+          <circle cx="36" cy="52" r="10.5" fill="#ffffff" stroke="#2a1e05" stroke-width="1.8"></circle>
+          <circle cx="64" cy="52" r="10.5" fill="#ffffff" stroke="#2a1e05" stroke-width="1.8"></circle>
+          <circle cx="36" cy="52" r="5" fill="#2a1e05"></circle>
+          <circle class="pupil-anim" cx="64" cy="52" r="{{ daruma.pupil }}" fill="#2a1e05"></circle>
+          <path d="M31 75C37 82 46 82 50 76C54 82 63 82 69 75" fill="none" stroke="#2a1e05" stroke-width="2.6" stroke-linecap="round"></path>
+        </svg>
+        <p class="mono" style="margin: 22px 0 0; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #8f97b8;">{{ daruma.state }}</p>
+      </div>
+
+      <div>
+        <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; color: #edc35b;">fortune goals</p>
+        <h2 class="disp" style="margin: 20px 0 0; font-size: 58px; font-weight: 800; line-height: 0.96; letter-spacing: -0.04em;">Make a wish.<br>Paint it true.</h2>
+        <p style="margin: 20px 0 0; max-width: 470px; font-size: 17px; line-height: 1.75; color: #bcc3dd;">The tradition: paint one eye when you set the wish, the other when it comes true. Here the second eye grows with the goal. Put money in and watch it fill.</p>
+
+        <div style="margin-top: 34px; border: 1px solid #333f70; border-radius: 18px; padding: 26px; background: #10162a;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+            <div><p style="margin: 0; font-size: 16px; font-weight: 600;">Emergency fund</p><p class="mono" style="margin: 5px 0 0; font-size: 12px; color: #8f97b8; font-variant-numeric: tabular-nums;">{{ daruma.saved }} of $10,000</p></div>
+            <span class="disp" style="font-size: 32px; font-weight: 800; letter-spacing: -0.02em; color: #edc35b; font-variant-numeric: tabular-nums;">{{ daruma.pct }}%</span>
+          </div>
+          <div style="margin-top: 16px; height: 10px; width: 100%; overflow: hidden; border-radius: 999px; background: #1b2444;">
+            <div class="fill-anim" style="height: 100%; border-radius: 999px; width: {{ daruma.width }}; background: linear-gradient(90deg, #f6d878, #edc35b 60%, #b1301b);"></div>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <span class="tap" onClick="{{ addSaving }}" style="flex: 1; text-align: center; background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 12px; padding: 13px 18px; font-size: 14px; font-weight: 700;">Set aside $1,500</span>
+            <span class="tap" onClick="{{ resetGoal }}" style="border: 1px solid #333f70; color: #8f97b8; border-radius: 12px; padding: 13px 20px; font-size: 14px; font-weight: 600;">Reset</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ THE LANTERN STREAK ══ -->
+  <div style="position: relative; overflow: hidden; padding: 96px 72px; background: #0a0e1c; text-align: center;">
+    <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; color: #edc35b;">the streak</p>
+    <h2 class="disp" style="margin: 20px auto 0; max-width: 760px; font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -0.04em;">One lantern for every day you show up.</h2>
+    <p style="margin: 18px auto 0; max-width: 500px; font-size: 17px; line-height: 1.7; color: #8f97b8;">Tap them. Six lit is six days you did not have to think about money.</p>
+
+    <div style="display: flex; justify-content: center; align-items: flex-start; gap: 34px; margin-top: 56px;">
+      <sc-for list="{{ lanterns }}" as="l" hint-placeholder-count="6">
+        <div class="tap {{ l.pop }}" onClick="{{ l.toggle }}" style="filter: {{ l.filter }};">
+          <svg width="62" height="80" viewBox="0 0 20 26">
+            <line x1="10" y1="0.5" x2="10" y2="3" stroke="#8f97b8" stroke-width="1" opacity="{{ l.cordOpacity }}"></line>
+            <path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="{{ l.cap }}"></path>
+            <path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="{{ l.body }}" opacity="{{ l.bodyOpacity }}"></path>
+            <g stroke="{{ l.rib }}" stroke-width="0.7" opacity="{{ l.ribOpacity }}"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g>
+            <path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="{{ l.cap }}"></path>
+            <line x1="10" y1="22.2" x2="10" y2="25" stroke="{{ l.rib }}" stroke-width="1" opacity="{{ l.cordOpacity }}"></line>
+          </svg>
+        </div>
+      </sc-for>
+    </div>
+    <p class="disp" style="margin: 34px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: {{ streak.color }};">{{ streak.label }}</p>
+  </div>
+
+  <!-- ══ CLOSE ══ -->
+  <div class="stars" style="position: relative; overflow: hidden; padding: 110px 72px; text-align: center; background-color: #060915; background-image: radial-gradient(ellipse 900px 520px at 50% 0%, rgba(237,195,91,0.2), transparent 66%);">
+    <div style="position: relative;">
+      <h2 class="disp foil" style="margin: 0 auto; max-width: 900px; font-size: 84px; font-weight: 800; line-height: 0.9; letter-spacing: -0.045em;">You just used it.</h2>
+      <p style="margin: 26px auto 0; max-width: 520px; font-size: 18px; line-height: 1.7; color: #bcc3dd;">Everything above runs on sample figures. Point it at your own inbox and the numbers become yours &mdash; free to start, $9 once for Pro, and free while the beta runs.</p>
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 38px;">
+        <span class="tap" style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 19px 46px; font-size: 16px; font-weight: 700; box-shadow: 0 0 56px -8px rgba(237,195,91,0.85);">Begin &mdash; it&rsquo;s free</span>
+        <span class="tap" style="border: 1px solid #333f70; color: #bcc3dd; border-radius: 999px; padding: 19px 38px; font-size: 16px; font-weight: 600;">See what Pro adds</span>
+      </div>
+      <p class="mono" style="margin: 24px 0 0; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #4a5589;">no card &middot; no bank login &middot; export or delete any time</p>
+    </div>
+  </div>
+
+  <div style="border-top: 1px solid #171f38; padding: 38px 72px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <span class="disp" style="font-size: 18px; font-weight: 800;">Fortune&nbsp;Cat</span>
+      <p class="mono" style="margin: 5px 0 0; font-size: 11px; letter-spacing: 0.1em; color: #4a5589;">your money logs itself</p>
+    </div>
+    <div style="display: flex; gap: 24px; font-size: 13px; color: #8f97b8;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":2960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const CIRC = 282.7;
+
+    /* ── the omikuji ── */
+    const SLIPS = {
+      good:  { omen: 'Today — Great omen · 大吉', headline: 'Money in outpaces money out — the pouch grows.', tip: 'Set aside $50 while the wind is fair.' },
+      even:  { omen: 'Today — Small omen · 小吉', headline: 'Level month — nothing gained, nothing lost.',      tip: 'Hold today under $30 and you end ahead.' },
+      tight: { omen: 'Today — Warning · 凶',      headline: 'Spending has run ahead of what came in.',          tip: 'Skip one delivery today and the week recovers.' }
+    };
+    const which = st.scenario || 'good';
+    const drawn = !!st.drawn;
+
+    /* ── the month, and the cat it produces ── */
+    const MONTHS = {
+      good:  { label: 'A good month', detail: 'Earned $4,200 · spent $1,386', net:  2814, income: 4200, safe: '$486.20' },
+      even:  { label: 'Break-even',   detail: 'Earned $4,200 · spent $4,200', net:     0, income: 4200, safe: '$0.00'   },
+      tight: { label: 'A tight month',detail: 'Earned $4,200 · spent $4,890', net:  -690, income: 4200, safe: '−$690.00' }
+    };
+    const m = MONTHS[which];
+    // lib/catState.ts — net decides the mood, full stop.
+    const mood = m.net < 0 ? 'burning' : m.net > 0 ? 'saving' : 'even';
+    const kept = m.income > 0 ? Math.max(0, Math.round((m.net / m.income) * 100)) : 0;
+    const MOOD = {
+      saving:  { verdict: 'Ears up',      sub: 'content · ' + kept + '% of income kept', color: '#5ec9a0', ringColor: '#edc35b', glow: 'rgba(237,195,91,0.28)' },
+      even:    { verdict: 'Watchful',     sub: 'even · nothing kept, nothing lost',      color: '#bcc3dd', ringColor: '#8f97b8', glow: 'rgba(143,151,184,0.2)' },
+      burning: { verdict: 'Ears back',    sub: 'alert · spending ran ahead',             color: '#f0795b', ringColor: '#f0795b', glow: 'rgba(240,121,91,0.26)' }
+    };
+
+    const scenarios = ['good', 'even', 'tight'].map((k) => {
+      const on = which === k;
+      const d = MONTHS[k];
+      return {
+        label: d.label, detail: d.detail,
+        net: (d.net < 0 ? '−$' : '+$') + Math.abs(d.net).toLocaleString(),
+        netColor: d.net < 0 ? '#f0795b' : d.net > 0 ? '#5ec9a0' : '#8f97b8',
+        bg: on ? '#1a2540' : '#10162a',
+        border: on ? '#edc35b' : '#232d52',
+        labelColor: on ? '#edc35b' : '#8f97b8',
+        pick: () => this.setState({ scenario: k, drawn: false })
+      };
+    });
+
+    /* ── the daruma ── */
+    const saved = Math.min(10000, st.saved || 0);
+    const p = saved / 10000;
+    const done = p >= 1;
+
+    /* ── the lantern streak ── */
+    const litSet = st.lit || [];
+    const lanterns = [0, 1, 2, 3, 4, 5].map((i) => {
+      const on = litSet.indexOf(i) !== -1;
+      return {
+        cap:  on ? '#f6d878' : '#2a3763',
+        body: on ? '#b1301b' : '#2a3763',
+        rib:  on ? '#b9832a' : '#0a0e1c',
+        bodyOpacity: on ? '1' : '0.55',
+        ribOpacity:  on ? '0.55' : '0.3',
+        cordOpacity: on ? '0.8' : '0.35',
+        filter: on ? 'drop-shadow(0 0 12px rgba(237,195,91,0.7))' : 'none',
+        pop: on ? 'pop' : '',
+        toggle: () => this.setState({
+          lit: on ? litSet.filter((x) => x !== i) : litSet.concat([i])
+        })
+      };
+    });
+    const n = litSet.length;
+
+    return {
+      /* omikuji */
+      boxDisplay:  drawn ? 'none'  : 'block',
+      slipDisplay: drawn ? 'block' : 'none',
+      slip: SLIPS[which],
+      safe: m.safe,
+      slipHint: drawn ? 'the same slip stays all day — set the month below and draw again' : 'tap the box →',
+      shakeClass: st.shaking ? 'shaking' : '',
+      draw: () => {
+        if (st.shaking || drawn) return;
+        this.setState({ shaking: true });
+        setTimeout(() => this.setState({ shaking: false, drawn: true }), 620);
+      },
+      putBack: () => this.setState({ drawn: false }),
+
+      /* the cat */
+      scenarios: scenarios,
+      mood: {
+        savingDisplay:  mood === 'saving'  ? 'block' : 'none',
+        evenDisplay:    mood === 'even'    ? 'block' : 'none',
+        burningDisplay: mood === 'burning' ? 'block' : 'none',
+        ringOffset: CIRC * (1 - Math.min(100, kept) / 100),
+        ringColor: MOOD[mood].ringColor,
+        verdict: MOOD[mood].verdict,
+        sub: MOOD[mood].sub,
+        color: MOOD[mood].color,
+        glow: MOOD[mood].glow
+      },
+
+      /* the daruma */
+      daruma: {
+        pupil: 5 * p,
+        pct: Math.round(p * 100),
+        width: Math.max(2, p * 100) + '%',
+        saved: '$' + saved.toLocaleString(),
+        state: done ? 'both eyes painted — wish fulfilled' : 'one eye painted — the wish is set',
+        filter: done ? 'drop-shadow(0 0 16px rgba(237,195,91,0.75))' : 'none'
+      },
+      addSaving: () => this.setState({ saved: Math.min(10000, (st.saved || 0) + 1500) }),
+      resetGoal: () => this.setState({ saved: 0 }),
+
+      /* the streak */
+      lanterns: lanterns,
+      streak: {
+        label: n === 0 ? 'No days lit yet' : n === 6 ? 'Six days lit — a full week of not thinking about money' : n + (n === 1 ? ' day lit' : ' days lit'),
+        color: n === 6 ? '#edc35b' : n === 0 ? '#4a5589' : '#bcc3dd'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

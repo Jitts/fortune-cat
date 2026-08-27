@@ -450,3 +450,57 @@ details[open] .faq-answer {
 @media (prefers-reduced-motion: no-preference) {
   .quick-sheet { animation: quick-sheet-up 220ms var(--ease-out-quart) both; }
 }
+
+/* ── Shrine landing interactions ────────────────────────────────────────
+   The marketing page lets a visitor work the real rituals: shake the
+   omikuji box, set the month, paint the daruma's eye, light the streak.
+   Same easing tokens as the rest of the motion system; all three are
+   one-shot (no infinite loops) so nothing on the page ever jitters. ── */
+@keyframes shrine-shake {
+  0%, 100% { transform: rotate(0) translateX(0); }
+  15%  { transform: rotate(-6deg) translateX(-8px); }
+  32%  { transform: rotate(7deg)  translateX(9px); }
+  50%  { transform: rotate(-5deg) translateX(-7px); }
+  68%  { transform: rotate(5deg)  translateX(6px); }
+  85%  { transform: rotate(-3deg) translateX(-3px); }
+}
+/* The slip leaves the box: unrolls from the top edge, settles off-square. */
+@keyframes shrine-draw {
+  from { opacity: 0; transform: translateY(-40px) scaleY(0.2) rotate(-6deg); }
+  to   { opacity: 1; transform: rotate(-1.6deg); }
+}
+/* A lantern catching light. */
+@keyframes shrine-pop {
+  0%   { transform: scale(0.7); }
+  60%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .shrine-shake { animation: shrine-shake 620ms ease-in-out; }
+  .shrine-draw  { transform-origin: top center; animation: shrine-draw 620ms var(--ease-out-expo) both; }
+  .shrine-pop   { animation: shrine-pop 380ms var(--ease-spring); }
+}
+/* Reduced motion still gets the slip, just already unrolled. */
+.shrine-draw { transform: rotate(-1.6deg); }
+
+/* Struck-leaf display text — finally gives `leaf-sweep` (above) a consumer.
+   Gold gradient clipped to the letterforms, with a slow sheen crossing them.
+   Only for display type on the shrine; never body copy (clipped text has no
+   forced-colors fallback, so keep it off anything load-bearing). */
+.leaf-text {
+  background-image: linear-gradient(
+    168deg,
+    #fdf0c4 4%, var(--gold) 26%, var(--leaf-lo) 44%,
+    var(--leaf-hi) 62%, var(--gold) 82%, #8a5f10 100%
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .leaf-text { animation: leaf-sweep 8s linear infinite; }
+}
+@media (forced-colors: active) {
+  .leaf-text { background: none; color: CanvasText; }
+}

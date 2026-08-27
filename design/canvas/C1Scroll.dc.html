@@ -1,0 +1,284 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <style>
+    @property --kept { syntax: '<integer>'; initial-value: 0; inherits: false; }
+
+    body { margin: 0; background: #060915; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #f7f1e6; -webkit-font-smoothing: antialiased; }
+    a { color: #edc35b; text-decoration: none; } a:hover { color: #f6d878; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .vert { writing-mode: vertical-rl; text-orientation: mixed; }
+    .foil { background: linear-gradient(168deg, #fdf0c4 4%, #edc35b 26%, #b9832a 44%, #f6d878 62%, #edc35b 82%, #8a5f10 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+    .stage { height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .pin-wrap { view-timeline-name: --pin; view-timeline-axis: block; }
+    .pin { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+
+    @keyframes c1-rise    { from { opacity: 0; transform: translateY(56px); } to { opacity: 1; transform: none; } }
+    @keyframes c1-fade    { from { opacity: 0; } to { opacity: 1; } }
+    /* the approach: the gate grows until you pass under it */
+    @keyframes c1-through { 0% { transform: translateY(120px) scale(0.34); opacity: 0.45; } 62% { transform: translateY(20px) scale(1.25); opacity: 1; } 100% { transform: translateY(-260px) scale(3.4); opacity: 0; } }
+    @keyframes c1-title   { 0% { opacity: 0; transform: translateY(40px); } 26% { opacity: 1; transform: none; } 68% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-40px); } }
+    @keyframes c1-moon    { from { transform: translateY(190px); opacity: 0.25; } to { transform: translateY(-30px); opacity: 1; } }
+    @keyframes c1-far     { from { transform: translateY(70px); }  to { transform: translateY(-70px); } }
+    @keyframes c1-near    { from { transform: translateY(180px); } to { transform: translateY(-180px); } }
+    @keyframes c1-light   { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+    @keyframes c1-ring    { from { stroke-dashoffset: 282.7; } to { stroke-dashoffset: 93.3; } }
+    @keyframes c1-kept    { to { --kept: 67; } }
+    @keyframes c1-unfurl  { from { opacity: 0; transform: translateY(-28px) scaleY(0.28) rotate(-3deg); } to { opacity: 1; transform: rotate(-1.4deg); } }
+    @keyframes c1-glow    { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+    @media (prefers-reduced-motion: no-preference) { .breathe { animation: c1-glow 5s ease-in-out infinite; } }
+
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .sc-rise  { animation: c1-rise linear both;  animation-timeline: view(); animation-range: entry 6% cover 32%; }
+        .sc-fade  { animation: c1-fade linear both;  animation-timeline: view(); animation-range: entry 10% cover 36%; }
+        .sc-far   { animation: c1-far  linear both;  animation-timeline: view(); animation-range: cover 0% cover 100%; }
+        .sc-near  { animation: c1-near linear both;  animation-timeline: view(); animation-range: cover 0% cover 100%; }
+        .sc-moon  { animation: c1-moon linear both;  animation-timeline: view(); animation-range: cover 0% cover 84%; }
+        .sc-ring  { animation: c1-ring linear both;  animation-timeline: view(); animation-range: entry 18% cover 56%; }
+        .sc-kept  { animation: c1-kept linear both;  animation-timeline: view(); animation-range: entry 18% cover 56%; }
+        .sc-unfurl{ animation: c1-unfurl linear both; animation-timeline: view(); animation-range: entry 14% cover 42%; }
+        .torii    { animation: c1-through linear both; animation-timeline: --pin; animation-range: contain 0% contain 100%; }
+        .torii-title { animation: c1-title linear both; animation-timeline: --pin; animation-range: contain 0% contain 100%; }
+        .lan { opacity: 0; animation: c1-light linear both; animation-timeline: view(); }
+        .lan1 { animation-range: entry 20% entry 46%; } .lan2 { animation-range: entry 28% entry 54%; }
+        .lan3 { animation-range: entry 36% entry 62%; } .lan4 { animation-range: entry 44% entry 70%; }
+        .lan5 { animation-range: entry 52% entry 78%; } .lan6 { animation-range: entry 60% entry 86%; }
+      }
+    }
+    .sc-kept { counter-reset: kept var(--kept); }
+    .kept-num::after { content: counter(kept); }
+
+    .stars-far, .stars-near { position: absolute; inset: -20% 0; pointer-events: none; }
+    .stars-far {
+      background-image:
+        radial-gradient(1.2px 1.2px at 8% 14%, rgba(247,241,230,0.7), transparent),
+        radial-gradient(1px 1px at 21% 33%, rgba(237,195,91,0.6), transparent),
+        radial-gradient(1.1px 1.1px at 34% 9%, rgba(247,241,230,0.55), transparent),
+        radial-gradient(1px 1px at 47% 41%, rgba(237,195,91,0.5), transparent),
+        radial-gradient(1.2px 1.2px at 61% 17%, rgba(247,241,230,0.65), transparent),
+        radial-gradient(1px 1px at 73% 37%, rgba(237,195,91,0.55), transparent),
+        radial-gradient(1.1px 1.1px at 86% 12%, rgba(247,241,230,0.6), transparent),
+        radial-gradient(1px 1px at 95% 46%, rgba(237,195,91,0.5), transparent),
+        radial-gradient(1px 1px at 15% 62%, rgba(247,241,230,0.45), transparent),
+        radial-gradient(1.1px 1.1px at 68% 68%, rgba(237,195,91,0.45), transparent);
+    }
+    .stars-near {
+      background-image:
+        radial-gradient(2px 2px at 12% 24%, rgba(255,215,120,0.95), transparent),
+        radial-gradient(1.8px 1.8px at 38% 52%, rgba(255,215,120,0.85), transparent),
+        radial-gradient(2.2px 2.2px at 57% 19%, rgba(247,241,230,0.9), transparent),
+        radial-gradient(1.7px 1.7px at 79% 58%, rgba(255,215,120,0.8), transparent),
+        radial-gradient(2px 2px at 91% 28%, rgba(247,241,230,0.85), transparent);
+    }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #060915;">
+
+  <div style="position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 18px 72px; background: rgba(6,9,21,0.7); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(51,63,112,0.5);">
+    <span class="disp" style="font-size: 19px; font-weight: 800; letter-spacing: -0.02em;">Fortune&nbsp;Cat</span>
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <span class="mono" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #8f97b8;">scroll to walk in</span>
+      <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 10px 22px; font-size: 14px; font-weight: 700;">Enter</span>
+    </div>
+  </div>
+
+  <div class="mono vert" style="position: sticky; top: 40vh; z-index: 40; height: 0; padding-left: 26px; font-size: 10px; letter-spacing: 0.44em; color: #3d4877;">NO BANK LOGIN &middot; ANY CURRENCY</div>
+
+  <!-- ══ 01 · the approach ══ -->
+  <div class="stage" style="position: relative; overflow: hidden; background: radial-gradient(ellipse 1100px 560px at 50% 90%, rgba(177,48,27,0.22), transparent 72%);">
+    <div class="stars-far sc-far"></div>
+    <div class="stars-near sc-near"></div>
+    <div class="sc-moon breathe" style="position: absolute; right: 150px; top: 130px; width: 122px; height: 122px; border-radius: 999px; background: radial-gradient(circle at 36% 32%, #fdf6e2, #edc35b 62%, #b9832a); box-shadow: 0 0 90px 26px rgba(237,195,91,0.24);"></div>
+
+    <div style="position: relative; text-align: center; padding: 0 120px; z-index: 3;">
+      <p class="mono sc-rise" style="margin: 0; font-size: 12px; letter-spacing: 0.44em; text-transform: uppercase; color: #edc35b;">a shrine for your money</p>
+      <h1 class="disp foil sc-rise" style="margin: 28px auto 0; max-width: 1040px; font-size: 118px; font-weight: 800; line-height: 0.88; letter-spacing: -0.045em;">Your money<br>logs itself.</h1>
+      <p class="sc-rise" style="margin: 30px auto 0; max-width: 540px; font-size: 18px; line-height: 1.7; color: #bcc3dd;">Forward what your bank already sends. Come back once a day for one number and one omen. Keep scrolling &mdash; the gate is just ahead.</p>
+      <div class="mono sc-fade" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 62px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #4a5589;">
+        <svg width="14" height="20" viewBox="0 0 14 20" fill="none" stroke="#4a5589" stroke-width="1.6" stroke-linecap="round"><path d="M7 2v14M2 11l5 5 5-5"></path></svg>
+        <span>walk in</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 02 · passing under the gate ══ -->
+  <div class="pin-wrap" style="height: 280vh; position: relative;">
+    <div class="pin" style="display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse 1000px 620px at 50% 78%, rgba(177,48,27,0.3), transparent 70%), #060915;">
+      <div class="stars-far"></div>
+
+      <div class="torii" style="position: absolute; bottom: 0; left: 50%; margin-left: -460px; transform-origin: 50% 92%;">
+        <svg width="920" height="680" viewBox="0 0 600 440">
+          <g fill="#8d2616">
+            <path d="M112 58 L146 58 L154 440 L104 440 Z"></path>
+            <path d="M488 58 L454 58 L446 440 L496 440 Z"></path>
+          </g>
+          <rect x="84" y="120" width="432" height="24" fill="#b1301b"></rect>
+          <rect x="290" y="72" width="20" height="48" fill="#b1301b"></rect>
+          <path d="M28 40 Q300 12 572 40 L572 60 Q300 34 28 60 Z" fill="#b1301b"></path>
+          <path d="M46 62 Q300 38 554 62 L554 76 Q300 54 46 76 Z" fill="#8d2616"></path>
+        </svg>
+      </div>
+
+      <div class="torii-title" style="position: relative; z-index: 4; text-align: center; padding: 0 120px;">
+        <p class="mono" style="margin: 0; font-size: 12px; letter-spacing: 0.4em; text-transform: uppercase; color: #edc35b;">what you hand over at the gate</p>
+        <h2 class="disp" style="margin: 26px auto 0; max-width: 880px; font-size: 92px; font-weight: 800; line-height: 0.92; letter-spacing: -0.04em; color: #f7f1e6;">Nothing.</h2>
+        <p style="margin: 26px auto 0; max-width: 520px; font-size: 18px; line-height: 1.7; color: #bcc3dd;">No bank login. No account linking. It only ever sees the notification text you choose to forward &mdash; and you can take it all back out, or delete it, at any time.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 03 · the hall of lanterns ══ -->
+  <div style="position: relative; min-height: 130vh; display: flex; align-items: center; padding: 140px 120px; background: linear-gradient(180deg, #060915, #0a0e1c 40%, #060915);">
+    <div style="width: 100%;">
+      <div style="text-align: center;">
+        <p class="mono sc-rise" style="margin: 0; font-size: 12px; letter-spacing: 0.36em; text-transform: uppercase; color: #edc35b;">the hall</p>
+        <h2 class="disp sc-rise" style="margin: 22px auto 0; max-width: 860px; font-size: 62px; font-weight: 800; line-height: 0.98; letter-spacing: -0.04em; color: #f7f1e6;">One lantern for every day you show up.</h2>
+        <p class="sc-rise" style="margin: 20px auto 0; max-width: 520px; font-size: 17px; line-height: 1.7; color: #8f97b8;">The streak is the whole habit. Six days lit is six days you did not have to think about money.</p>
+      </div>
+
+      <div style="display: flex; justify-content: center; align-items: flex-start; gap: 44px; margin-top: 84px;">
+        <div class="lan lan1" style="filter: drop-shadow(0 0 14px rgba(237,195,91,0.6));"><svg width="70" height="92" viewBox="0 0 20 26"><line x1="10" y1="0.5" x2="10" y2="3" stroke="#8f97b8" stroke-width="1"></line><path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path><path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path><g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g><path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path><line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line></svg></div>
+        <div class="lan lan2" style="filter: drop-shadow(0 0 14px rgba(237,195,91,0.6));"><svg width="70" height="92" viewBox="0 0 20 26"><line x1="10" y1="0.5" x2="10" y2="3" stroke="#8f97b8" stroke-width="1"></line><path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path><path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path><g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g><path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path><line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line></svg></div>
+        <div class="lan lan3" style="filter: drop-shadow(0 0 14px rgba(237,195,91,0.6));"><svg width="70" height="92" viewBox="0 0 20 26"><line x1="10" y1="0.5" x2="10" y2="3" stroke="#8f97b8" stroke-width="1"></line><path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path><path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path><g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g><path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path><line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line></svg></div>
+        <div class="lan lan4" style="filter: drop-shadow(0 0 14px rgba(237,195,91,0.6));"><svg width="70" height="92" viewBox="0 0 20 26"><line x1="10" y1="0.5" x2="10" y2="3" stroke="#8f97b8" stroke-width="1"></line><path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path><path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path><g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g><path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path><line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line></svg></div>
+        <div class="lan lan5" style="filter: drop-shadow(0 0 14px rgba(237,195,91,0.6));"><svg width="70" height="92" viewBox="0 0 20 26"><line x1="10" y1="0.5" x2="10" y2="3" stroke="#8f97b8" stroke-width="1"></line><path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path><path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path><g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g><path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path><line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line></svg></div>
+        <div class="lan lan6" style="filter: drop-shadow(0 0 14px rgba(237,195,91,0.6));"><svg width="70" height="92" viewBox="0 0 20 26"><line x1="10" y1="0.5" x2="10" y2="3" stroke="#8f97b8" stroke-width="1"></line><path d="M6 3.5h8l-1.4 2.5H7.4Z" fill="#f6d878"></path><path d="M7.4 6C4 6 2.2 9 2.2 13S4 20 7.4 20h5.2c3.4 0 5.2-3 5.2-7S16 6 12.6 6Z" fill="#b1301b"></path><g stroke="#b9832a" stroke-width="0.7" opacity="0.55"><path d="M3.3 10h13.4"></path><path d="M2.7 13h14.6"></path><path d="M3.3 16h13.4"></path></g><path d="M7.4 20h5.2l-1.4 2.2H8.8Z" fill="#f6d878"></path><line x1="10" y1="22.2" x2="10" y2="25" stroke="#b9832a" stroke-width="1"></line></svg></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; max-width: 1080px; margin: 96px auto 0;">
+        <div class="sc-rise">
+          <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #edc35b;">capture</p>
+          <h3 class="disp" style="margin: 12px 0 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">It fills itself</h3>
+          <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.8; color: #8f97b8;">SMS, email, statements, receipts. Overseas charges land in your own currency at ECB reference rates.</p>
+        </div>
+        <div class="sc-rise">
+          <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #edc35b;">the wish</p>
+          <h3 class="disp" style="margin: 12px 0 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">Paint it true</h3>
+          <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.8; color: #8f97b8;">One daruma eye when you set a goal. The second the day you reach it.</p>
+        </div>
+        <div class="sc-rise">
+          <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #edc35b;">the road ahead</p>
+          <h3 class="disp" style="margin: 12px 0 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em;">See the lean day</h3>
+          <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.8; color: #8f97b8;">Bills and paydays projected forward, so you meet the thin week before it arrives.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 04 · the draw ══ -->
+  <div style="position: relative; min-height: 130vh; display: flex; align-items: center; padding: 120px; background: #0a0e1c; overflow: hidden;">
+    <div style="position: absolute; left: -140px; top: 60px; width: 640px; height: 640px; border-radius: 999px; filter: blur(90px); background: radial-gradient(circle, rgba(237,195,91,0.16), transparent 66%);"></div>
+
+    <div style="position: relative; display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 90px; align-items: center; width: 100%;">
+      <div style="display: flex; justify-content: center;">
+        <div>
+          <svg width="300" height="300" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 18px rgba(237,195,91,0.45));">
+            <defs><linearGradient id="c1-cat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d888"></stop><stop offset="1" stop-color="#e8bd54"></stop></linearGradient></defs>
+            <g stroke="#333f70" stroke-width="1">
+              <line x1="98.5" y1="50" x2="96" y2="50"></line><line x1="84.3" y1="84.3" x2="82.5" y2="82.5"></line>
+              <line x1="50" y1="98.5" x2="50" y2="96"></line><line x1="15.7" y1="84.3" x2="17.5" y2="82.5"></line>
+              <line x1="1.5" y1="50" x2="4" y2="50"></line><line x1="15.7" y1="15.7" x2="17.5" y2="17.5"></line>
+              <line x1="50" y1="1.5" x2="50" y2="4"></line><line x1="84.3" y1="15.7" x2="82.5" y2="17.5"></line>
+              <line x1="94.3" y1="62.6" x2="92" y2="61.5"></line><line x1="62.6" y1="94.3" x2="61.5" y2="92"></line>
+              <line x1="37.4" y1="94.3" x2="38.5" y2="92"></line><line x1="5.7" y1="62.6" x2="8" y2="61.5"></line>
+              <line x1="5.7" y1="37.4" x2="8" y2="38.5"></line><line x1="37.4" y1="5.7" x2="38.5" y2="8"></line>
+              <line x1="62.6" y1="5.7" x2="61.5" y2="8"></line><line x1="94.3" y1="37.4" x2="92" y2="38.5"></line>
+            </g>
+            <g transform="rotate(-90 50 50)">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#333f70" stroke-width="6"></circle>
+              <circle class="sc-ring" cx="50" cy="50" r="45" fill="none" stroke="#edc35b" stroke-width="6" stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="93.3"></circle>
+            </g>
+            <g transform="translate(23,23) scale(0.54)">
+              <path d="M27 38 L30 15 L46 31 Z" fill="url(#c1-cat)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M73 38 L70 15 L54 31 Z" fill="url(#c1-cat)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M31 33 L33 22 L41 30 Z" fill="#fbf3dd"></path><path d="M69 33 L67 22 L59 30 Z" fill="#fbf3dd"></path>
+              <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z" fill="url(#c1-cat)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"></path>
+              <circle cx="78" cy="55" r="8" fill="url(#c1-cat)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"></ellipse>
+              <circle cx="50" cy="46" r="27" fill="url(#c1-cat)" stroke="#6f4e0d" stroke-width="2"></circle>
+              <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"></ellipse>
+              <path d="M36 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <path d="M54 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"></path>
+              <path d="M45 54 q5 4 10 0" stroke="#6f4e0d" stroke-width="1.8" fill="none" stroke-linecap="round"></path>
+              <path d="M28 45 l-9 -2 M28 49 l-9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M72 45 l9 -2 M72 49 l9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"></path>
+              <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+              <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"></circle>
+              <ellipse cx="82" cy="70" rx="10" ry="7" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.6" transform="rotate(-14 82 70)"></ellipse>
+            </g>
+          </svg>
+          <p class="mono" style="margin: 22px 0 0; text-align: center; font-size: 12px; letter-spacing: 0.26em; text-transform: uppercase; color: #8f97b8;"><span class="sc-kept kept-num"></span>% of income kept</p>
+          <p style="margin: 8px 0 0; text-align: center; font-size: 15px; color: #bcc3dd;">Ears up &mdash; luck is running with you.</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="mono sc-rise" style="margin: 0; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: #edc35b;">the draw</p>
+        <h2 class="disp sc-rise" style="margin: 18px 0 0; font-size: 58px; font-weight: 800; line-height: 1; letter-spacing: -0.04em;">One number.<br>Once a day.</h2>
+        <p class="sc-rise" style="margin: 20px 0 0; max-width: 440px; font-size: 17px; line-height: 1.75; color: #bcc3dd;">The slip is seeded from your own figures and your own calendar day. It says the same thing all day &mdash; there is no rerolling your way to a nicer answer.</p>
+
+        <div class="sc-unfurl" style="transform-origin: top; margin-top: 36px; max-width: 470px;">
+          <div style="background: #f6ecd3; border-radius: 6px; padding: 28px 30px; border-top: 3px solid #b1301b; background-image: repeating-linear-gradient(0deg, transparent 0 22px, rgba(177,48,27,0.06) 22px 23px); box-shadow: 0 32px 70px -32px rgba(0,0,0,0.9);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+              <div style="flex: 1; min-width: 0;">
+                <p class="mono" style="margin: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #b1301b;">Today &mdash; Great omen &middot; &#x5927;&#x5409;</p>
+                <p style="margin: 14px 0 0; font-size: 19px; font-weight: 600; line-height: 1.5; color: #2a1e05;">Money in outpaces money out &mdash; the pouch grows.</p>
+                <p style="margin: 12px 0 0; font-size: 16px; font-weight: 600; line-height: 1.6; color: #0e6f52;">Set aside $50 while the wind is fair.</p>
+                <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed #b6a684; display: flex; justify-content: space-between; align-items: baseline;">
+                  <span class="mono" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8a7757;">Safe to spend, till 31 Aug</span>
+                  <span class="disp" style="font-size: 26px; font-weight: 800; color: #2a1e05; font-variant-numeric: tabular-nums;">$486.20</span>
+                </div>
+              </div>
+              <span style="width: 42px; height: 42px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: #b1301b; color: #f6ecd3; border-radius: 3px; rotate: 6deg; font-size: 21px; font-weight: 700;">&#x5409;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 05 · the offering ══ -->
+  <div style="position: relative; min-height: 110vh; display: flex; align-items: center; padding: 120px; background: #060915; overflow: hidden;">
+    <div class="stars-far sc-far"></div>
+    <div style="position: absolute; left: 50%; top: -60px; margin-left: -420px; width: 840px; height: 620px; filter: blur(100px); background: radial-gradient(circle, rgba(237,195,91,0.18), transparent 66%);"></div>
+
+    <div style="position: relative; width: 100%; text-align: center;">
+      <p class="mono sc-rise" style="margin: 0; font-size: 12px; letter-spacing: 0.36em; text-transform: uppercase; color: #edc35b;">the offering</p>
+      <h2 class="disp foil sc-rise" style="margin: 24px auto 0; max-width: 860px; font-size: 82px; font-weight: 800; line-height: 0.94; letter-spacing: -0.045em;">Cast one coin.<br>Once.</h2>
+      <p class="sc-rise" style="margin: 24px auto 0; max-width: 520px; font-size: 18px; line-height: 1.7; color: #bcc3dd;">A money-saving app that bills you monthly is a leak, not a fix. $9 unlocks every engine and stays unlocked &mdash; and it is free while the beta runs.</p>
+
+      <div class="sc-rise" style="display: flex; justify-content: center; gap: 14px; margin-top: 44px;">
+        <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 18px 44px; font-size: 16px; font-weight: 700; box-shadow: 0 0 46px -6px rgba(237,195,91,0.75);">Begin &mdash; it&rsquo;s free</span>
+        <span style="border: 1px solid #333f70; color: #bcc3dd; border-radius: 999px; padding: 18px 36px; font-size: 16px; font-weight: 600;">See what Pro adds</span>
+      </div>
+      <p class="mono sc-rise" style="margin: 24px 0 0; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #4a5589;">no card &middot; no bank login &middot; export or delete any time</p>
+    </div>
+  </div>
+
+  <div style="border-top: 1px solid #171f38; padding: 40px 120px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <span class="disp" style="font-size: 18px; font-weight: 800;">Fortune&nbsp;Cat</span>
+      <p class="mono" style="margin: 5px 0 0; font-size: 11px; letter-spacing: 0.1em; color: #4a5589;">your money logs itself</p>
+    </div>
+    <div style="display: flex; gap: 24px; font-size: 13px; color: #8f97b8;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

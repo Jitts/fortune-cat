@@ -33,11 +33,21 @@ export default function LuckRing({
         <g stroke="var(--line)" strokeWidth="1">
           {ticks.map((deg, i) => {
             const a = (deg * Math.PI) / 180;
-            const x1 = 50 + Math.cos(a) * 48.5;
-            const y1 = 50 + Math.sin(a) * 48.5;
-            const x2 = 50 + Math.cos(a) * 46;
-            const y2 = 50 + Math.sin(a) * 46;
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} opacity={0.5} />;
+            // Rounded, because `Math.sin`/`Math.cos` are explicitly NOT required
+            // to be correctly rounded by ECMAScript — Node's V8 and the
+            // browser's V8 can differ in the last bit (7.997767916454734 vs
+            // ...741), which React reports as a hydration mismatch on every
+            // render of this ring. 3dp is far below a pixel at any size we draw
+            // this at, and it makes both runtimes emit the identical string.
+            const at = (r: number) => ({
+              x: (50 + Math.cos(a) * r).toFixed(3),
+              y: (50 + Math.sin(a) * r).toFixed(3),
+            });
+            const outer = at(48.5);
+            const inner = at(46);
+            return (
+              <line key={i} x1={outer.x} y1={outer.y} x2={inner.x} y2={inner.y} opacity={0.5} />
+            );
           })}
         </g>
 

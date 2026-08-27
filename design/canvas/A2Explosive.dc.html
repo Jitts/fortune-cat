@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f2efe9; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #1e1913; -webkit-font-smoothing: antialiased; }
+    a { color: #8a5f10; text-decoration: none; } a:hover { color: #6f4e0d; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    /* Gold leaf, actually struck — a live sheen crossing the letterforms.
+       Extends the app's existing `leaf-sweep` keyframe rather than a new idea. */
+    .foil {
+      background-image: linear-gradient(100deg, #8a5f10 0%, #c9902a 16%, #f6d878 30%, #fffaeb 38%, #f6d878 46%, #c9902a 62%, #8a5f10 78%, #c9902a 92%);
+      background-size: 260% 100%;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    @keyframes leaf-sweep { from { background-position: 240% 0; } to { background-position: -140% 0; } }
+    @media (prefers-reduced-motion: no-preference) { .foil { animation: leaf-sweep 7s linear infinite; } }
+
+    @keyframes a2-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @media (prefers-reduced-motion: no-preference) { .marquee-track { animation: a2-marquee 26s linear infinite; } }
+
+    @keyframes a2-spin { to { transform: rotate(360deg); } }
+    @keyframes a2-bob { 0%,100% { transform: translateY(0) rotate(var(--r,0deg)); } 50% { transform: translateY(-14px) rotate(var(--r,0deg)); } }
+    @media (prefers-reduced-motion: no-preference) {
+      .bob { animation: a2-bob 6s ease-in-out infinite; }
+      .bob-b { animation: a2-bob 7.5s ease-in-out infinite 0.8s; }
+      .bob-c { animation: a2-bob 8.5s ease-in-out infinite 1.6s; }
+    }
+
+    @keyframes a2-rise { from { opacity: 0; transform: translateY(64px); } to { opacity: 1; transform: none; } }
+    @keyframes a2-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .sc-rise { animation: a2-rise linear both; animation-timeline: view(); animation-range: entry 2% cover 28%; }
+        .sc-wipe { animation: a2-wipe linear both; animation-timeline: view(); animation-range: entry 10% cover 34%; }
+      }
+    }
+
+    .grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.4; mix-blend-mode: multiply; }
+    .slab { box-shadow: 0 40px 90px -46px rgba(60,40,10,0.75), 0 2px 0 rgba(255,255,255,0.6) inset; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #f2efe9; position: relative; overflow: hidden;">
+
+  <svg width="0" height="0" style="position: absolute;"><filter id="a2-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter></svg>
+
+  <!-- ══════ HERO ══════ -->
+  <div style="position: relative; padding: 0 0 40px; overflow: hidden; background:
+      radial-gradient(1100px 620px at 88% -6%, rgba(232,182,74,0.55), transparent 62%),
+      radial-gradient(760px 520px at 4% 42%, rgba(177,48,27,0.16), transparent 66%),
+      linear-gradient(180deg, #fdfaf3, #f2efe9 62%);">
+    <div class="grain" style="filter: url(#a2-grain);"></div>
+
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between; padding: 22px 80px; z-index: 8;">
+      <span class="disp" style="font-size: 21px; font-weight: 800; letter-spacing: -0.02em;">Fortune&nbsp;Cat</span>
+      <div style="display: flex; align-items: center; gap: 22px;">
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #73695a;">Method</span>
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #73695a;">Pricing</span>
+        <span style="background: #241d15; color: #faf7f2; border-radius: 0.7rem; padding: 12px 24px; font-size: 14px; font-weight: 700;">Get started</span>
+      </div>
+    </div>
+
+    <!-- oversized koban, scattered and bobbing -->
+    <div class="bob" style="--r: -18deg; position: absolute; left: 62px; top: 300px; z-index: 1; opacity: 0.9;">
+      <svg width="150" height="106" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="48" ry="33" fill="#f4d888" stroke="#6f4e0d" stroke-width="2.4"></ellipse><ellipse cx="50" cy="35" rx="40" ry="26" fill="none" stroke="#c9902a" stroke-width="1.4"></ellipse><text x="50" y="45" text-anchor="middle" font-size="30" font-weight="700" fill="#6f4e0d" font-family="serif">&#x91D1;</text></svg>
+    </div>
+    <div class="bob-b" style="--r: 24deg; position: absolute; right: 96px; top: 640px; z-index: 1; opacity: 0.85;">
+      <svg width="112" height="78" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="48" ry="33" fill="#e8b64a" stroke="#6f4e0d" stroke-width="2.4"></ellipse><ellipse cx="50" cy="35" rx="40" ry="26" fill="none" stroke="#8a5f10" stroke-width="1.4"></ellipse><text x="50" y="45" text-anchor="middle" font-size="30" font-weight="700" fill="#6f4e0d" font-family="serif">&#x91D1;</text></svg>
+    </div>
+    <div class="bob-c" style="--r: -7deg; position: absolute; left: 300px; top: 700px; z-index: 1; opacity: 0.6;">
+      <svg width="74" height="52" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="48" ry="33" fill="#f6d878" stroke="#6f4e0d" stroke-width="2.8"></ellipse><ellipse cx="50" cy="35" rx="40" ry="26" fill="none" stroke="#c9902a" stroke-width="1.8"></ellipse></svg>
+    </div>
+
+    <!-- the shout -->
+    <div style="position: relative; z-index: 6; padding: 60px 80px 0; text-align: center;">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.42em; text-transform: uppercase; color: #b1301b;">&#x2014;&nbsp; the tracker that fills itself &nbsp;&#x2014;</p>
+      <h1 class="disp" style="margin: 24px 0 0; font-size: 178px; font-weight: 800; line-height: 0.8; letter-spacing: -0.055em;">
+        <span style="display: block; color: #1e1913;">YOUR MONEY</span>
+        <span class="foil" style="display: block;">LOGS ITSELF</span>
+      </h1>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 34px;">
+        <span style="height: 1px; width: 90px; background: #cfc6b5;"></span>
+        <p style="margin: 0; max-width: 620px; font-size: 20px; line-height: 1.55; color: #4a4237;">Your bank already writes down everything you buy, then sends it to you. Fortune Cat just reads the pile.</p>
+        <span style="height: 1px; width: 90px; background: #cfc6b5;"></span>
+      </div>
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 40px;">
+        <span style="background: linear-gradient(180deg, #f6d878, #e8b64a); color: #2a1e05; border-radius: 0.7rem; padding: 20px 44px; font-size: 17px; font-weight: 700; box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 20px 44px -18px rgba(150,105,20,0.9);">Start tracking &mdash; free</span>
+        <span style="border-radius: 0.7rem; padding: 20px 34px; font-size: 17px; font-weight: 600; color: #4a4237; box-shadow: inset 0 0 0 2px #ddd4c2;">Pro &mdash; $9 once</span>
+      </div>
+    </div>
+
+    <!-- the slab: a giant tilted ledger card breaking the fold -->
+    <div style="position: relative; z-index: 5; margin: 76px auto -70px; width: 1010px; transform: rotate(-1.6deg);">
+      <div class="slab" style="background: #ffffff; border-radius: 26px; padding: 34px 40px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f0ece4; padding-bottom: 20px;">
+          <div>
+            <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #73695a;">In your pouch</p>
+            <p class="disp" style="margin: 4px 0 0; font-size: 76px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.94; font-variant-numeric: tabular-nums;">$486<span style="color: #c3baa8;">.20</span></p>
+          </div>
+          <div style="display: flex; gap: 42px; text-align: right;">
+            <div><p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.14em; color: #73695a;">ROWS</p><p class="disp" style="margin: 2px 0 0; font-size: 40px; font-weight: 800;">68</p></div>
+            <div><p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.14em; color: #73695a;">TYPED</p><p class="disp" style="margin: 2px 0 0; font-size: 40px; font-weight: 800; color: #b1301b;">0</p></div>
+            <div><p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.14em; color: #73695a;">KEPT</p><p class="disp" style="margin: 2px 0 0; font-size: 40px; font-weight: 800; color: #0e6f52;">67%</p></div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px; border-radius: 14px; background: #f8f6f1; padding: 14px 16px;">
+            <span style="width: 8px; height: 8px; border-radius: 999px; background: #e8b64a;"></span>
+            <div style="flex: 1;"><p style="margin: 0; font-size: 14px; font-weight: 600;">Corner Cafe</p><p class="mono" style="margin: 2px 0 0; font-size: 10px; color: #73695a;">SMS &middot; AUTO</p></div>
+            <span style="font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;">&minus;12.40</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; border-radius: 14px; background: #f8f6f1; padding: 14px 16px;">
+            <span style="width: 8px; height: 8px; border-radius: 999px; background: #b1301b;"></span>
+            <div style="flex: 1;"><p style="margin: 0; font-size: 14px; font-weight: 600;">Spotify</p><p class="mono" style="margin: 2px 0 0; font-size: 10px; color: #73695a;">EMAIL &middot; FX &middot; ECB</p></div>
+            <span style="font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;">&minus;20.11</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; border-radius: 14px; background: #eaf4ef; padding: 14px 16px;">
+            <span style="width: 8px; height: 8px; border-radius: 999px; background: #0e6f52;"></span>
+            <div style="flex: 1;"><p style="margin: 0; font-size: 14px; font-weight: 600;">Salary</p><p class="mono" style="margin: 2px 0 0; font-size: 10px; color: #73695a;">RECURRING</p></div>
+            <span style="font-size: 14px; font-weight: 700; color: #0e6f52; font-variant-numeric: tabular-nums;">+4,200</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ MARQUEE ══════ -->
+  <div style="background: #241d15; padding: 22px 0; overflow: hidden; margin-top: 90px;">
+    <div class="marquee-track" style="display: flex; gap: 46px; width: max-content;">
+      <div class="mono" style="display: flex; gap: 46px; font-size: 15px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #f0d79a; white-space: nowrap;">
+        <span>CORNER CAFE &minus;12.40</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>GRAB &minus;45.20</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>SPOTIFY USD 14.99</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>FAIRMART &minus;63.85</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>SALARY +4,200.00</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>TELCO &minus;48.00 GIRO</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>NOTHING TYPED BY HAND</span><span style="color: #6b5c40;">&#x2726;</span>
+      </div>
+      <div class="mono" style="display: flex; gap: 46px; font-size: 15px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #f0d79a; white-space: nowrap;">
+        <span>CORNER CAFE &minus;12.40</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>GRAB &minus;45.20</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>SPOTIFY USD 14.99</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>FAIRMART &minus;63.85</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>SALARY +4,200.00</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>TELCO &minus;48.00 GIRO</span><span style="color: #6b5c40;">&#x2726;</span>
+        <span>NOTHING TYPED BY HAND</span><span style="color: #6b5c40;">&#x2726;</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ THE THREE, AS BROKEN GRID ══════ -->
+  <div style="position: relative; padding: 110px 80px; background: #f2efe9;">
+    <div class="grain" style="filter: url(#a2-grain); opacity: 0.3;"></div>
+
+    <h2 class="disp sc-rise" style="position: relative; margin: 0; max-width: 900px; font-size: 74px; font-weight: 800; line-height: 0.94; letter-spacing: -0.045em;">Every tracker asks you<br>to do the work. <span class="foil">Not this one.</span></h2>
+
+    <div style="position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 22px; margin-top: 74px;">
+
+      <div class="sc-rise slab" style="grid-column: span 7; background: #ffffff; border-radius: 24px; padding: 40px; transform: rotate(-0.8deg);">
+        <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #b1301b;">01 &mdash; capture</p>
+        <h3 class="disp" style="margin: 16px 0 0; font-size: 46px; font-weight: 800; line-height: 1; letter-spacing: -0.035em;">Zero keystrokes.</h3>
+        <p style="margin: 16px 0 0; max-width: 440px; font-size: 17px; line-height: 1.65; color: #4a4237;">SMS, email, statements, receipts. Foreign charges land in your own currency, converted at ECB reference rates. You never hand over a bank login.</p>
+        <div class="sc-wipe" style="margin-top: 28px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #f6d878, #e8b64a 40%, #b1301b);"></div>
+      </div>
+
+      <div class="sc-rise slab" style="grid-column: span 5; background: #b1301b; color: #f6ecd3; border-radius: 24px; padding: 40px; transform: rotate(1.4deg);">
+        <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #f0c0b4;">02 &mdash; the ritual</p>
+        <h3 class="disp" style="margin: 16px 0 0; font-size: 46px; font-weight: 800; line-height: 1; letter-spacing: -0.035em;">One number a day.</h3>
+        <p style="margin: 16px 0 0; font-size: 17px; line-height: 1.65; color: #f4d6cd;">Not a dashboard to study. A slip that tells you what today can hold &mdash; and stays the same all day.</p>
+        <p class="disp" style="margin: 26px 0 0; font-size: 68px; font-weight: 800; letter-spacing: -0.04em; line-height: 1;">$34<span style="font-size: 24px; color: #f0c0b4;"> today</span></p>
+      </div>
+
+      <div class="sc-rise slab" style="grid-column: span 4; background: #241d15; color: #faf7f2; border-radius: 24px; padding: 40px; transform: rotate(-1.2deg);">
+        <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #e8b64a;">03 &mdash; the wish</p>
+        <h3 class="disp" style="margin: 16px 0 0; font-size: 38px; font-weight: 800; line-height: 1; letter-spacing: -0.03em;">Paint it true.</h3>
+        <div style="display: flex; justify-content: center; margin: 24px 0 0;">
+          <svg width="96" height="104" viewBox="0 0 100 108">
+            <defs>
+              <linearGradient id="a2-dar" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#cf6a58"></stop><stop offset="0.5" stop-color="#b1301b"></stop><stop offset="1" stop-color="#8d2616"></stop></linearGradient>
+              <clipPath id="a2-clip"><path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z"></path></clipPath>
+            </defs>
+            <path d="M50 5C77 5 91 25 91 53c0 34-16 50-41 50S9 87 9 53C9 25 23 5 50 5Z" fill="url(#a2-dar)" stroke="#6d1d10" stroke-width="2"></path>
+            <g clip-path="url(#a2-clip)"><rect x="9" y="88" width="82" height="18" fill="#f6d878"></rect><circle cx="50" cy="97" r="6.5" fill="#b1301b" opacity="0.9"></circle></g>
+            <ellipse cx="50" cy="47" rx="29" ry="32" fill="#f6ecd3" stroke="#6d1d10" stroke-width="1.6"></ellipse>
+            <path d="M24 38C30 30 39 30 45 37" fill="none" stroke="#2a1e05" stroke-width="3.4" stroke-linecap="round"></path>
+            <path d="M55 37C61 30 70 30 76 38" fill="none" stroke="#2a1e05" stroke-width="3.4" stroke-linecap="round"></path>
+            <circle cx="36" cy="52" r="10.5" fill="#ffffff" stroke="#2a1e05" stroke-width="1.8"></circle>
+            <circle cx="64" cy="52" r="10.5" fill="#ffffff" stroke="#2a1e05" stroke-width="1.8"></circle>
+            <circle cx="36" cy="52" r="5" fill="#2a1e05"></circle><circle cx="64" cy="52" r="3.6" fill="#2a1e05"></circle>
+            <path d="M31 75C37 82 46 82 50 76C54 82 63 82 69 75" fill="none" stroke="#2a1e05" stroke-width="2.6" stroke-linecap="round"></path>
+          </svg>
+        </div>
+        <p style="margin: 20px 0 0; font-size: 15px; line-height: 1.65; color: #c9bfae;">One eye when you set the goal. The second the day you reach it.</p>
+      </div>
+
+      <div class="sc-rise slab" style="grid-column: span 8; background: linear-gradient(135deg, #f6d878, #e8b64a 55%, #c9902a); color: #2a1e05; border-radius: 24px; padding: 44px; transform: rotate(0.6deg); display: flex; align-items: center; justify-content: space-between; gap: 30px;">
+        <div>
+          <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #6f4e0d;">04 &mdash; the price</p>
+          <h3 class="disp" style="margin: 14px 0 0; font-size: 58px; font-weight: 800; line-height: 0.96; letter-spacing: -0.04em;">$9. Once.<br>Then never again.</h3>
+          <p style="margin: 16px 0 0; max-width: 400px; font-size: 17px; line-height: 1.6; color: #4a3410;">An app that bills you monthly to save money is a leak, not a fix. Free while the beta runs &mdash; unlock it now, keep it forever.</p>
+        </div>
+        <span style="background: #241d15; color: #f6d878; border-radius: 0.7rem; padding: 20px 36px; font-size: 16px; font-weight: 700; white-space: nowrap;">Unlock Pro</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════ CLOSE ══════ -->
+  <div style="position: relative; overflow: hidden; padding: 120px 80px 100px; text-align: center; background: radial-gradient(900px 520px at 50% 0%, rgba(232,182,74,0.5), transparent 64%), #f2efe9;">
+    <div class="grain" style="filter: url(#a2-grain); opacity: 0.3;"></div>
+    <div style="position: relative;">
+      <h2 class="disp sc-rise foil" style="margin: 0 auto; max-width: 1080px; font-size: 116px; font-weight: 800; line-height: 0.88; letter-spacing: -0.05em;">STOP TYPING<br>YOUR COFFEES</h2>
+      <p class="sc-rise" style="margin: 30px auto 0; max-width: 520px; font-size: 19px; line-height: 1.6; color: #4a4237;">Forward one bank SMS. Watch the first row land. That is the whole setup.</p>
+      <div class="sc-rise" style="margin-top: 38px;">
+        <span style="background: #241d15; color: #f6d878; border-radius: 0.7rem; padding: 22px 52px; font-size: 18px; font-weight: 700; box-shadow: 0 24px 50px -24px rgba(36,29,21,0.9);">Start tracking &mdash; it&rsquo;s free</span>
+      </div>
+      <p class="mono sc-rise" style="margin: 22px 0 0; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #8b8172;">no card &middot; no bank login &middot; any currency worldwide</p>
+    </div>
+  </div>
+
+  <div style="background: #241d15; color: #c9bfae; padding: 38px 80px; display: flex; align-items: center; justify-content: space-between;">
+    <span class="disp" style="font-size: 18px; font-weight: 800; color: #faf7f2;">Fortune&nbsp;Cat</span>
+    <div class="mono" style="display: flex; gap: 24px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
