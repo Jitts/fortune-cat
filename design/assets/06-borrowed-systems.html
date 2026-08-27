@@ -1,0 +1,854 @@
+<title>Fortune Cat: Borrowed Systems</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@500;700&display=swap">
+
+<style>
+  :root {
+    --paper:     #fbf6ec;
+    --panel:     #ffffff;
+    --ink:       #241c11;
+    --ink-mute:  #6b6153;
+    --ink-faint: #9c9384;
+    --hair:      #e0d7c6;
+    --accent:    #8a5f10;
+
+    --riso-lacquer: #2e2114;
+    --riso-gold:    #f0b429;
+    --riso-blue:    #2f4fa8;
+    --riso-verm:    #e4533c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #12100c;
+      --panel:     #1b1710;
+      --ink:       #f6efe1;
+      --ink-mute:  #a49883;
+      --ink-faint: #6d6353;
+      --hair:      #322a1e;
+      --accent:    #edc35b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:     #12100c;
+    --panel:     #1b1710;
+    --ink:       #f6efe1;
+    --ink-mute:  #a49883;
+    --ink-faint: #6d6353;
+    --hair:      #322a1e;
+    --accent:    #edc35b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 68px 32px 120px; }
+
+  .eyebrow {
+    margin: 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 16px 0 0; font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: clamp(2.3rem, 5.6vw, 3.7rem); font-weight: 800; line-height: 0.94;
+    letter-spacing: -0.04em; text-wrap: balance;
+  }
+  .lede { margin: 20px 0 0; max-width: 64ch; font-size: 17px; line-height: 1.62; color: var(--ink-mute); }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 28px; }
+
+  .callout {
+    margin: 28px 0 0; padding: 18px 22px; border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    font-size: 15.5px; line-height: 1.62;
+  }
+  .callout b { color: var(--accent); }
+
+  section { margin-top: 84px; }
+  .head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--hair); padding-bottom: 14px; }
+  .id {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.16em; color: var(--accent); border: 1px solid var(--hair);
+    border-radius: 3px; padding: 4px 9px;
+  }
+  h2 { margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.025em; }
+  .inks { margin-left: auto; display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); }
+  .chip { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+
+  .grid { display: grid; grid-template-columns: minmax(0,1fr) 306px; gap: 36px; margin-top: 28px; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0,1fr); } }
+
+  /* ── the riso plate ───────────────────────────────────────────────────
+     Two flat inks, multiplied where they overlap so the overlap makes a
+     real third colour the way a duplicator actually does it — not a third
+     swatch picked by hand. The grain rect on top is what stops it reading
+     as vector. */
+  .plate {
+    position: relative; background: #fbf6ec;
+    border: 1px solid var(--hair); border-radius: 4px; overflow: hidden;
+  }
+  .plate .grain {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; mix-blend-mode: multiply; opacity: 0.42;
+  }
+  .ink { mix-blend-mode: multiply; }
+
+  .hero { display: flex; align-items: center; justify-content: center; padding: 26px 20px 12px; }
+  .moods { display: flex; align-items: flex-end; justify-content: center; gap: 6px; padding: 0 20px 8px; flex-wrap: wrap; }
+  .mood { text-align: center; }
+  .mood .cap {
+    margin: 2px 0 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #a1937c;
+  }
+  .tiny {
+    display: flex; align-items: flex-end; justify-content: center; gap: 26px;
+    padding: 14px 20px 22px; border-top: 1px dashed #ddd2ba; margin: 8px 16px 0;
+  }
+  .tiny .cap { margin: 6px 0 0; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #a1937c; text-align: center; }
+
+  .spec { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.85; color: var(--ink-mute); }
+  .spec h3 {
+    margin: 0 0 12px; font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
+  }
+  .spec dl { margin: 0 0 18px; display: grid; grid-template-columns: 68px minmax(0,1fr); gap: 2px 12px; }
+  .spec dt { color: var(--ink-faint); }
+  .spec dd { margin: 0; color: var(--ink); }
+  .note { margin: 16px 0 0; font-family: 'Hanken Grotesk', sans-serif; font-size: 14.5px; line-height: 1.6; color: var(--ink-mute); }
+  .note strong { color: var(--ink); font-weight: 600; }
+  .verdict { margin-top: 18px; padding: 12px 14px; border-radius: 4px; background: color-mix(in srgb, var(--accent) 10%, transparent); font-family: 'Hanken Grotesk', sans-serif; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+
+  .close { margin-top: 100px; border-top: 2px solid var(--ink); padding-top: 26px; }
+  .close ul { margin: 18px 0 0; padding-left: 20px; }
+  .close li { margin-bottom: 13px; font-size: 16px; line-height: 1.6; color: var(--ink-mute); max-width: 68ch; }
+  .close li strong { color: var(--ink); font-weight: 600; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; color: var(--accent); }
+
+  /* ── source rail ──────────────────────────────────────────────────── */
+  .sources { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1px 26px; margin-top: 30px; }
+  @media (max-width: 760px) { .sources { grid-template-columns: minmax(0,1fr); } }
+  .src { padding: 14px 0 0; border-top: 2px solid var(--hair); }
+  .src b { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+           font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+  .src span { display: block; margin-top: 6px; font-size: 14px; line-height: 1.5; color: var(--ink-mute); }
+
+  .stage { padding: 30px 24px; display: flex; align-items: center; justify-content: center;
+           gap: 28px; flex-wrap: wrap; }
+  .stage.snug { padding: 20px 20px 14px; }
+  .cap-row { display: flex; justify-content: center; gap: 30px; padding: 0 20px 20px; flex-wrap: wrap; }
+  .cap { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em;
+         text-transform: uppercase; color: #a1937c; text-align: center; }
+  .strip { display: flex; justify-content: center; align-items: flex-end; gap: 18px;
+           padding: 14px 20px 20px; border-top: 1px dashed #ddd2ba; margin: 0 16px; flex-wrap: wrap; }
+  .strip .cap { margin-top: 6px; }
+
+  /* 01 — the real character, set in the real face, next to the drawn tally */
+  .glyph { font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+           font-size: 62px; font-weight: 700; color: #2e2114; line-height: 1; }
+
+  /* 02 — hanafuda proportion. 54 x 32 mm is 1.6875:1 and nothing else in
+         fintech is shaped like this. */
+  .card { width: 76px; height: 128px; border-radius: 5px; background: #fbf6ec;
+          border: 1px solid #2e2114; position: relative; overflow: hidden;
+          box-shadow: 0 2px 0 rgba(46,33,20,0.16); }
+  .card .rank { position: absolute; left: 5px; top: 4px; font-family: 'JetBrains Mono', monospace;
+                font-size: 8px; letter-spacing: 0.1em; color: #8a7c64; }
+  .card .pts  { position: absolute; right: 5px; bottom: 3px; font-family: 'JetBrains Mono', monospace;
+                font-size: 9px; font-weight: 600; color: #2e2114; font-variant-numeric: tabular-nums; }
+  .card.tane { border-width: 2px; }
+  .hand { display: flex; gap: 12px; align-items: flex-end; }
+  .hand figure { margin: 0; text-align: center; }
+  .hand figcaption { margin-top: 7px; font-family: 'JetBrains Mono', monospace; font-size: 9px;
+                     letter-spacing: 0.12em; text-transform: uppercase; color: #a1937c; }
+  .year { display: flex; gap: 4px; justify-content: center; align-items: flex-end; }
+  .year i { display: block; width: 18px; height: 30px; border-radius: 2px;
+            border: 1px solid #2e2114; }
+
+  /* 03 — okiagari. Seven times down, eight times up. */
+  @keyframes rock {
+    0%, 62%, 100% { transform: rotate(0deg); }
+    68% { transform: rotate(-13deg); }
+    76% { transform: rotate(9deg); }
+    84% { transform: rotate(-5deg); }
+    92% { transform: rotate(2deg); }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .rocks { animation: rock 6s ease-in-out infinite; transform-origin: 50% 92%; }
+  }
+  .daruma-row { display: flex; gap: 34px; align-items: flex-end; flex-wrap: wrap; justify-content: center; }
+  .daruma-row figure { margin: 0; text-align: center; }
+  .daruma-row figcaption { margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 9px;
+                           letter-spacing: 0.12em; text-transform: uppercase; color: #a1937c; }
+
+  /* 05 — thermal paper. One colour, and it fades. */
+  .receipt {
+    width: 268px; background: #f4f3f0; color: #2b2a28; padding: 20px 20px 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 1.62;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.10), 0 14px 30px rgba(0,0,0,0.16);
+    -webkit-mask-image: linear-gradient(#000 62%, rgba(0,0,0,0.55) 100%);
+            mask-image: linear-gradient(#000 62%, rgba(0,0,0,0.55) 100%);
+  }
+  .receipt .ctr { text-align: center; }
+  .receipt .row { display: flex; justify-content: space-between; gap: 10px; }
+  .receipt .row span:last-child { font-variant-numeric: tabular-nums; }
+  .receipt hr { border: 0; border-top: 1px dashed #9a9791; margin: 9px 0; }
+  .receipt .big { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+  .receipt .faint { color: #6f6c66; }
+  .receipt .tear {
+    height: 13px; margin: 12px -20px 0;
+    background:
+      radial-gradient(circle at 6px -3px, transparent 7px, #f4f3f0 7.5px) repeat-x;
+    background-size: 12px 13px;
+  }
+  .receipt .barcode { display: flex; gap: 1px; height: 30px; margin: 12px 0 2px; }
+  .receipt .barcode i { display: block; background: #2b2a28; }
+  .thermal-note { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em;
+                  text-transform: uppercase; color: #a1937c; text-align: center; padding: 0 0 18px; }
+
+  .risk { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+          letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+  table.map { margin: 16px 0 4px; width: 100%; border-collapse: collapse;
+              font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  table.map th { text-align: left; font-weight: 600; font-size: 10px; letter-spacing: 0.18em;
+                 text-transform: uppercase; color: var(--accent); padding: 0 0 8px;
+                 border-bottom: 1px solid var(--hair); }
+  table.map td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--hair);
+                 color: var(--ink-mute); vertical-align: top; }
+  table.map td:first-child { color: var(--ink); white-space: nowrap; }
+
+  footer { margin-top: 96px; border-top: 2px solid var(--ink); padding-top: 28px; }
+  footer ul { margin: 18px 0 0; padding: 0 0 0 18px; }
+  footer li { margin-bottom: 12px; font-size: 15.5px; line-height: 1.6; color: var(--ink-mute); }
+  footer li strong { color: var(--ink); font-weight: 600; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; color: var(--accent); }
+</style>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Fortune Cat &middot; art direction, round three</p>
+  <h1>Five borrowed<br>systems.</h1>
+  <p class="lede">
+    The last round escalated on strangeness, which turned out to be the wrong axis &mdash; it made
+    the mark weirder without making it <em>truer</em>. So this set changes the question. Each
+    direction takes a system that already exists in the world of money or luck, one with real
+    structure behind it, and lets that structure do the design work. Nothing here is invented to
+    look interesting.
+  </p>
+
+  <div class="sources">
+    <div class="src"><b>Hanafuda</b><span>48 cards, 12 suits, one per month, four ranks worth
+      20&nbsp;/&nbsp;10&nbsp;/&nbsp;5&nbsp;/&nbsp;1. A deck already shaped like a year of money.</span></div>
+    <div class="src"><b>Daruma</b><span>Sold with both eyes blank. Left eye when you set the goal,
+      right when you reach it. The gold one is specifically for luck in money.</span></div>
+    <div class="src"><b>&#27491;</b><span>The tally of five, and the character for
+      &ldquo;correct.&rdquo; Unicode encodes all five partial states,
+      U+1D372&ndash;U+1D376.</span></div>
+    <div class="src"><b>Guilloche</b><span>The engine-turned rosette on banknotes and share
+      certificates. An epitrochoid &mdash; a curve, not a texture.</span></div>
+    <div class="src"><b>Thermal paper</b><span>203&nbsp;dpi, one colour, and the print fades off the
+      roll within a year or two. What money actually looks like in your hand.</span></div>
+    <div class="src"><b>What carried over</b><span>Two flat inks, multiplied where they overlap,
+      with the grain on top. Vermilion still never touches the fur.</span></div>
+  </div>
+</header>
+
+<!-- 01 -->
+<section>
+  <div class="head">
+    <span class="id">01</span>
+    <h2>&#27491; &mdash; Five Strokes</h2>
+    <span class="risk">system &middot; counting</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="stage snug"><div id="tally-stage"></div></div>
+      <div class="strip" id="tally-strip"></div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>01 &middot; the tally</h3>
+      <dl>
+        <dt>glyph</dt><dd>&#27491; &mdash; five strokes</dd>
+        <dt>means</dt><dd>five, and &ldquo;correct&rdquo;</dd>
+        <dt>unicode</dt><dd>U+1D372&hellip;376</dd>
+        <dt>grid</dt><dd>15 &times; 13 cells</dd>
+      </dl>
+      <p class="note">
+        Across Japan, China, Taiwan and Korea you don&rsquo;t count in four-bars-and-a-slash. You
+        count in <strong>&#27491;</strong>, adding one stroke per item until the character is
+        finished at five. Unicode takes this seriously enough to encode every partial state as its
+        own codepoint. Fourteen is written &#27491;&#27491; plus a four-stroke remainder.
+      </p>
+      <p class="note">
+        So: <strong>one stroke per transaction.</strong> Five transactions completes a character. A
+        month is a field of them, and the ones that reached five print gold while everything
+        unfinished stays lacquer. The cat is whatever the completed characters happen to spell.
+      </p>
+      <div class="verdict">
+        The character also means <em>correct</em>. A ledger that balances is, in the most literal
+        available sense, &#27491;. That pun works in the language rather than in translation, which
+        is the only kind worth building on.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 -->
+<section>
+  <div class="head">
+    <span class="id">02</span>
+    <h2>Hanafuda &mdash; The Animal Card</h2>
+    <span class="risk">system &middot; the year</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="stage">
+        <div class="hand">
+          <figure>
+            <div class="card">
+              <span class="rank">&#20809;</span>
+              <svg width="76" height="128" viewBox="0 0 76 128" role="img" aria-label="Bright card: full moon over susuki grass">
+                <g class="ink" fill="#f0b429"><circle cx="46" cy="37" r="19"/></g>
+                <g class="ink" fill="none" stroke="#e4533c" stroke-width="1.9" stroke-linecap="round">
+                  <path d="M12 118 C18 92 22 76 21 56"/>
+                  <path d="M25 119 C29 94 31 80 28 62"/>
+                  <path d="M38 120 C40 96 40 82 37 66"/>
+                  <path d="M52 119 C50 96 48 84 51 68"/>
+                  <path d="M65 118 C60 94 56 80 57 60"/>
+                </g>
+              </svg>
+              <span class="pts">20</span>
+            </div>
+            <figcaption>bright</figcaption>
+          </figure>
+
+          <figure>
+            <div class="card tane">
+              <span class="rank">&#31278;</span>
+              <svg width="76" height="128" viewBox="0 0 76 128" role="img" aria-label="Animal card: the fortune cat">
+                <g class="ink" fill="#e4533c" transform="translate(2 2)">
+                  <path d="M22 80 C30 84 46 84 54 80 C53 86 52 90 51 93 C42 97 34 97 25 93 C24 90 23 86 22 80 z"/>
+                </g>
+                <g class="ink" fill="#f0b429">
+                  <path d="M16 42 C15 34 14 28 14 23 C22 27 29 32 33 37 C37 35 43 35 49 37
+                           C53 32 60 27 68 23 C67 28 66 34 65 42
+                           C70 49 72 59 70 68 C67 78 56 84 42 84 C28 84 18 78 15 68 C13 59 14 49 16 42 z"/>
+                  <path d="M20 78 C15 88 14 100 20 108 C31 113 53 113 63 108 C67 100 65 88 59 78 z"/>
+                </g>
+                <g fill="#fbf6ec"><ellipse cx="42" cy="64" rx="12" ry="8"/></g>
+                <g class="ink" fill="none" stroke="#2e2114" stroke-width="2" stroke-linecap="round">
+                  <path d="M29 52 q5 5 10 0"/><path d="M46 52 q5 5 10 0"/>
+                  <path d="M39 60 l5 0 l-2.5 3.5 z" fill="#2e2114" stroke="none"/>
+                  <path d="M36 67 q6 4 12 0" stroke-width="1.6"/>
+                </g>
+              </svg>
+              <span class="pts">10</span>
+            </div>
+            <figcaption>animal</figcaption>
+          </figure>
+
+          <figure>
+            <div class="card">
+              <span class="rank">&#30701;&#20874;</span>
+              <svg width="76" height="128" viewBox="0 0 76 128" role="img" aria-label="Ribbon card: a written paper strip">
+                <g class="ink" fill="#e4533c"><rect x="26" y="16" width="24" height="94" rx="3"/></g>
+                <g fill="none" stroke="#fbf6ec" stroke-width="2.2" stroke-linecap="round" opacity="0.85">
+                  <path d="M32 32 h12"/><path d="M32 44 h12"/><path d="M34 56 h8"/>
+                  <path d="M32 68 h12"/><path d="M34 80 h8"/>
+                </g>
+              </svg>
+              <span class="pts">5</span>
+            </div>
+            <figcaption>ribbon</figcaption>
+          </figure>
+
+          <figure>
+            <div class="card">
+              <span class="rank">&#31890;</span>
+              <svg width="76" height="128" viewBox="0 0 76 128" role="img" aria-label="Chaff card: the plant alone">
+                <g class="ink" fill="none" stroke="#f0b429" stroke-width="3" stroke-linecap="round">
+                  <path d="M38 112 C38 88 36 66 30 44"/>
+                </g>
+                <g class="ink" fill="#f0b429" opacity="0.9">
+                  <ellipse cx="24" cy="56" rx="12" ry="7" transform="rotate(-32 24 56)"/>
+                  <ellipse cx="52" cy="70" rx="12" ry="7" transform="rotate(28 52 70)"/>
+                </g>
+              </svg>
+              <span class="pts">1</span>
+            </div>
+            <figcaption>chaff</figcaption>
+          </figure>
+        </div>
+      </div>
+      <div class="strip">
+        <div>
+          <div class="year" id="year-strip"></div>
+          <div class="cap" style="margin-top:9px">twelve suits &middot; one per month</div>
+        </div>
+      </div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>02 &middot; the deck</h3>
+      <dl>
+        <dt>cards</dt><dd>48 &mdash; 12 &times; 4</dd>
+        <dt>suits</dt><dd>one per month</dd>
+        <dt>ranks</dt><dd>20 / 10 / 5 / 1</dd>
+        <dt>ratio</dt><dd>54:32 mm = 1.69:1</dd>
+      </dl>
+      <p class="note">
+        A hanafuda deck is twelve suits of four, one suit per month of the year, and the four cards
+        in a suit are ranked <strong>bright, animal, ribbon, chaff</strong> &mdash; twenty points
+        down to one. That is not a metaphor for a year of spending. It is the same data structure.
+      </p>
+      <p class="note">
+        Your month deals four cards: the <em>bright</em> is the one expense that defined it, the
+        <em>ribbon</em> is the subscriptions, the <em>chaff</em> is the coffees. And the cat is the
+        <em>animal card</em> &mdash; ten points, the middle of the deck, the one you actually play
+        for.
+      </p>
+      <div class="verdict">
+        Hanafuda cards are 54&nbsp;&times;&nbsp;32&nbsp;mm. That 1.69:1 is far taller and narrower
+        than any card in any finance app, and it costs nothing to own it.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 -->
+<section>
+  <div class="head">
+    <span class="id">03</span>
+    <h2>Neko Daruma &mdash; Both Eyes Open</h2>
+    <span class="risk">system &middot; the goal</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="stage">
+        <div class="daruma-row">
+          <figure>
+            <svg width="132" height="154" viewBox="0 0 120 140" role="img" aria-label="Daruma with both eyes blank: no goal set">
+              <use href="#daruma-body"/>
+              <g fill="#fbf6ec" stroke="#2e2114" stroke-width="2.4">
+                <circle cx="45" cy="60" r="9"/><circle cx="75" cy="60" r="9"/>
+              </g>
+              <use href="#daruma-face"/>
+            </svg>
+            <figcaption>no goal yet</figcaption>
+          </figure>
+
+          <figure>
+            <svg class="rocks" width="132" height="154" viewBox="0 0 120 140" role="img" aria-label="Daruma with the left eye painted: a goal is set">
+              <use href="#daruma-body"/>
+              <g fill="#fbf6ec" stroke="#2e2114" stroke-width="2.4">
+                <circle cx="45" cy="60" r="9" fill="#2e2114"/><circle cx="75" cy="60" r="9"/>
+              </g>
+              <use href="#daruma-face"/>
+            </svg>
+            <figcaption>&#9679; goal set</figcaption>
+          </figure>
+
+          <figure>
+            <svg width="132" height="154" viewBox="0 0 120 140" role="img" aria-label="Daruma with both eyes painted: the goal is reached">
+              <use href="#daruma-body"/>
+              <g fill="#2e2114" stroke="#2e2114" stroke-width="2.4">
+                <circle cx="45" cy="60" r="9"/><circle cx="75" cy="60" r="9"/>
+              </g>
+              <use href="#daruma-face"/>
+            </svg>
+            <figcaption>&#9679;&#9679; reached</figcaption>
+          </figure>
+        </div>
+      </div>
+      <div class="cap-row">
+        <div class="cap">&#19971;&#36578;&#12403;&#20843;&#36215;&#12365; &middot; down seven, up eight</div>
+        <div class="cap">gold is the money daruma</div>
+      </div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>03 &middot; the goal</h3>
+      <dl>
+        <dt>bought</dt><dd>both eyes blank</dd>
+        <dt>left eye</dt><dd>painted at the wish</dd>
+        <dt>right eye</dt><dd>painted at the win</dd>
+        <dt>base</dt><dd>weighted, self-righting</dd>
+      </dl>
+      <p class="note">
+        A daruma is sold blind. You paint the <strong>left eye</strong> when you set a goal, and it
+        sits on the shelf watching you one-eyed until you finish &mdash; then you paint the right.
+        Japanese has a phrase for the moment: <em>both eyes open</em>. Prime ministers do this on
+        camera on election night.
+      </p>
+      <p class="note">
+        That is a savings goal with a thousand years of grammar already attached, and it beats a
+        progress bar because it is <em>owed</em> rather than merely tracked. The doll is weighted at
+        the base &mdash; &#19971;&#36578;&#12403;&#20843;&#36215;&#12365;, fall down seven times,
+        get up eight. Push the middle one over in your head; it comes back.
+      </p>
+      <div class="verdict">
+        Gold isn&rsquo;t a liberty here. Daruma come in five colours and the gold one is
+        specifically for luck in money &mdash; the brand was already using the correct one by
+        accident.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 -->
+<section>
+  <div class="head">
+    <span class="id">04</span>
+    <h2>Guilloche &mdash; Legal Tender</h2>
+    <span class="risk">system &middot; trust</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate">
+      <div class="stage"><div id="guilloche-stage"></div></div>
+      <div class="cap-row">
+        <div class="cap">epitrochoid &middot; R=47 r=13 &middot; 47 lobes</div>
+        <div class="cap">hairline 0.4 &middot; closes after 13 turns</div>
+      </div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>04 &middot; the engraving</h3>
+      <dl>
+        <dt>curve</dt><dd>epitrochoid</dd>
+        <dt>lobes</dt><dd>(R+r)/r</dd>
+        <dt>depth</dt><dd>a</dd>
+        <dt>drawn</dt><dd>2,000 pts, one path</dd>
+      </dl>
+      <p class="note">
+        Every banknote, share certificate and bond coupon you have ever held is covered in
+        <strong>guilloche</strong> &mdash; rosettes cut by a rose engine, a lathe that traces one
+        continuous curve. The maths is an epitrochoid: <code>R</code> and <code>r</code> set the
+        lobe count, <code>a</code> sets how deep they bite. It closes on itself exactly.
+      </p>
+      <p class="note">
+        This is the only direction here that isn&rsquo;t about luck. It is about
+        <strong>legitimacy</strong> &mdash; the pattern language a thing wears when it wants to be
+        believed. And because the rosette is a function of three numbers, it can be a function of
+        <em>your</em> three numbers.
+      </p>
+      <div class="verdict">
+        The most grown-up option on the page by a wide margin, and the one that would let the brand
+        age past its first funding round without redrawing anything.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 -->
+<section>
+  <div class="head">
+    <span class="id">05</span>
+    <h2>Thermal &mdash; It Fades</h2>
+    <span class="risk">system &middot; the receipt</span>
+  </div>
+
+  <div class="grid">
+    <div class="plate" style="background:#efeee9">
+      <div class="stage">
+        <div class="receipt">
+          <div class="ctr" id="thermal-cat"></div>
+          <div class="ctr big" style="margin-top:6px">FORTUNE CAT</div>
+          <div class="ctr faint">YOUR MONEY LOGS ITSELF</div>
+          <hr>
+          <div class="row"><span>COFFEE, TUES</span><span>4.80</span></div>
+          <div class="row"><span>GROCERIES</span><span>62.15</span></div>
+          <div class="row"><span>RENT</span><span>1,850.00</span></div>
+          <div class="row"><span>TRANSIT</span><span>28.40</span></div>
+          <div class="row faint"><span>&hellip; 41 MORE</span><span>391.62</span></div>
+          <hr>
+          <div class="row big"><span>OUT</span><span>2,336.97</span></div>
+          <div class="row big"><span>IN</span><span>3,100.00</span></div>
+          <div class="row big"><span>KEPT</span><span>763.03</span></div>
+          <hr>
+          <div class="ctr faint">45 ITEMS &middot; 30 DAYS</div>
+          <div class="barcode" id="barcode"></div>
+          <div class="ctr faint" style="font-size:9px">THIS SLIP WILL BE UNREADABLE BY 2028</div>
+          <div class="tear"></div>
+        </div>
+      </div>
+      <div class="thermal-note">no gold &middot; no vermilion &middot; no luck</div>
+      <svg class="grain"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+    </div>
+
+    <div class="spec">
+      <h3>05 &middot; the swerve</h3>
+      <dl>
+        <dt>width</dt><dd>58 mm roll</dd>
+        <dt>head</dt><dd>203 dpi, one colour</dd>
+        <dt>inks</dt><dd>none &mdash; it&rsquo;s heat</dd>
+        <dt>lifespan</dt><dd>18&ndash;36 months</dd>
+      </dl>
+      <p class="note">
+        Everything above this is about luck. This is the correction. A thermal receipt has no ink at
+        all &mdash; a 203&nbsp;dpi head burns dye in the paper, one colour, no halftone, and the
+        dots drop out when the roll is tired. That dropout is drawn here, deterministically, because
+        a receipt reprints the same.
+      </p>
+      <p class="note">
+        And then it <strong>fades</strong>. Thermal print is gone in eighteen months to three years;
+        the slip in your wallet is already disappearing. An app whose whole promise is that your
+        money logs itself has an obvious, unmissable thing to say next to that, and it doesn&rsquo;t
+        need a cat to say it.
+      </p>
+      <div class="verdict">
+        Weakest as a logo, strongest as a campaign. If the brand ever needs one honest, un-charming
+        thing to stand on, it is this &mdash; the receipt that doesn&rsquo;t vanish.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p class="eyebrow">Where this leaves you</p>
+  <ul>
+    <li><strong>01 and 03 are the two real candidates.</strong> &#27491; is the identity &mdash; it
+      is a mark, a data visualisation and a pun in the right language all at once. The daruma is the
+      product mechanic &mdash; it replaces the savings-goal progress bar with something you owe a
+      second eye to.</li>
+    <li><strong>They compose.</strong> Tallies count what you did; the daruma holds what you are
+      counting toward. Nothing in one contradicts the other, and both are gold-and-lacquer on
+      paper.</li>
+    <li><strong>02 is a system, not a logo.</strong> Hanafuda would give you a card grammar, a
+      1.69:1 proportion and a year view &mdash; it earns its place in the UI and never needs to be
+      the app icon.</li>
+    <li><strong>04 is the adult in the room</strong> and the one to keep in the drawer for the day
+      the brand needs to look like it holds money rather than jokes about it.</li>
+    <li><strong>Everything is drawn or generated here.</strong> No references, no traces. The
+      tally field, the rosette and the thermal dot matrix all sample one shared silhouette
+      function, and <code>06-systems.test.mjs</code> pins it.</li>
+  </ul>
+</footer>
+
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="riso-grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.5" intercept="0.32"/></feComponentTransfer>
+  </filter>
+
+  <!-- the daruma, drawn once and instanced three times so the three states
+       cannot drift apart -->
+  <g id="daruma-body">
+    <g class="ink" fill="#f0b429">
+      <path d="M32 40 C28 26 26 18 26 12 C34 16 42 22 47 29 C54 27 66 27 73 29
+               C78 22 86 16 94 12 C94 18 92 26 88 40 Z"/>
+      <path d="M60 18 C86 18 104 44 104 76 C104 108 86 128 60 128
+               C34 128 16 108 16 76 C16 44 34 18 60 18 Z"/>
+    </g>
+    <g class="ink" fill="#e4533c">
+      <ellipse cx="60" cy="102" rx="26" ry="17"/>
+    </g>
+    <text x="60" y="114" text-anchor="middle" fill="#fbf6ec" font-size="27" font-weight="700"
+          font-family="'Noto Sans JP','Hiragino Sans','Yu Gothic',serif">&#37329;</text>
+  </g>
+
+  <g id="daruma-face">
+    <g class="ink" fill="none" stroke="#2e2114" stroke-width="1.6" stroke-linecap="round" opacity="0.5">
+      <path d="M36 68 l-13 -4 M36 73 l-13 3 M84 68 l13 -4 M84 73 l13 3"/>
+    </g>
+    <path class="ink" d="M57 72 l6 0 l-3 4.5 z" fill="#2e2114"/>
+    <path class="ink" d="M53 80 q7 5 14 0" fill="none" stroke="#2e2114" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────
+   Generators for the second concept set. One silhouette, reused three
+   ways: as a field of tally characters, as a guilloche clip, and as a
+   thermal-printer dot matrix. Pure functions — same input, same output.
+   ───────────────────────────────────────────────────────────────────── */
+
+var LAC = '#2e2114', GOLD = '#f0b429', VERM = '#e4533c', PAPER = '#fbf6ec';
+
+/* The cat, defined once, in a 100x100 box. Everything below samples it. */
+function inCat(x, y) {
+  if ((x - 50) * (x - 50) + (y - 42) * (y - 42) < 529) return true;      // head r23
+  if (y >= 6 && y <= 34) {                                              // ears
+    var hw = 15 * ((y - 6) / 28);
+    if (Math.abs(x - 34) < hw || Math.abs(x - 66) < hw) return true;
+  }
+  if (y >= 62 && y <= 94) {                                             // body
+    if (Math.abs(x - 50) < 22 + 8 * ((y - 62) / 32)) return true;
+  }
+  if ((x - 75) * (x - 75) + (y - 64) * (y - 64) < 100) return true;     // raised paw
+  return false;
+}
+
+/* coverage of one cell, 0..1, on a 3x3 subsample */
+function cover(x0, y0, w, h) {
+  var hit = 0;
+  for (var i = 0; i < 3; i++)
+    for (var j = 0; j < 3; j++)
+      if (inCat(x0 + w * (i + 0.5) / 3, y0 + h * (j + 0.5) / 3)) hit++;
+  return hit / 9;
+}
+
+/* ── 01 · 正 ──────────────────────────────────────────────────────────
+   Five strokes, drawn in the order they are counted. A cell that has
+   reached five prints gold; everything short of five stays lacquer. */
+function tallyStrokes(n, x, y, s) {
+  var d = [
+    'M' + x + ' ' + (y + 0.12 * s) + ' h' + (0.86 * s),               // 一
+    'M' + (x + 0.30 * s) + ' ' + (y + 0.12 * s) + ' v' + (0.76 * s),  // 丨
+    'M' + (x + 0.30 * s) + ' ' + (y + 0.50 * s) + ' h' + (0.40 * s),  // 一
+    'M' + (x + 0.70 * s) + ' ' + (y + 0.50 * s) + ' v' + (0.38 * s),  // 丨
+    'M' + x + ' ' + (y + 0.88 * s) + ' h' + (0.86 * s)                // 一
+  ];
+  return d.slice(0, n).join(' ');
+}
+
+function tallyField() {
+  var COLS = 15, ROWS = 13, W = 100 / COLS, H = 100 / ROWS, out = [];
+  for (var r = 0; r < ROWS; r++) {
+    for (var c = 0; c < COLS; c++) {
+      var x = c * W, y = r * H, cv = cover(x, y, W, H);
+      var n = cv === 0 ? 1 : Math.max(1, Math.round(cv * 5));
+      var done = n === 5;
+      out.push('<path d="' + tallyStrokes(n, x + W * 0.12, y + H * 0.12, W * 0.78) +
+               '" stroke="' + (done ? GOLD : LAC) + '" stroke-width="0.5"' +
+               ' opacity="' + (cv === 0 ? 0.14 : done ? 1 : (0.3 + 0.12 * n)).toFixed(2) + '"/>');
+    }
+  }
+  return '<g class="ink" fill="none" stroke-linecap="round">' + out.join('') + '</g>';
+}
+
+/* ── 04 · Guilloche ───────────────────────────────────────────────────
+   An epitrochoid — the curve a rose engine cuts. R/r decides the lobe
+   count, a decides how deep they bite. This is the actual maths behind
+   the rosette on a share certificate. */
+function rosette(R, r, a, cx, cy, scale, steps) {
+  var k = (R + r) / r, turns = r, pts = [], i, t, x, y;
+  steps = steps || 620;
+  for (i = 0; i <= steps; i++) {
+    t = turns * 2 * Math.PI * i / steps;
+    x = (R + r) * Math.cos(t) - a * Math.cos(k * t);
+    y = (R + r) * Math.sin(t) - a * Math.sin(k * t);
+    pts.push((cx + x * scale).toFixed(1) + ' ' + (cy + y * scale).toFixed(1));
+  }
+  return 'M' + pts.join('L');
+}
+
+/* ── 05 · Thermal ─────────────────────────────────────────────────────
+   A 203dpi head firing on a grid, with the dropout a tired roll gives
+   you. Deterministic dropout — a receipt reprints the same. */
+function thermalCat(cols, rows, dot) {
+  var out = [], c, r, cv, idx = 0, keep;
+  for (r = 0; r < rows; r++) {
+    for (c = 0; c < cols; c++) {
+      cv = cover(c * 100 / cols, r * 100 / rows, 100 / cols, 100 / rows);
+      idx++;
+      if (cv === 0) continue;
+      keep = ((idx * 41) % 17) / 17;                 // stable pseudo-dropout
+      if (keep > 0.06 + cv * 0.94) continue;
+      out.push('<rect x="' + (c * dot).toFixed(1) + '" y="' + (r * dot).toFixed(1) +
+               '" width="' + (dot * 0.82).toFixed(2) + '" height="' + (dot * 0.82).toFixed(2) +
+               '" opacity="' + (0.45 + 0.55 * cv).toFixed(2) + '"/>');
+    }
+  }
+  return '<g fill="#2b2a28">' + out.join('') + '</g>';
+}
+
+
+/* ── wiring ───────────────────────────────────────────────────────── */
+
+/* 01 — the field, then the five states of the character laid out plainly */
+document.getElementById('tally-stage').innerHTML =
+  '<svg width="352" height="352" viewBox="0 0 100 100" role="img"' +
+  ' aria-label="A fortune cat spelled out of tally characters">' + tallyField() + '</svg>';
+
+(function () {
+  var out = [], n;
+  for (n = 1; n <= 5; n++) {
+    out.push('<div><svg width="38" height="38" viewBox="0 0 34 34" aria-hidden="true">' +
+             '<path d="' + tallyStrokes(n, 2, 2, 30) + '" fill="none" stroke="' +
+             (n === 5 ? '#f0b429' : '#2e2114') + '" stroke-width="2.1" stroke-linecap="round"/>' +
+             '</svg><div class="cap">' + n + '</div></div>');
+  }
+  out.push('<div><div class="glyph">&#27491;</div>' +
+           '<div class="cap" style="margin-top:2px">the character</div></div>');
+  document.getElementById('tally-strip').innerHTML = out.join('');
+})();
+
+/* 02 — twelve suits. Heights are a plausible year, not real data. */
+(function () {
+  var year = [58, 42, 71, 50, 80, 63, 40, 54, 88, 67, 48, 96], out = [], i, f;
+  for (i = 0; i < 12; i++) {
+    f = year[i];                                   // % of the card the month filled
+    out.push('<i style="background:linear-gradient(to top,#f0b429 ' + f +
+             '%,#fbf6ec ' + f + '%)"></i>');
+  }
+  document.getElementById('year-strip').innerHTML = out.join('');
+})();
+
+/* 04 — a rose engine cuts one continuous curve. Two passes at slightly
+        different depth is what gives engraving its shimmer. */
+(function () {
+  var hair = function (d, w, col) {
+    return '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="' + w +
+           '" stroke-linejoin="round" opacity="0.9"/>';
+  };
+  document.getElementById('guilloche-stage').innerHTML =
+    '<svg width="310" height="310" viewBox="0 0 200 200" role="img"' +
+    ' aria-label="The fortune cat engraved in guilloche inside a rosette frame">' +
+      '<defs><clipPath id="cat-clip">' +
+        '<circle cx="100" cy="84" r="46"/>' +
+        '<polygon points="68,12 98,68 38,68"/><polygon points="132,12 162,68 102,68"/>' +
+        '<path d="M56 124 L144 124 L160 188 L40 188 Z"/>' +
+        '<circle cx="150" cy="128" r="20"/>' +
+      '</clipPath></defs>' +
+
+      '<g class="ink">' +
+        '<circle cx="100" cy="100" r="92" fill="none" stroke="#2e2114" stroke-width="1"/>' +
+        '<circle cx="100" cy="100" r="88.5" fill="none" stroke="#2e2114" stroke-width="0.5"/>' +
+        hair(rosette(47, 13, 24, 100, 100, 1.05, 2000), 0.4, '#2e2114') +
+        hair(rosette(47, 13, 21, 100, 100, 1.05, 2000), 0.4, '#2e2114') +
+      '</g>' +
+
+      '<g class="ink" fill="#f0b429" clip-path="url(#cat-clip)">' +
+        '<rect x="0" y="0" width="200" height="200"/></g>' +
+
+      '<g class="ink" clip-path="url(#cat-clip)">' +
+        hair(rosette(41, 9, 44, 100, 108, 2.1, 2200), 0.45, '#2e2114') +
+        hair(rosette(41, 9, 40, 100, 108, 2.1, 2200), 0.45, '#2e2114') +
+      '</g>' +
+
+      '<g fill="#fbf6ec"><ellipse cx="100" cy="98" rx="24" ry="15"/></g>' +
+      '<g class="ink" fill="none" stroke="#2e2114" stroke-width="3" stroke-linecap="round">' +
+        '<path d="M74 76 q10 8 20 0"/><path d="M106 76 q10 8 20 0"/>' +
+        '<path d="M95 92 l10 0 l-5 6 z" fill="#2e2114" stroke="none"/>' +
+        '<path d="M89 103 q11 7 22 0"/>' +
+      '</g>' +
+    '</svg>';
+})();
+
+/* 05 — 203 dpi, one colour, tired roll */
+document.getElementById('thermal-cat').innerHTML =
+  '<svg width="188" height="141" viewBox="0 0 188 141" role="img"' +
+  ' aria-label="The fortune cat printed by a thermal head">' +
+  thermalCat(40, 30, 4.7) + '</svg>';
+
+(function () {
+  var out = [], i, w;
+  for (i = 0; i < 44; i++) {
+    w = 1 + ((i * 29) % 4);
+    out.push('<i style="width:' + w + 'px"></i>');
+  }
+  document.getElementById('barcode').innerHTML = out.join('');
+})();
+</script>
