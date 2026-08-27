@@ -1,0 +1,323 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #04060f; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #f7f1e6; -webkit-font-smoothing: antialiased; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .tap { cursor: pointer; user-select: none; transition: transform 130ms ease, filter 130ms ease; }
+    .tap:hover { transform: translateY(-3px); }
+    .tap:active { transform: translateY(1px) scale(0.99); }
+
+    .foil {
+      background-image: linear-gradient(100deg, #6b4a0c 0%, #b9832a 14%, #f6d878 28%, #fffaeb 36%, #f6d878 44%, #b9832a 58%, #6b4a0c 72%, #b9832a 88%);
+      background-size: 280% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    @keyframes leaf-sweep { from { background-position: 250% 0; } to { background-position: -150% 0; } }
+    @media (prefers-reduced-motion: no-preference) { .foil { animation: leaf-sweep 8s linear infinite; } }
+
+    /* ── THE MACHINE ──────────────────────────────────────────────────────
+       Every one-shot here exists twice under two names. Swapping between the
+       -a and -b name is the only reliable way to replay an animation on a
+       node the runtime reuses across renders — a re-render on its own does
+       not restart a finished animation. */
+    @keyframes drop-a { from { transform: translateY(-190px) rotateY(0deg); opacity: 0; } 12% { opacity: 1; } to { transform: translateY(126px) rotateY(1080deg); opacity: 0; } }
+    @keyframes drop-b { from { transform: translateY(-190px) rotateY(0deg); opacity: 0; } 12% { opacity: 1; } to { transform: translateY(126px) rotateY(1080deg); opacity: 0; } }
+    .dropping { animation-duration: 760ms; animation-timing-function: cubic-bezier(.4,0,.9,.45); animation-fill-mode: both; }
+
+    @keyframes rattle-a { 0%,100% { transform: rotate(0) translateX(0); } 12% { transform: rotate(-3deg) translateX(-9px); } 28% { transform: rotate(3.4deg) translateX(10px); } 44% { transform: rotate(-2.4deg) translateX(-7px); } 62% { transform: rotate(2deg) translateX(6px); } 80% { transform: rotate(-1deg) translateX(-3px); } }
+    @keyframes rattle-b { 0%,100% { transform: rotate(0) translateX(0); } 12% { transform: rotate(-3deg) translateX(-9px); } 28% { transform: rotate(3.4deg) translateX(10px); } 44% { transform: rotate(-2.4deg) translateX(-7px); } 62% { transform: rotate(2deg) translateX(6px); } 80% { transform: rotate(-1deg) translateX(-3px); } }
+    .rattling { animation-duration: 780ms; animation-timing-function: ease-in-out; }
+
+    @keyframes unfurl-a { from { opacity: 0; transform: translateY(-26px) scaleY(0.06); } 55% { opacity: 1; } to { opacity: 1; transform: none; } }
+    @keyframes unfurl-b { from { opacity: 0; transform: translateY(-26px) scaleY(0.06); } 55% { opacity: 1; } to { opacity: 1; transform: none; } }
+    .unfurling { animation-duration: 720ms; animation-delay: 640ms; animation-timing-function: cubic-bezier(.2,.9,.25,1); animation-fill-mode: both; transform-origin: 50% 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dropping, .rattling, .unfurling { animation: none !important; opacity: 1 !important; }
+    }
+
+    /* Ambient rain — the coins nobody is spending. */
+    @keyframes coin-fall {
+      from { transform: translate3d(0, -240px, 0) rotate(var(--tilt, 0deg)) rotateX(0deg); }
+      to   { transform: translate3d(var(--drift, 0px), var(--fall, 3600px), 0) rotate(var(--tilt, 0deg)) rotateX(var(--flip, 1080deg)); }
+    }
+    .rain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .coin { position: absolute; top: 0; opacity: 0; }
+    @supports (animation-timeline: scroll()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .coin { opacity: 1; animation: coin-fall linear both; animation-timeline: scroll(root); }
+      }
+    }
+
+    @keyframes tw { 0%,100% { opacity: 1; } 50% { opacity: 0.14; } }
+    @keyframes c-rise { from { opacity: 0; transform: translateY(66px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: no-preference) { .tw { animation: tw 3.4s ease-in-out infinite; } .tw2 { animation: tw 4.8s ease-in-out infinite 1.3s; } }
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .sc-rise { animation: c-rise linear both; animation-timeline: view(); animation-range: entry 2% cover 30%; }
+      }
+    }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #04060f; position: relative; overflow: hidden;">
+
+  <div class="rain" style="z-index: 2; filter: drop-shadow(0 0 14px rgba(237,195,91,0.45));">
+    <div class="coin" style="left: 6%;  --fall: 3400px; --drift: 70px;  --tilt: -12deg; --flip: 1440deg; opacity: 0.4;  animation-range: 2% 96%;"><svg width="32" height="22" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#6b4a0c" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 21%; --fall: 4300px; --drift: -60px; --tilt: 18deg;  --flip: 720deg;  opacity: 0.7;  animation-range: 0% 92%;"><svg width="64" height="45" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin" style="left: 80%; --fall: 3800px; --drift: 100px; --tilt: 6deg;   --flip: 1800deg; opacity: 0.45; animation-range: 5% 98%;"><svg width="40" height="28" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 94%; --fall: 4600px; --drift: -80px; --tilt: -22deg; --flip: 1080deg; opacity: 0.8;  animation-range: 1% 90%;"><svg width="80" height="56" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
+  </div>
+
+  <!-- ══════ HERO + MACHINE ══════ -->
+  <div style="position: relative; overflow: hidden; padding: 0 0 130px; background:
+      radial-gradient(ellipse 1100px 700px at 50% 30%, rgba(237,195,91,0.18), transparent 66%),
+      radial-gradient(ellipse 1300px 620px at 50% 108%, rgba(177,48,27,0.36), transparent 70%), #04060f;">
+
+    <svg width="4" height="4" style="position: absolute; left: 11%; top: 12%; z-index: 2;" class="tw"><circle cx="2" cy="2" r="1.6" fill="#f7f1e6"></circle></svg>
+    <svg width="5" height="5" style="position: absolute; left: 74%; top: 8%; z-index: 2;" class="tw2"><circle cx="2.5" cy="2.5" r="1.9" fill="#edc35b"></circle></svg>
+    <svg width="4" height="4" style="position: absolute; left: 89%; top: 19%; z-index: 2;" class="tw"><circle cx="2" cy="2" r="1.4" fill="#f7f1e6"></circle></svg>
+
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between; padding: 24px 72px; z-index: 9;">
+      <span class="disp" style="font-size: 21px; font-weight: 800; letter-spacing: -0.02em;">Fortune&nbsp;Cat</span>
+      <div style="display: flex; align-items: center; gap: 24px;">
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8f97b8;">Method</span>
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8f97b8;">Pricing</span>
+        <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 12px 26px; font-size: 14px; font-weight: 700;">Get started</span>
+      </div>
+    </div>
+
+    <div style="position: relative; z-index: 8; text-align: center; padding: 44px 72px 0;">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.46em; text-transform: uppercase; color: #edc35b;">&#x2014;&nbsp; five coins, three readings &nbsp;&#x2014;</p>
+      <h1 class="disp foil" style="margin: 26px 0 0; font-size: 152px; font-weight: 800; line-height: 0.84; letter-spacing: -0.058em;">CAST A COIN.<br>DRAW A SLIP.</h1>
+      <p style="margin: 30px auto 0; max-width: 580px; font-size: 20px; line-height: 1.6; color: #bcc3dd;">Every fortune in this box is real arithmetic on one month of real numbers. Collect three and the full reading opens.</p>
+    </div>
+
+    <!-- ── the box ── -->
+    <div style="position: relative; z-index: 8; margin: 56px auto 0; width: 1120px; display: grid; grid-template-columns: 440px 1fr; gap: 60px; align-items: start;">
+
+      <div style="text-align: center;">
+        <!-- purse -->
+        <p class="mono" style="margin: 0 0 14px; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: #8f97b8;">your purse</p>
+        <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 26px;">
+          <sc-for list="{{ purse }}" as="c" hint-placeholder-count="5">
+            <svg width="38" height="27" viewBox="0 0 100 70" style="opacity: {{ c.opacity }};"><ellipse cx="50" cy="35" rx="47" ry="32" fill="{{ c.fill }}" stroke="#6b4a0c" stroke-width="4"></ellipse><ellipse cx="50" cy="35" rx="36" ry="22" fill="none" stroke="#b9832a" stroke-width="2"></ellipse></svg>
+          </sc-for>
+        </div>
+
+        <!-- the falling coin, above the slot -->
+        <div style="position: relative; height: 130px;">
+          <div class="dropping" style="position: absolute; left: 50%; top: 0; margin-left: -30px; opacity: 0; animation-name: {{ dropAnim }};">
+            <svg width="60" height="42" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="36" ry="22" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse><text x="50" y="45" text-anchor="middle" font-size="28" font-weight="700" fill="#6b4a0c" font-family="serif">&#x91D1;</text></svg>
+          </div>
+        </div>
+
+        <div class="rattling" style="animation-name: {{ rattleAnim }};">
+          <div class="tap" onClick="{{ pull }}" style="position: relative; margin: -8px auto 0; width: 268px; padding: 40px 26px 34px; border-radius: 16px; background: linear-gradient(180deg, #c0451f, #8d2616); box-shadow: 0 30px 70px -32px rgba(160,50,25,0.95), inset 0 2px 0 rgba(255,255,255,0.18);">
+            <!-- the slot -->
+            <div style="position: absolute; left: 50%; top: 14px; margin-left: -46px; width: 92px; height: 12px; border-radius: 999px; background: #4a0f08; box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);"></div>
+            <p class="mono" style="margin: 8px 0 0; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #f4bfae;">omikuji</p>
+            <p class="disp" style="margin: 12px 0 0; font-size: 66px; font-weight: 800; line-height: 1; color: #ffe9b0;">&#x304A;&#x307F;&#x304F;&#x3058;</p>
+            <p class="mono" style="margin: 16px 0 0; font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #ffd9a0;">{{ boxCue }}</p>
+          </div>
+        </div>
+
+        <p class="mono" style="margin: 20px 0 0; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: {{ hintColor }};">{{ hint }}</p>
+        <span class="tap mono" onClick="{{ reset }}" style="display: inline-block; margin-top: 16px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #4a5589; border-bottom: 1px solid #1b2440; padding-bottom: 2px;">Refill the purse</span>
+      </div>
+
+      <!-- ── the slip ── -->
+      <div>
+        <div class="unfurling" style="display: {{ slipDisplay }}; animation-name: {{ unfurlAnim }};">
+          <div style="position: relative; border-radius: 12px; background: linear-gradient(180deg, #fffdf6, #f4ecd8); color: #241d15; padding: 46px 44px 40px; box-shadow: 0 40px 90px -40px rgba(0,0,0,0.9);">
+            <div style="position: absolute; left: 44px; right: 44px; top: 20px; height: 1px; background: repeating-linear-gradient(90deg, #d9cdb0 0 6px, transparent 6px 12px);"></div>
+            <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: #b1301b;">{{ slip.omen }}</p>
+            <p class="disp" style="margin: 16px 0 0; font-size: 92px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; color: #b1301b;">{{ slip.kanji }}</p>
+            <h3 class="disp" style="margin: 22px 0 0; font-size: 40px; font-weight: 800; line-height: 1.06; letter-spacing: -0.03em;">{{ slip.headline }}</h3>
+            <p style="margin: 18px 0 0; font-size: 18px; line-height: 1.6; color: #4a4237;">{{ slip.tip }}</p>
+            <div style="margin-top: 26px; border-top: 1px dashed #d9cdb0; padding-top: 18px; display: flex; justify-content: space-between;">
+              <span class="mono" style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8b8172;">drawn from your own numbers</span>
+              <span class="mono" style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8b8172;">{{ slip.stamp }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: {{ emptyDisplay }}; border: 1px dashed #1b2440; border-radius: 12px; padding: 70px 40px; text-align: center;">
+          <p class="disp" style="margin: 0; font-size: 34px; font-weight: 800; color: #2c3760;">The slot is empty.</p>
+          <p style="margin: 12px 0 0; font-size: 16px; color: #4a5589;">Cast a coin into the box.</p>
+        </div>
+
+        <!-- the rack -->
+        <p class="mono" style="margin: 26px 0 12px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #8f97b8;">collected &mdash; {{ collectedLabel }}</p>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;">
+          <sc-for list="{{ rack }}" as="s" hint-placeholder-count="6">
+            <div style="border-radius: 8px; padding: 16px 8px; text-align: center; background: {{ s.bg }}; box-shadow: inset 0 0 0 1px {{ s.border }};">
+              <p class="disp" style="margin: 0; font-size: 26px; font-weight: 800; color: {{ s.ink }};">{{ s.kanji }}</p>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- the full reading, once three are in -->
+        <div style="display: {{ readingDisplay }}; margin-top: 26px; border-radius: 14px; background: linear-gradient(135deg, rgba(237,195,91,0.16), rgba(177,48,27,0.16)); box-shadow: inset 0 0 0 1px #3a2f1a; padding: 34px 36px;">
+          <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: #edc35b;">the full reading</p>
+          <h3 class="disp" style="margin: 16px 0 0; font-size: 52px; font-weight: 800; line-height: 0.98; letter-spacing: -0.035em;">You spent three coins<br>on your own arithmetic.</h3>
+          <p style="margin: 18px 0 0; font-size: 18px; line-height: 1.65; color: #bcc3dd;">That is how every gacha works, and it is the exact opposite of the deal here. Fortune&nbsp;Cat draws you one slip a day, forever, and never asks for a coin to do it. The $9 is for the engines behind it &mdash; once, not per look.</p>
+          <span style="display: inline-block; margin-top: 24px; background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 18px 42px; font-size: 16px; font-weight: 700;">Take the whole box &mdash; free</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ WHAT IS ACTUALLY IN THE BOX ══════ -->
+  <div style="position: relative; padding: 140px 72px 150px; background: #060a17;">
+    <div style="text-align: center; margin-bottom: 66px;">
+      <p class="mono sc-rise" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.34em; text-transform: uppercase; color: #edc35b;">no luck involved</p>
+      <h2 class="disp sc-rise" style="margin: 20px auto 0; max-width: 1000px; font-size: 100px; font-weight: 800; line-height: 0.9; letter-spacing: -0.05em;">Every slip is a subtraction<br>wearing a costume.</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px;">
+      <div class="sc-rise" style="border-radius: 16px; background: #0a1022; box-shadow: inset 0 0 0 1px #1b2440; padding: 38px 34px;">
+        <p class="disp" style="margin: 0; font-size: 52px; font-weight: 800; color: #edc35b;">&#x5409;</p>
+        <h3 class="disp" style="margin: 16px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -0.025em;">It reads the pile</h3>
+        <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #8f97b8;">A bank SMS, an alert email, a photo of a receipt. Merchant, amount, currency and category come out already filed.</p>
+      </div>
+      <div class="sc-rise" style="border-radius: 16px; background: #0a1022; box-shadow: inset 0 0 0 1px #1b2440; padding: 38px 34px;">
+        <p class="disp" style="margin: 0; font-size: 52px; font-weight: 800; color: #edc35b;">&#x732B;</p>
+        <h3 class="disp" style="margin: 16px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -0.025em;">One cat, three faces</h3>
+        <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #8f97b8;">Ears up when more came in than went out. Watchful at break-even. Ears back when it did not. Net decides the mood &mdash; nothing else.</p>
+      </div>
+      <div class="sc-rise" style="border-radius: 16px; background: #0a1022; box-shadow: inset 0 0 0 1px #1b2440; padding: 38px 34px;">
+        <p class="disp" style="margin: 0; font-size: 52px; font-weight: 800; color: #edc35b;">&#x76EE;</p>
+        <h3 class="disp" style="margin: 16px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -0.025em;">One eye, then two</h3>
+        <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #8f97b8;">The daruma&rsquo;s second eye gets painted the day you reach the goal. Not a progress bar &mdash; a promise kept.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ CLOSE ══════ -->
+  <div style="position: relative; overflow: hidden; padding: 150px 72px 140px; text-align: center; background:
+      radial-gradient(ellipse 1000px 560px at 50% 0%, rgba(177,48,27,0.42), transparent 66%), #04060f;">
+    <p class="mono sc-rise" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.44em; text-transform: uppercase; color: #edc35b;">the offering</p>
+    <h2 class="disp foil sc-rise" style="margin: 28px auto 0; max-width: 1180px; font-size: 146px; font-weight: 800; line-height: 0.84; letter-spacing: -0.055em;">CAST ONE COIN<br>ONCE</h2>
+    <p class="sc-rise" style="margin: 32px auto 0; max-width: 560px; font-size: 19px; line-height: 1.65; color: #bcc3dd;">A money-saving app that bills you monthly is a leak, not a fix. $9 unlocks every engine and stays unlocked &mdash; free while the beta runs, yours forever after.</p>
+    <div class="sc-rise" style="margin-top: 42px;">
+      <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 22px 56px; font-size: 18px; font-weight: 700; box-shadow: 0 0 70px -8px rgba(237,195,91,0.95);">Begin &mdash; it&rsquo;s free</span>
+    </div>
+    <p class="mono sc-rise" style="margin: 26px 0 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #4a5589;">no card &middot; no bank login &middot; any currency worldwide</p>
+  </div>
+
+  <div style="position: relative; z-index: 4; border-top: 1px solid #171f38; padding: 40px 72px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <span class="disp" style="font-size: 18px; font-weight: 800;">Fortune&nbsp;Cat</span>
+      <p class="mono" style="margin: 5px 0 0; font-size: 11px; letter-spacing: 0.1em; color: #4a5589;">your money logs itself</p>
+    </div>
+    <div style="display: flex; gap: 24px; font-size: 13px; color: #8f97b8;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":3540}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Six readings, every one of them plain arithmetic on the same month:
+    // earned 4,200 · spent 1,386 · kept 67%.
+    const SLIPS = [
+      { kanji: '大吉', omen: 'Great omen · dai-kichi', stamp: 'net +2,814',
+        headline: 'Money in outpaces money out — the pouch grows.',
+        tip: 'Set aside $50 while the wind is fair. At this pace the goal lands three weeks early.' },
+      { kanji: '小吉', omen: 'Small omen · sho-kichi', stamp: 'daily pace $34',
+        headline: 'Steady hands — spending is on pace this month.',
+        tip: 'Keep today under $34 and the week closes ahead. That is the entire instruction.' },
+      { kanji: '末吉', omen: 'Late omen · sue-kichi', stamp: '3 renewals due',
+        headline: 'Slow start, honest finish.',
+        tip: 'Three subscriptions renew this week. Two of them have not been opened since March.' },
+      { kanji: '凶',   omen: 'Ill omen · kyo', stamp: 'gap $690',
+        headline: 'Some months money out gets ahead of money in.',
+        tip: 'When it happens the gap is four dinners and one bill, not a mystery. The cat shows you which four.' },
+      { kanji: '吉',   omen: 'Omen · kichi', stamp: 'groceries flat',
+        headline: 'Your largest line is groceries, and it has not moved in three months.',
+        tip: 'Nothing to fix here. Leave it alone and go look at the subscriptions instead.' },
+      { kanji: '大吉', omen: 'Great omen · dai-kichi', stamp: '6-day streak',
+        headline: 'Six days captured without opening the app once.',
+        tip: 'The streak is the product. The numbers are just the receipt it leaves behind.' }
+    ];
+    // Fixed draw order — a mockup that shuffles gives a different demo to
+    // every viewer and cannot be talked about in a review.
+    const ORDER = [0, 3, 2, 5, 1, 4];
+    const START_COINS = 5;
+    const NEEDED = 3;
+
+    const st    = this.state || {};
+    const pulls = st.pulls || 0;
+    const seen  = st.seen || [];        // slip indices, in draw order
+    const cur   = typeof st.cur === 'number' ? st.cur : null;
+
+    const spent = pulls;
+    const left  = Math.max(0, START_COINS - spent);
+    const enough = seen.length >= NEEDED;
+    const broke  = left === 0;
+
+    const slip = cur === null ? SLIPS[0] : SLIPS[cur];
+
+    const pull = () => {
+      if (left === 0) return;
+      const next = ORDER[pulls % ORDER.length];
+      this.setState({
+        pulls: pulls + 1,
+        cur: next,
+        seen: seen.indexOf(next) === -1 ? seen.concat([next]) : seen
+      });
+    };
+
+    const hint = broke
+      ? (enough ? 'purse empty — but the reading is open' : 'purse empty — and you never got the third')
+      : cur === null
+        ? 'click the box — one coin per pull'
+        : enough
+          ? 'three in. the reading is open below'
+          : (NEEDED - seen.length) + ' more to open the full reading';
+
+    return {
+      purse: Array.from({ length: START_COINS }, (_, i) => ({
+        opacity: i < left ? '1' : '0.16',
+        fill: i < left ? '#f6d878' : '#2c3760'
+      })),
+      // Alternating names is what replays the one-shots on a reused node.
+      dropAnim:   pulls === 0 ? 'none' : (pulls % 2 ? 'drop-a'   : 'drop-b'),
+      rattleAnim: pulls === 0 ? 'none' : (pulls % 2 ? 'rattle-a' : 'rattle-b'),
+      unfurlAnim: pulls === 0 ? 'none' : (pulls % 2 ? 'unfurl-a' : 'unfurl-b'),
+      boxCue: broke ? 'out of coins' : 'cast a coin',
+      hint: hint,
+      hintColor: broke ? '#d78a6f' : '#8f97b8',
+      slip: slip,
+      slipDisplay:  cur === null ? 'none' : 'block',
+      emptyDisplay: cur === null ? 'block' : 'none',
+      rack: SLIPS.map((s, i) => {
+        const got = seen.indexOf(i) !== -1;
+        return {
+          kanji: got ? s.kanji : '?',
+          bg: got ? 'rgba(237,195,91,0.12)' : '#0a1022',
+          border: got ? '#6b4a0c' : '#1b2440',
+          ink: got ? '#edc35b' : '#2c3760'
+        };
+      }),
+      collectedLabel: seen.length + ' of 6 · ' + left + (left === 1 ? ' coin left' : ' coins left'),
+      readingDisplay: enough ? 'block' : 'none',
+      pull: pull,
+      reset: () => this.setState({ pulls: 0, seen: [], cur: null })
+    };
+  }
+}
+</script>
+</x-dc>
+</body>
+</html>

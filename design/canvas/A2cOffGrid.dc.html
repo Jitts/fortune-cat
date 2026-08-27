@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f2efe9; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #1e1913; -webkit-font-smoothing: antialiased; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .vert { writing-mode: vertical-rl; }
+
+    .foil {
+      background-image: linear-gradient(100deg, #8a5f10 0%, #c9902a 16%, #f6d878 30%, #fffaeb 38%, #f6d878 46%, #c9902a 62%, #8a5f10 78%, #c9902a 92%);
+      background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    @keyframes leaf-sweep { from { background-position: 240% 0; } to { background-position: -140% 0; } }
+    @media (prefers-reduced-motion: no-preference) { .foil { animation: leaf-sweep 7s linear infinite; } }
+
+    /* ── THE ONE RULE: THERE IS NO GRID LINE ──────────────────────────────
+       Everything on this page hangs off a −6.5° baseline. The frame stays
+       square, the content does not, so the whitespace comes out as wedges
+       instead of margins. Reading order runs down-right, then UP, then
+       sideways. It is deliberately uncomfortable — the argument is that a
+       ledger is a straight line you have been failing to keep, and this page
+       refuses to draw one. */
+    .tilt { transform: rotate(-6.5deg); transform-origin: 50% 50%; }
+    .tilt-back { transform: rotate(6.5deg); }
+    .rule { height: 2px; background: #1e1913; }
+
+    /* The coins fall along the PAGE's axis, not the screen's — so they land
+       at an angle the frame never agrees with. */
+    @keyframes coin-fall-tilt {
+      from { transform: rotate(-6.5deg) translate3d(0, -220px, 0) rotateX(0deg); }
+      to   { transform: rotate(-6.5deg) translate3d(var(--drift, 0px), var(--fall, 3400px), 0) rotateX(var(--flip, 1080deg)); }
+    }
+    .rain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .coin { position: absolute; top: 0; opacity: 0; }
+    @supports (animation-timeline: scroll()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .coin { opacity: 1; animation: coin-fall-tilt linear both; animation-timeline: scroll(root); }
+      }
+    }
+
+    @keyframes skew-in { from { opacity: 0; transform: translateX(-70px) skewY(4deg); } to { opacity: 1; transform: none; } }
+    @keyframes slide-up { from { opacity: 0; transform: translateY(70px); } to { opacity: 1; transform: none; } }
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .sc-skew { animation: skew-in linear both; animation-timeline: view(); animation-range: entry 2% cover 30%; }
+        .sc-up   { animation: slide-up linear both; animation-timeline: view(); animation-range: entry 4% cover 32%; }
+      }
+    }
+
+    .grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.34; mix-blend-mode: multiply; }
+    .over { mix-blend-mode: multiply; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #f2efe9; position: relative; overflow: hidden;">
+
+  <svg width="0" height="0" style="position: absolute;"><filter id="og-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter></svg>
+
+  <div class="rain" style="z-index: 2;">
+    <div class="coin" style="left: 9%;  --fall: 3000px; --drift: 120px;  --flip: 1440deg; opacity: 0.5;  animation-range: 2% 96%;"><svg width="42" height="29" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 26%; --fall: 3900px; --drift: -80px;  --flip: 720deg;  opacity: 0.75; animation-range: 0% 92%;"><svg width="78" height="55" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#8a5f10" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin" style="left: 48%; --fall: 3300px; --drift: 160px;  --flip: 1800deg; opacity: 0.4;  animation-range: 6% 100%;"><svg width="30" height="21" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 66%; --fall: 4400px; --drift: -40px;  --flip: 1080deg; opacity: 0.85; animation-range: 0% 90%;"><svg width="98" height="69" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin" style="left: 88%; --fall: 3500px; --drift: 70px;   --flip: 1440deg; opacity: 0.55; animation-range: 4% 98%;"><svg width="52" height="36" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
+  </div>
+
+  <!-- ══════ THE NAV, STOOD ON ITS END ══════ -->
+  <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 76px; z-index: 12; background: #241d15; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 0;">
+    <span class="disp vert" style="font-size: 19px; font-weight: 800; letter-spacing: 0.06em; color: #f6d878;">Fortune&nbsp;Cat</span>
+    <div class="mono vert" style="display: flex; flex-direction: column; gap: 30px; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: #a2988a;">
+      <span>Method</span><span>Pricing</span><span>Privacy</span>
+    </div>
+    <span class="mono vert" style="font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #f6d878; background: #b1301b; padding: 18px 6px; border-radius: 999px;">Get started</span>
+  </div>
+
+  <!-- ══════ HERO — the headline runs off the edge on purpose ══════ -->
+  <div style="position: relative; height: 1120px; overflow: hidden; background:
+      radial-gradient(1200px 700px at 20% 10%, rgba(232,182,74,0.6), transparent 62%),
+      linear-gradient(160deg, #fdfaf3, #f2efe9 70%);">
+    <div class="grain" style="filter: url(#og-grain);"></div>
+
+    <!-- clipped: you read the tail of the word and fill in the head. That is
+         the same trick the product plays — you never see the typing. -->
+    <h1 class="disp" style="position: absolute; left: -230px; top: 118px; margin: 0; font-size: 262px; font-weight: 800; line-height: 0.78; letter-spacing: -0.06em; transform: rotate(-6.5deg); transform-origin: 0 0; white-space: nowrap; z-index: 6;">
+      <span style="display: block; color: #1e1913;">NOBODY KEEPS</span>
+      <span class="foil" style="display: block;">A STRAIGHT LINE</span>
+    </h1>
+
+    <div style="position: absolute; right: 150px; top: 470px; width: 430px; transform: rotate(-6.5deg); z-index: 7;">
+      <div class="rule" style="width: 100%;"></div>
+      <p class="mono" style="margin: 14px 0 0; font-size: 11px; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; color: #b1301b;">read this second</p>
+      <p style="margin: 14px 0 0; font-size: 20px; line-height: 1.55; color: #4a4237;">Every budgeting app draws you a neat row of boxes and asks you to fill them in by hand, forever. You will not. Nobody does.</p>
+      <p style="margin: 14px 0 0; font-size: 20px; line-height: 1.55; color: #4a4237;">Your bank already wrote it all down. Fortune&nbsp;Cat just reads the pile.</p>
+    </div>
+
+    <div style="position: absolute; left: 190px; bottom: 132px; transform: rotate(-6.5deg); z-index: 7; display: flex; gap: 14px; align-items: center;">
+      <span style="background: linear-gradient(180deg, #f6d878, #e8b64a); color: #2a1e05; border-radius: 0.7rem; padding: 20px 44px; font-size: 17px; font-weight: 700; box-shadow: 0 20px 44px -18px rgba(150,105,20,0.9);">Start tracking &mdash; free</span>
+      <span class="mono" style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8b8172;">$9 once &middot; free in beta</span>
+    </div>
+
+    <!-- a wedge of vermilion, cut by the tilt -->
+    <div style="position: absolute; left: -80px; bottom: -240px; width: 900px; height: 420px; background: #b1301b; transform: rotate(-6.5deg); opacity: 0.9; z-index: 4;"></div>
+    <p class="disp" style="position: absolute; left: 110px; bottom: -40px; margin: 0; transform: rotate(-6.5deg); font-size: 44px; font-weight: 800; color: #f6d878; letter-spacing: -0.03em; z-index: 5;">Typed in by you &middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot; 0 rows</p>
+  </div>
+
+  <!-- ══════ THE LEDGER THAT READS UPWARD ══════ -->
+  <div style="position: relative; padding: 200px 130px 170px 110px; background: #241d15; color: #f7f2e8; overflow: hidden;">
+    <p class="mono sc-skew" style="margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.34em; text-transform: uppercase; color: #e8b64a; transform: rotate(-6.5deg);">now read from the bottom up &uarr;</p>
+
+    <div style="display: flex; flex-direction: column-reverse; gap: 0; max-width: 1000px; transform: rotate(-6.5deg);">
+      <!-- column-reverse: the newest capture is at the BOTTOM of the screen,
+           because that is where a real receipt pile grows from. -->
+      <div class="sc-up" style="display: flex; align-items: baseline; gap: 26px; border-top: 2px solid #4a3410; padding: 20px 0;">
+        <span class="mono" style="width: 40px; font-size: 12px; color: #8a5f10;">08</span>
+        <span class="disp" style="flex: 1; font-size: 46px; font-weight: 800; letter-spacing: -0.03em;">Corner Cafe</span>
+        <span class="mono" style="font-size: 12px; letter-spacing: 0.14em; color: #a2988a;">SMS &middot; AUTO</span>
+        <span class="disp" style="width: 200px; text-align: right; font-size: 46px; font-weight: 800; font-variant-numeric: tabular-nums;">&minus;12.40</span>
+      </div>
+      <div class="sc-up" style="display: flex; align-items: baseline; gap: 26px; border-top: 2px solid #4a3410; padding: 20px 0;">
+        <span class="mono" style="width: 40px; font-size: 12px; color: #8a5f10;">07</span>
+        <span class="disp" style="flex: 1; font-size: 46px; font-weight: 800; letter-spacing: -0.03em;">Spotify</span>
+        <span class="mono" style="font-size: 12px; letter-spacing: 0.14em; color: #d78a6f;">EMAIL &middot; FX</span>
+        <span class="disp" style="width: 200px; text-align: right; font-size: 46px; font-weight: 800; font-variant-numeric: tabular-nums; color: #f0a58c;">&minus;20.11</span>
+      </div>
+      <div class="sc-up" style="display: flex; align-items: baseline; gap: 26px; border-top: 2px solid #4a3410; padding: 20px 0;">
+        <span class="mono" style="width: 40px; font-size: 12px; color: #8a5f10;">06</span>
+        <span class="disp" style="flex: 1; font-size: 46px; font-weight: 800; letter-spacing: -0.03em;">Fairmart Grocery</span>
+        <span class="mono" style="font-size: 12px; letter-spacing: 0.14em; color: #a2988a;">RECEIPT</span>
+        <span class="disp" style="width: 200px; text-align: right; font-size: 46px; font-weight: 800; font-variant-numeric: tabular-nums;">&minus;63.85</span>
+      </div>
+      <div class="sc-up" style="display: flex; align-items: baseline; gap: 26px; border-top: 2px solid #4a3410; padding: 20px 0;">
+        <span class="mono" style="width: 40px; font-size: 12px; color: #8a5f10;">05</span>
+        <span class="disp foil" style="flex: 1; font-size: 46px; font-weight: 800; letter-spacing: -0.03em;">Salary</span>
+        <span class="mono" style="font-size: 12px; letter-spacing: 0.14em; color: #8fd8b8;">EMAIL &middot; REPEATS</span>
+        <span class="disp" style="width: 200px; text-align: right; font-size: 46px; font-weight: 800; font-variant-numeric: tabular-nums; color: #6fd3a6;">+4,200.00</span>
+      </div>
+      <div class="sc-up" style="display: flex; align-items: baseline; gap: 26px; border-top: 2px solid #4a3410; padding: 20px 0;">
+        <span class="mono" style="width: 40px; font-size: 12px; color: #8a5f10;">04</span>
+        <span class="disp" style="flex: 1; font-size: 46px; font-weight: 800; letter-spacing: -0.03em;">Telco bill</span>
+        <span class="mono" style="font-size: 12px; letter-spacing: 0.14em; color: #a2988a;">SMS &middot; REPEATS</span>
+        <span class="disp" style="width: 200px; text-align: right; font-size: 46px; font-weight: 800; font-variant-numeric: tabular-nums;">&minus;48.00</span>
+      </div>
+    </div>
+
+    <p class="mono" style="margin: 44px 0 0; font-size: 13px; letter-spacing: 0.14em; color: #a2988a; transform: rotate(-6.5deg); max-width: 620px; line-height: 1.9;">EVERY ONE OF THESE ARRIVED ON ITS OWN. NONE OF THEM WAS TYPED. THE ORDER IS WRONG ON PURPOSE &mdash; SO IS THE ONE IN YOUR HEAD.</p>
+  </div>
+
+  <!-- ══════ TWO COLUMNS THAT REFUSE TO STAY APART ══════ -->
+  <div style="position: relative; height: 900px; overflow: hidden; background: #f2efe9;">
+    <div class="grain" style="filter: url(#og-grain); opacity: 0.22;"></div>
+
+    <div class="over sc-skew" style="position: absolute; left: 90px; top: 120px; width: 640px; transform: rotate(-6.5deg); background: #f6d878; padding: 54px 52px; z-index: 5;">
+      <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: #6f4e0d;">01 &mdash; it reads the pile</p>
+      <h3 class="disp" style="margin: 16px 0 0; font-size: 62px; font-weight: 800; line-height: 0.94; letter-spacing: -0.04em; color: #2a1e05;">Forward it.<br>Forget it.</h3>
+      <p style="margin: 18px 0 0; font-size: 18px; line-height: 1.6; color: #4a3410;">A bank SMS, an alert email, a photo of a receipt. Merchant, amount, currency and category come out the other side, already filed.</p>
+    </div>
+
+    <!-- overlaps the card above by ~90px; multiply makes the seam a third colour -->
+    <div class="over sc-up" style="position: absolute; left: 560px; top: 300px; width: 660px; transform: rotate(-6.5deg); background: #b1301b; color: #fdf0ec; padding: 54px 52px; z-index: 6;">
+      <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: #f4bfae;">02 &mdash; it tells you the truth</p>
+      <h3 class="disp" style="margin: 16px 0 0; font-size: 62px; font-weight: 800; line-height: 0.94; letter-spacing: -0.04em;">One cat.<br>Three faces.</h3>
+      <p style="margin: 18px 0 0; font-size: 18px; line-height: 1.6; color: #f7d9d0;">Ears up when more came in than went out. Watchful at break-even. Ears back when it did not. Net decides the mood &mdash; nothing else, and it will not flatter you.</p>
+    </div>
+
+    <div class="sc-up" style="position: absolute; right: 130px; bottom: 90px; width: 300px; transform: rotate(-6.5deg); z-index: 7; text-align: right;">
+      <div class="rule" style="width: 100%; margin-bottom: 14px;"></div>
+      <p class="mono" style="margin: 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #73695a;">03 &mdash; one eye, then two</p>
+      <p style="margin: 10px 0 0; font-size: 17px; line-height: 1.6; color: #4a4237;">The daruma&rsquo;s second eye is painted the day you hit the goal. Not a progress bar &mdash; a promise kept.</p>
+    </div>
+  </div>
+
+  <!-- ══════ THE SIDEWAYS PRICE ══════ -->
+  <div style="position: relative; height: 720px; overflow: hidden; background: #1e1913; color: #f7f2e8;">
+    <!-- the price is set on its side. If you want it you will turn your head;
+         that is roughly the effort a monthly subscription asks of you forever. -->
+    <div class="vert" style="position: absolute; left: 120px; top: 60px; height: 600px;">
+      <h2 class="disp foil" style="margin: 0; font-size: 168px; font-weight: 800; letter-spacing: -0.05em; line-height: 1;">$9. ONCE. FOREVER.</h2>
+    </div>
+    <div style="position: absolute; right: 190px; top: 190px; width: 520px; transform: rotate(-6.5deg);">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: #e8b64a;">04 &mdash; the price</p>
+      <p style="margin: 20px 0 0; font-size: 22px; line-height: 1.55; color: #c9bfae;">An app that bills you monthly to save money is a leak, not a fix. One payment unlocks every engine and stays unlocked.</p>
+      <p style="margin: 16px 0 0; font-size: 22px; line-height: 1.55; color: #c9bfae;">Free while the beta runs. Unlock it now, keep it after.</p>
+      <span style="display: inline-block; margin-top: 28px; background: #f6d878; color: #2a1e05; border-radius: 0.7rem; padding: 20px 40px; font-size: 17px; font-weight: 700;">Unlock Pro</span>
+    </div>
+    <p class="mono" style="position: absolute; left: 380px; bottom: 54px; margin: 0; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: #4a3410; transform: rotate(180deg);">this line is upside down and you read it anyway</p>
+  </div>
+
+  <!-- ══════ CLOSE — the only straight thing on the page ══════ -->
+  <div style="position: relative; overflow: hidden; padding: 150px 130px 140px 110px; text-align: center; background: radial-gradient(1000px 560px at 50% 0%, rgba(232,182,74,0.6), transparent 64%), #f2efe9;">
+    <div class="grain" style="filter: url(#og-grain); opacity: 0.26;"></div>
+    <div style="position: relative;">
+      <p class="mono" style="margin: 0 0 26px; font-size: 11px; letter-spacing: 0.34em; text-transform: uppercase; color: #b1301b;">and here, finally, is the straight line</p>
+      <div class="rule" style="width: 100%; max-width: 900px; margin: 0 auto 40px;"></div>
+      <h2 class="disp sc-up" style="margin: 0 auto; max-width: 1000px; font-size: 116px; font-weight: 800; line-height: 0.88; letter-spacing: -0.05em;">You keep the money.<br>It keeps the ledger.</h2>
+      <div class="sc-up" style="margin-top: 40px;">
+        <span style="background: #241d15; color: #f6d878; border-radius: 0.7rem; padding: 22px 52px; font-size: 18px; font-weight: 700; box-shadow: 0 24px 50px -24px rgba(36,29,21,0.9);">Start tracking &mdash; it&rsquo;s free</span>
+      </div>
+      <p class="mono sc-up" style="margin: 22px 0 0; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #8b8172;">no card &middot; no bank login &middot; any currency worldwide</p>
+      <div class="rule" style="width: 100%; max-width: 900px; margin: 46px auto 0;"></div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

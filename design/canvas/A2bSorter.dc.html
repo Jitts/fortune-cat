@@ -1,0 +1,320 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f2efe9; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #1e1913; -webkit-font-smoothing: antialiased; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .tap { cursor: pointer; user-select: none; transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease; }
+    .tap:hover { transform: translateY(-3px); }
+    .tap:active { transform: translateY(0) scale(0.985); }
+
+    .foil {
+      background-image: linear-gradient(100deg, #8a5f10 0%, #c9902a 16%, #f6d878 30%, #fffaeb 38%, #f6d878 46%, #c9902a 62%, #8a5f10 78%, #c9902a 92%);
+      background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    @keyframes leaf-sweep { from { background-position: 240% 0; } to { background-position: -140% 0; } }
+    @media (prefers-reduced-motion: no-preference) { .foil { animation: leaf-sweep 7s linear infinite; } }
+
+    /* ── THE GAME ─────────────────────────────────────────────────────────
+       The coin in play falls on a one-shot animation. Two IDENTICAL keyframe
+       sets exist because swapping animation-name between them is what makes
+       the drop replay on every turn — the runtime reuses the same DOM node,
+       and a re-render alone does not restart a running animation. */
+    @keyframes game-fall-a { from { transform: translateY(-40px) rotateY(0deg); } to { transform: translateY(272px) rotateY(900deg); } }
+    @keyframes game-fall-b { from { transform: translateY(-40px) rotateY(0deg); } to { transform: translateY(272px) rotateY(900deg); } }
+    .in-play { animation-duration: 900ms; animation-timing-function: cubic-bezier(.45,0,.85,.4); animation-fill-mode: both; }
+    @media (prefers-reduced-motion: reduce) { .in-play { animation: none !important; } }
+
+    @keyframes caught { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
+    .pop { animation: caught 420ms ease-out; }
+
+    /* Decorative rain, still scroll-driven — the coins you are NOT catching. */
+    @keyframes coin-fall {
+      from { transform: translate3d(0, -220px, 0) rotate(var(--tilt, 0deg)) rotateX(0deg); }
+      to   { transform: translate3d(var(--drift, 0px), var(--fall, 3200px), 0) rotate(var(--tilt, 0deg)) rotateX(var(--flip, 1080deg)); }
+    }
+    .rain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .coin { position: absolute; top: 0; opacity: 0; }
+    @supports (animation-timeline: scroll()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .coin { opacity: 1; animation: coin-fall linear both; animation-timeline: scroll(root); }
+      }
+    }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(56px); } to { opacity: 1; transform: none; } }
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .sc-rise { animation: rise linear both; animation-timeline: view(); animation-range: entry 2% cover 28%; }
+      }
+    }
+
+    .grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.32; mix-blend-mode: multiply; }
+    .slab { box-shadow: 0 40px 90px -46px rgba(60,40,10,0.75), 0 2px 0 rgba(255,255,255,0.6) inset; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #f2efe9; position: relative; overflow: hidden;">
+
+  <svg width="0" height="0" style="position: absolute;"><filter id="g-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter></svg>
+
+  <div class="rain" style="z-index: 2;">
+    <div class="coin" style="left: 4%;  --fall: 2900px; --drift: 80px;  --tilt: -14deg; --flip: 1440deg; opacity: 0.4; animation-range: 3% 96%;"><svg width="36" height="25" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 20%; --fall: 3700px; --drift: -60px; --tilt: 20deg;  --flip: 720deg;  opacity: 0.55; animation-range: 0% 92%;"><svg width="58" height="41" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#8a5f10" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin" style="left: 79%; --fall: 3300px; --drift: 110px; --tilt: 8deg;   --flip: 1800deg; opacity: 0.45; animation-range: 5% 98%;"><svg width="44" height="31" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 93%; --fall: 4200px; --drift: -90px; --tilt: -24deg; --flip: 1080deg; opacity: 0.6;  animation-range: 1% 90%;"><svg width="74" height="52" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
+  </div>
+
+  <!-- ══════ HERO + GAME ══════ -->
+  <div style="position: relative; overflow: hidden; padding: 0 0 110px; background:
+      radial-gradient(1100px 640px at 84% -8%, rgba(232,182,74,0.55), transparent 62%),
+      linear-gradient(180deg, #fdfaf3, #f2efe9 60%);">
+    <div class="grain" style="filter: url(#g-grain);"></div>
+
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between; padding: 22px 80px; z-index: 9;">
+      <span class="disp" style="font-size: 21px; font-weight: 800; letter-spacing: -0.02em;">Fortune&nbsp;Cat</span>
+      <div style="display: flex; align-items: center; gap: 22px;">
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #73695a;">Method</span>
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #73695a;">Pricing</span>
+        <span style="background: #241d15; color: #faf7f2; border-radius: 0.7rem; padding: 12px 24px; font-size: 14px; font-weight: 700;">Get started</span>
+      </div>
+    </div>
+
+    <div style="position: relative; z-index: 6; text-align: center; padding: 40px 80px 0;">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.42em; text-transform: uppercase; color: #b1301b;">&#x2014;&nbsp; a game you are meant to lose &nbsp;&#x2014;</p>
+      <h1 class="disp" style="margin: 22px 0 0; font-size: 140px; font-weight: 800; line-height: 0.82; letter-spacing: -0.055em;">
+        <span style="display: block; color: #1e1913;">SORT IT</span>
+        <span class="foil" style="display: block;">YOURSELF</span>
+      </h1>
+      <p style="margin: 26px auto 0; max-width: 600px; font-size: 20px; line-height: 1.55; color: #4a4237;">Eight coins are going to fall. Catch each one in the right bin. This is the job Fortune&nbsp;Cat does for you, and it is about to get old.</p>
+    </div>
+
+    <!-- ── the machine ── -->
+    <div class="slab" style="position: relative; z-index: 7; margin: 52px auto 0; width: 1080px; background: #ffffff; border-radius: 28px; padding: 34px 40px 44px;">
+
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f0ece4; padding-bottom: 18px;">
+        <div style="display: flex; gap: 38px;">
+          <div><p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.18em; color: #73695a;">CAUGHT</p><p class="disp" style="margin: 2px 0 0; font-size: 34px; font-weight: 800; color: #0e6f52;">{{ score }}</p></div>
+          <div><p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.18em; color: #73695a;">DROPPED</p><p class="disp" style="margin: 2px 0 0; font-size: 34px; font-weight: 800; color: #b1301b;">{{ misses }}</p></div>
+          <div><p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.18em; color: #73695a;">COIN</p><p class="disp" style="margin: 2px 0 0; font-size: 34px; font-weight: 800;">{{ turnLabel }}</p></div>
+        </div>
+        <span class="tap mono" onClick="{{ restart }}" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #73695a; border-bottom: 1px solid #d8d1c5; padding-bottom: 2px;">Start over</span>
+      </div>
+
+      <!-- PLAYING -->
+      <div style="display: {{ playDisplay }};">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 26px;">
+          <span class="mono" style="font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #a2988a;">{{ coin.channel }} &middot; just arrived</span>
+        </div>
+        <p class="mono" style="margin: 12px auto 0; max-width: 620px; text-align: center; font-size: 14px; line-height: 1.6; color: #4a4237; background: #f8f6f1; border: 1px dashed #ddd4c2; border-radius: 12px; padding: 14px 18px;">{{ coin.raw }}</p>
+
+        <!-- the chute -->
+        <div style="position: relative; height: 300px; margin-top: 6px; overflow: hidden;">
+          <div class="in-play" style="position: absolute; left: 50%; top: 0; margin-left: -66px; animation-name: {{ dropAnim }};">
+            <div style="position: relative; width: 132px; height: 92px;">
+              <svg width="132" height="92" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6f4e0d" stroke-width="2.6"></ellipse><ellipse cx="50" cy="35" rx="39" ry="25" fill="none" stroke="#c9902a" stroke-width="1.4"></ellipse></svg>
+              <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <span class="disp" style="font-size: 15px; font-weight: 800; color: #4a3410; line-height: 1;">{{ coin.merchant }}</span>
+                <span class="mono" style="margin-top: 3px; font-size: 12px; font-weight: 700; color: #6f4e0d;">{{ coin.amount }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="disp" style="margin: 0; text-align: center; font-size: 20px; font-weight: 700; color: {{ flashColor }}; min-height: 28px;">{{ flash }}</p>
+
+        <!-- the bins -->
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px;">
+          <sc-for list="{{ bins }}" as="b" hint-placeholder-count="3">
+            <div class="tap" onClick="{{ b.pick }}" style="border-radius: 18px; padding: 22px 20px 24px; text-align: center; background: {{ b.bg }}; box-shadow: inset 0 0 0 2px {{ b.border }};">
+              <span style="display: block; font-size: 30px; line-height: 1;">{{ b.icon }}</span>
+              <p class="disp" style="margin: 10px 0 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: {{ b.ink }};">{{ b.label }}</p>
+              <p class="mono" style="margin: 6px 0 0; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8b8172;">{{ b.sub }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- DONE -->
+      <div style="display: {{ doneDisplay }}; text-align: center; padding: 40px 0 10px;">
+        <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.34em; text-transform: uppercase; color: #b1301b;">that was eight</p>
+        <h2 class="disp" style="margin: 18px 0 0; font-size: 86px; font-weight: 800; line-height: 0.9; letter-spacing: -0.045em;">{{ verdictHead }}</h2>
+        <p style="margin: 20px auto 0; max-width: 560px; font-size: 19px; line-height: 1.6; color: #4a4237;">{{ verdictBody }}</p>
+        <div style="display: flex; justify-content: center; gap: 14px; margin-top: 32px;">
+          <span style="background: linear-gradient(180deg, #f6d878, #e8b64a); color: #2a1e05; border-radius: 0.7rem; padding: 20px 44px; font-size: 17px; font-weight: 700; box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 20px 44px -18px rgba(150,105,20,0.9);">Let the cat do it &mdash; free</span>
+          <span class="tap" onClick="{{ restart }}" style="border-radius: 0.7rem; padding: 20px 30px; font-size: 17px; font-weight: 600; color: #4a4237; box-shadow: inset 0 0 0 2px #ddd4c2;">Play again</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- the ledger you built by hand -->
+    <div style="position: relative; z-index: 7; margin: 40px auto 0; width: 1080px;">
+      <p class="mono" style="margin: 0 0 12px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #73695a;">Your ledger &mdash; sorted by hand &nbsp;&middot;&nbsp; pouch {{ pouch }}</p>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+          <div class="pop" style="display: flex; align-items: center; gap: 12px; border-radius: 14px; background: #ffffff; box-shadow: inset 0 0 0 1px #e6e1d9; padding: 13px 16px;">
+            <span style="width: 8px; height: 8px; border-radius: 999px; background: {{ r.dot }};"></span>
+            <div style="flex: 1;">
+              <p style="margin: 0; font-size: 14px; font-weight: 600;">{{ r.merchant }}</p>
+              <p class="mono" style="margin: 2px 0 0; font-size: 10px; letter-spacing: 0.1em; color: #73695a;">{{ r.bin }}</p>
+            </div>
+            <span style="font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: {{ r.color }};">{{ r.amount }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 14px 0 0; font-size: 14px; color: #a2988a; display: {{ emptyDisplay }};">Nothing filed yet. Catch a coin.</p>
+    </div>
+  </div>
+
+  <!-- ══════ THE PUNCHLINE ══════ -->
+  <div style="position: relative; overflow: hidden; padding: 130px 80px 140px; background: #241d15; color: #f7f2e8;">
+    <div style="position: relative; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 70px; align-items: center;">
+      <div>
+        <p class="mono sc-rise" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; color: #e8b64a;">the point of the game</p>
+        <h2 class="disp sc-rise" style="margin: 22px 0 0; font-size: 96px; font-weight: 800; line-height: 0.88; letter-spacing: -0.05em;">You just did<br>eight of them.</h2>
+        <p class="sc-rise" style="margin: 26px 0 0; max-width: 520px; font-size: 19px; line-height: 1.65; color: #c9bfae;">A month is sixty-eight. Every tracker ever built has asked you to play this game forever, and every one of them lost you at week three &mdash; not because you are lazy, because it is a stupid game.</p>
+        <p class="sc-rise" style="margin: 18px 0 0; max-width: 520px; font-size: 19px; line-height: 1.65; color: #c9bfae;">Your bank already wrote every one of these down and mailed it to you. Fortune&nbsp;Cat reads the pile and sorts it while you are asleep.</p>
+      </div>
+      <div class="sc-rise" style="text-align: center;">
+        <div style="display: inline-block; background: linear-gradient(135deg, #f6d878, #e8b64a 55%, #c9902a); color: #2a1e05; border-radius: 26px; padding: 44px 48px;">
+          <p class="mono" style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #6f4e0d;">rows this month</p>
+          <p class="disp" style="margin: 10px 0 0; font-size: 132px; font-weight: 800; line-height: 0.85; letter-spacing: -0.05em;">68</p>
+          <p class="disp" style="margin: 18px 0 0; font-size: 26px; font-weight: 800;">typed by you: 0</p>
+          <p style="margin: 12px 0 0; font-size: 15px; line-height: 1.55; color: #4a3410;">Same eight shapes you just sorted &mdash; the cat has seen them all before.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ CLOSE ══════ -->
+  <div style="position: relative; overflow: hidden; padding: 130px 80px 120px; text-align: center; background: radial-gradient(980px 540px at 50% 0%, rgba(232,182,74,0.55), transparent 64%), #f2efe9;">
+    <div class="grain" style="filter: url(#g-grain); opacity: 0.26;"></div>
+    <div style="position: relative;">
+      <h2 class="disp foil sc-rise" style="margin: 0 auto; max-width: 1100px; font-size: 124px; font-weight: 800; line-height: 0.86; letter-spacing: -0.05em;">STOP PLAYING<br>THIS GAME</h2>
+      <p class="sc-rise" style="margin: 30px auto 0; max-width: 540px; font-size: 19px; line-height: 1.6; color: #4a4237;">Forward one bank SMS. Watch the first row land on its own. That is the whole setup &mdash; and $9 once unlocks the rest, forever.</p>
+      <div class="sc-rise" style="margin-top: 40px;">
+        <span style="background: #241d15; color: #f6d878; border-radius: 0.7rem; padding: 22px 52px; font-size: 18px; font-weight: 700; box-shadow: 0 24px 50px -24px rgba(36,29,21,0.9);">Start tracking &mdash; it&rsquo;s free</span>
+      </div>
+      <p class="mono sc-rise" style="margin: 22px 0 0; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #8b8172;">no card &middot; no bank login &middot; any currency worldwide</p>
+    </div>
+  </div>
+
+  <div style="position: relative; z-index: 4; background: #241d15; color: #c9bfae; padding: 38px 80px; display: flex; align-items: center; justify-content: space-between;">
+    <span class="disp" style="font-size: 18px; font-weight: 800; color: #faf7f2;">Fortune&nbsp;Cat</span>
+    <div class="mono" style="display: flex; gap: 24px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":3260}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Eight real bank-message shapes, each with the ONE bin it belongs in.
+    const COINS = [
+      { merchant: 'Corner Cafe',  amount: -12.40, bin: 'food',   channel: 'SMS',     raw: 'Card ending 4417 used for 12.40 at CORNER CAFE.' },
+      { merchant: 'Salary',       amount: 4200,   bin: 'income', channel: 'EMAIL',   raw: 'Salary credited: 4,200.00 to account 4417.' },
+      { merchant: 'Telco bill',   amount: -48.00, bin: 'bills',  channel: 'SMS',     raw: 'GIRO deduction 48.00 — TELCO MONTHLY BILL.' },
+      { merchant: 'Fairmart',     amount: -63.85, bin: 'food',   channel: 'RECEIPT', raw: 'Photo of a receipt — FAIRMART GROCERY, total 63.85.' },
+      { merchant: 'Spotify',      amount: -20.11, bin: 'bills',  channel: 'EMAIL',   raw: 'Transaction alert: USD 14.99 — SPOTIFY USA (converted at the ECB rate).' },
+      { merchant: 'Refund',       amount: 34.90,  bin: 'income', channel: 'EMAIL',   raw: 'Refund processed: 34.90 credited to account 4417.' },
+      { merchant: 'Noodle Bar',   amount: -18.60, bin: 'food',   channel: 'SMS',     raw: 'Card ending 4417 used for 18.60 at NOODLE BAR 88.' },
+      { merchant: 'Power co.',    amount: -91.20, bin: 'bills',  channel: 'EMAIL',   raw: 'Your monthly statement is ready — amount due 91.20.' }
+    ];
+    const BINS = [
+      { id: 'food',   label: 'Food & drink', sub: 'cafes · groceries', icon: '🍜', ink: '#8a5f10', bg: '#fdf6e4', border: '#f0dfae' },
+      { id: 'bills',  label: 'Bills',        sub: 'utilities · subs',  icon: '📄', ink: '#b1301b', bg: '#fdf0ec', border: '#f2cfc6' },
+      { id: 'income', label: 'Money in',     sub: 'salary · refunds',  icon: '🪙', ink: '#0e6f52', bg: '#eef7f2', border: '#c6e3d5' }
+    ];
+
+    const st = this.state || {};
+    const turn   = st.turn || 0;        // which coin is in the air
+    const drop   = st.drop || 0;        // bumps every turn, purely to replay the fall
+    const filed  = st.filed || [];      // [{ i, correct }]
+    const flash  = st.flash || '';
+    const good   = st.good || false;
+
+    const fmt   = (n) => '$' + Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const money = (n) => (n < 0 ? '−' : '+') + fmt(n);
+    const total = (n) => (n < 0 ? '−' : '') + fmt(n);
+
+    const done = turn >= COINS.length;
+    const coin = done ? COINS[COINS.length - 1] : COINS[turn];
+
+    const rows = filed.map((f) => {
+      const c = COINS[f.i];
+      const b = BINS.find((x) => x.id === c.bin);
+      return {
+        merchant: c.merchant,
+        bin: f.correct ? b.label.toUpperCase() : b.label.toUpperCase() + ' · you missed it',
+        amount: money(c.amount),
+        color: c.amount > 0 ? '#0e6f52' : '#1e1913',
+        dot: f.correct ? (c.amount > 0 ? '#0e6f52' : '#e8b64a') : '#b1301b'
+      };
+    });
+
+    // Only the coins you actually caught land in the pouch — the dropped ones
+    // are the whole argument, so they must be visibly absent from the total.
+    const net = filed.reduce((t, f) => (f.correct ? t + COINS[f.i].amount : t), 0);
+    const score  = filed.filter((f) => f.correct).length;
+    const misses = filed.length - score;
+
+    const pick = (binId) => {
+      if (done) return;
+      const correct = COINS[turn].bin === binId;
+      this.setState({
+        turn: turn + 1,
+        drop: drop + 1,
+        filed: filed.concat([{ i: turn, correct: correct }]),
+        good: correct,
+        flash: correct ? 'Caught it.' : 'Dropped — that was ' + BINS.find((b) => b.id === COINS[turn].bin).label + '.'
+      });
+    };
+
+    const VERDICT = score === COINS.length
+      ? { head: 'Eight for eight.', body: 'Perfect — and it took you the better part of a minute for one day of spending. A month is sixty-eight of these, every month, forever. That is the offer every other tracker is making you.' }
+      : score >= 5
+        ? { head: score + ' out of 8.', body: 'Close enough to feel productive, wrong often enough that the numbers no longer mean anything. This is exactly how hand-kept budgets die — not abandoned, just quietly untrue.' }
+        : { head: 'You dropped ' + misses + '.', body: 'And that is with the message right in front of you and nothing else to do. Now imagine it at 11pm on a Tuesday, four days behind. Nobody keeps this up, and nobody should have to.' };
+
+    return {
+      score: score,
+      misses: misses,
+      turnLabel: (done ? COINS.length : turn + 1) + '/' + COINS.length,
+      coin: {
+        merchant: coin.merchant,
+        amount: money(coin.amount),
+        raw: coin.raw,
+        channel: coin.channel
+      },
+      // Alternating names is what forces the drop to replay on the same node.
+      dropAnim: drop % 2 === 0 ? 'game-fall-a' : 'game-fall-b',
+      bins: BINS.map((b) => ({
+        label: b.label, sub: b.sub, icon: b.icon, ink: b.ink, bg: b.bg, border: b.border,
+        pick: () => pick(b.id)
+      })),
+      flash: flash,
+      flashColor: good ? '#0e6f52' : '#b1301b',
+      rows: rows,
+      pouch: total(net),
+      emptyDisplay: rows.length ? 'none' : 'block',
+      playDisplay: done ? 'none' : 'block',
+      doneDisplay: done ? 'block' : 'none',
+      verdictHead: VERDICT.head,
+      verdictBody: VERDICT.body,
+      restart: () => this.setState({ turn: 0, drop: drop + 1, filed: [], flash: '', good: false })
+    };
+  }
+}
+</script>
+</x-dc>
+</body>
+</html>

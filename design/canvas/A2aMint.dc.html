@@ -1,0 +1,290 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f2efe9; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #1e1913; -webkit-font-smoothing: antialiased; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    .foil {
+      background-image: linear-gradient(100deg, #8a5f10 0%, #c9902a 16%, #f6d878 30%, #fffaeb 38%, #f6d878 46%, #c9902a 62%, #8a5f10 78%, #c9902a 92%);
+      background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    @keyframes leaf-sweep { from { background-position: 240% 0; } to { background-position: -140% 0; } }
+    @media (prefers-reduced-motion: no-preference) { .foil { animation: leaf-sweep 7s linear infinite; } }
+
+    /* ── THE ONE IDEA ─────────────────────────────────────────────────────
+       A2 drew coins. This one MINTS them: every coin on this page is a real
+       solid built out of stacked discs in 3D space, so it has an edge, it
+       catches light on the rim, and when it turns you see it go thin.
+       Everything else on the page is built the same way — the pouch total is
+       extruded, the ledger is a deck of cards standing in Z, the whole scene
+       dollies toward you as you scroll. Nothing here is an image. */
+    .scene { perspective: 1300px; perspective-origin: 50% 42%; }
+    .solid { transform-style: preserve-3d; }
+
+    @keyframes mint-turn { to { transform: rotateY(360deg); } }
+    @keyframes mint-tumble { from { transform: rotateY(0) rotateX(14deg); } to { transform: rotateY(360deg) rotateX(14deg); } }
+    @media (prefers-reduced-motion: no-preference) {
+      .turn  { animation: mint-turn 13s linear infinite; }
+      .turn-b { animation: mint-tumble 9s linear infinite; }
+      .turn-c { animation: mint-turn 17s linear infinite reverse; }
+    }
+
+    /* Scroll IS the camera. The stage pulls from far to near across each
+       section's own scroll range — a dolly, not a fade. */
+    @keyframes dolly { from { transform: translateZ(-780px) rotateX(9deg); } to { transform: translateZ(210px) rotateX(-3deg); } }
+    @keyframes fan   { from { transform: rotateY(38deg) translateZ(-160px); } to { transform: rotateY(-6deg) translateZ(60px); } }
+    @keyframes rise  { from { opacity: 0; transform: translateY(58px); } to { opacity: 1; transform: none; } }
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .sc-dolly { animation: dolly linear both; animation-timeline: view(); animation-range: entry 0% cover 60%; }
+        .sc-fan   { animation: fan   linear both; animation-timeline: view(); animation-range: entry 4% cover 52%; }
+        .sc-rise  { animation: rise  linear both; animation-timeline: view(); animation-range: entry 2% cover 28%; }
+      }
+    }
+
+    /* Coin rain, in Z. Same scroll-gravity as A2, but each coin now sits at
+       a real depth, so the near ones blur past and the far ones crawl. */
+    @keyframes coin-fall-3d {
+      from { transform: translate3d(0, -240px, var(--z, 0px)) rotateY(0deg) rotate(var(--tilt, 0deg)); }
+      to   { transform: translate3d(var(--drift, 0px), var(--fall, 3200px), var(--z, 0px)) rotateY(var(--flip, 1080deg)) rotate(var(--tilt, 0deg)); }
+    }
+    .rain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; perspective: 900px; }
+    .coin3 { position: absolute; top: 0; opacity: 0; transform-style: preserve-3d; }
+    @supports (animation-timeline: scroll()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .coin3 { opacity: 1; animation: coin-fall-3d linear both; animation-timeline: scroll(root); }
+      }
+    }
+
+    .grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.34; mix-blend-mode: multiply; }
+    .slab { box-shadow: 0 40px 90px -46px rgba(60,40,10,0.75), 0 2px 0 rgba(255,255,255,0.6) inset; }
+    .strike { cursor: pointer; outline: none; display: inline-block; }
+    @keyframes struck { 0% { transform: rotateY(0) scale(1); } 45% { transform: rotateY(1080deg) scale(1.2); } 100% { transform: rotateY(1800deg) scale(1); } }
+    @media (prefers-reduced-motion: no-preference) { .strike:focus { animation: struck 1.8s cubic-bezier(.2,.85,.2,1); } }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #f2efe9; position: relative; overflow: hidden;">
+
+  <svg width="0" height="0" style="position: absolute;"><filter id="mint-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter></svg>
+
+  <!-- ══════ COIN RAIN, AT DEPTH ══════ -->
+  <div class="rain" style="z-index: 3;">
+    <div class="coin3" style="left: 6%;  --fall: 3600px; --drift: 90px;  --z: -320px; --tilt: -12deg; --flip: 1440deg; opacity: 0.45; animation-range: 2% 96%;"><svg width="38" height="27" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 17%; --fall: 4600px; --drift: -70px; --z: 120px;  --tilt: 22deg;  --flip: 720deg;  opacity: 0.9;  animation-range: 0% 92%;"><svg width="86" height="60" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#8a5f10" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 31%; --fall: 3100px; --drift: 140px; --z: -520px; --tilt: 5deg;   --flip: 1800deg; opacity: 0.35; animation-range: 8% 100%;"><svg width="28" height="20" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 44%; --fall: 5000px; --drift: -30px; --z: 260px;  --tilt: -26deg; --flip: 1080deg; opacity: 0.95; animation-range: 0% 88%;"><svg width="112" height="78" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 58%; --fall: 3400px; --drift: 60px;  --z: -260px; --tilt: 16deg;  --flip: 1440deg; opacity: 0.5;  animation-range: 5% 98%;"><svg width="44" height="31" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 70%; --fall: 4300px; --drift: -120px;--z: 40px;   --tilt: -8deg;  --flip: 720deg;  opacity: 0.8;  animation-range: 1% 94%;"><svg width="66" height="46" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 83%; --fall: 3800px; --drift: 40px;  --z: -420px; --tilt: 30deg;  --flip: 1800deg; opacity: 0.4;  animation-range: 6% 100%;"><svg width="32" height="22" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 92%; --fall: 4900px; --drift: -90px; --z: 180px;  --tilt: -18deg; --flip: 1080deg; opacity: 0.88; animation-range: 0% 90%;"><svg width="94" height="66" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#8a5f10" stroke-width="1.6"></ellipse></svg></div>
+  </div>
+
+  <!-- ══════ HERO — the coin has an edge ══════ -->
+  <div class="scene" style="position: relative; overflow: hidden; padding: 0 0 90px; background:
+      radial-gradient(1200px 700px at 78% -8%, rgba(232,182,74,0.6), transparent 62%),
+      radial-gradient(800px 520px at 6% 46%, rgba(177,48,27,0.14), transparent 66%),
+      linear-gradient(180deg, #fdfaf3, #f2efe9 66%);">
+    <div class="grain" style="filter: url(#mint-grain);"></div>
+
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between; padding: 22px 80px; z-index: 9;">
+      <span class="disp" style="font-size: 21px; font-weight: 800; letter-spacing: -0.02em;">Fortune&nbsp;Cat</span>
+      <div style="display: flex; align-items: center; gap: 22px;">
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #73695a;">Method</span>
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #73695a;">Pricing</span>
+        <span style="background: #241d15; color: #faf7f2; border-radius: 0.7rem; padding: 12px 24px; font-size: 14px; font-weight: 700;">Get started</span>
+      </div>
+    </div>
+
+    <div style="position: relative; z-index: 7; text-align: center; padding: 46px 80px 0;">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.44em; text-transform: uppercase; color: #b1301b;">&#x2014;&nbsp; struck, not drawn &nbsp;&#x2014;</p>
+      <h1 class="disp" style="margin: 22px 0 0; font-size: 164px; font-weight: 800; line-height: 0.8; letter-spacing: -0.055em;">
+        <span style="display: block; color: #1e1913;">EVERY DOLLAR</span>
+        <span class="foil" style="display: block;">HAS A FACE</span>
+      </h1>
+    </div>
+
+    <!-- The coin itself: 22 discs stacked along Z. Turn it and you see the rim. -->
+    <div style="position: relative; z-index: 6; height: 470px; margin-top: -34px; display: flex; align-items: center; justify-content: center;">
+      <div class="strike" tabindex="0" role="button" aria-label="Strike the coin" style="position: relative;">
+        <div class="solid turn" style="width: 340px; height: 238px; position: relative;">
+          <svg class="solid" width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-15px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#8a5f10"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-13px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#8f6412"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-11px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#966914"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-9px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#9d6f17"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-7px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#a5761a"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-5px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#ae7e1e"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-3px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#b78722"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-1px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#c08f27"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(1px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#c9902a"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(3px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#d59f33"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(5px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e0ae3f"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(7px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(9px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#efc55e"></ellipse></svg>
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(11px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d276"></ellipse></svg>
+          <!-- the struck face -->
+          <svg width="340" height="238" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(13px);">
+            <ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6f4e0d" stroke-width="1.6"></ellipse>
+            <ellipse cx="50" cy="35" rx="40" ry="26" fill="none" stroke="#c9902a" stroke-width="1"></ellipse>
+            <ellipse cx="50" cy="35" rx="36" ry="22.5" fill="none" stroke="#c9902a" stroke-width="0.6" stroke-dasharray="1.6 2.2"></ellipse>
+            <text x="50" y="45.5" text-anchor="middle" font-size="30" font-weight="700" fill="#6f4e0d" font-family="serif">&#x91D1;</text>
+          </svg>
+        </div>
+        <p class="mono" style="position: absolute; left: 50%; bottom: -54px; transform: translateX(-50%); margin: 0; white-space: nowrap; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #a2988a;">click it &middot; it turns</p>
+      </div>
+    </div>
+
+    <div style="position: relative; z-index: 7; text-align: center; padding: 60px 80px 0;">
+      <p style="margin: 0 auto; max-width: 640px; font-size: 21px; line-height: 1.55; color: #4a4237;">Your bank already writes down everything you buy, then sends it to you. Fortune&nbsp;Cat just reads the pile &mdash; and gives every line of it a shape you can hold.</p>
+      <div style="display: flex; justify-content: center; gap: 14px; margin-top: 38px;">
+        <span style="background: linear-gradient(180deg, #f6d878, #e8b64a); color: #2a1e05; border-radius: 0.7rem; padding: 20px 44px; font-size: 17px; font-weight: 700; box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 20px 44px -18px rgba(150,105,20,0.9);">Start tracking &mdash; free</span>
+        <span style="border-radius: 0.7rem; padding: 20px 34px; font-size: 17px; font-weight: 600; color: #4a4237; box-shadow: inset 0 0 0 2px #ddd4c2;">Pro &mdash; $9 once</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ THE DECK — the ledger, standing up in Z ══════ -->
+  <div class="scene" style="position: relative; padding: 130px 80px 150px; background: #efebe3;">
+    <div class="grain" style="filter: url(#mint-grain); opacity: 0.22;"></div>
+    <div style="position: relative; text-align: center; margin-bottom: 76px;">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: #8a5f10;">01 &mdash; the pile</p>
+      <h2 class="disp sc-rise" style="margin: 16px 0 0; font-size: 92px; font-weight: 800; line-height: 0.9; letter-spacing: -0.045em;">Sixty&#8209;eight rows,<br>none of them typed.</h2>
+    </div>
+
+    <div class="sc-fan solid" style="position: relative; height: 430px; margin: 0 auto; width: 1080px; display: flex; align-items: center; justify-content: center; transform-origin: 50% 50%;">
+      <div class="slab solid" style="position: absolute; width: 420px; background: #ffffff; border-radius: 20px; padding: 26px 28px; transform: translateZ(-260px) translateX(-330px) rotateY(26deg); opacity: 0.5;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.18em; color: #73695a;">SMS &middot; 14 JUL</p>
+        <p class="disp" style="margin: 8px 0 0; font-size: 30px; font-weight: 800;">Corner Cafe</p>
+        <p style="margin: 6px 0 0; font-size: 15px; color: #73695a;">Food &amp; drink</p>
+        <p class="disp" style="margin: 14px 0 0; font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums;">&minus;$12.40</p>
+      </div>
+      <div class="slab solid" style="position: absolute; width: 440px; background: #ffffff; border-radius: 20px; padding: 28px 30px; transform: translateZ(-110px) translateX(-160px) rotateY(15deg); opacity: 0.76;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.18em; color: #73695a;">EMAIL &middot; 14 JUL &middot; FX</p>
+        <p class="disp" style="margin: 8px 0 0; font-size: 32px; font-weight: 800;">Spotify</p>
+        <p style="margin: 6px 0 0; font-size: 15px; color: #73695a;">Entertainment &middot; converted at the ECB rate</p>
+        <p class="disp" style="margin: 14px 0 0; font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; color: #b1301b;">&minus;$20.11</p>
+      </div>
+      <div class="slab solid" style="position: absolute; width: 470px; background: #ffffff; border-radius: 22px; padding: 32px 34px; transform: translateZ(60px) rotateY(2deg); z-index: 3;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.18em; color: #73695a;">EMAIL &middot; 15 JUL &middot; REPEATS</p>
+        <p class="disp" style="margin: 8px 0 0; font-size: 36px; font-weight: 800;">Salary</p>
+        <p style="margin: 6px 0 0; font-size: 15px; color: #73695a;">Income &middot; recognised as recurring</p>
+        <p class="disp" style="margin: 16px 0 0; font-size: 52px; font-weight: 800; font-variant-numeric: tabular-nums; color: #0e6f52;">+$4,200.00</p>
+      </div>
+      <div class="slab solid" style="position: absolute; width: 440px; background: #ffffff; border-radius: 20px; padding: 28px 30px; transform: translateZ(-110px) translateX(180px) rotateY(-15deg); opacity: 0.76;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.18em; color: #73695a;">RECEIPT &middot; 15 JUL</p>
+        <p class="disp" style="margin: 8px 0 0; font-size: 32px; font-weight: 800;">Fairmart Grocery</p>
+        <p style="margin: 6px 0 0; font-size: 15px; color: #73695a;">Groceries</p>
+        <p class="disp" style="margin: 14px 0 0; font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums;">&minus;$63.85</p>
+      </div>
+      <div class="slab solid" style="position: absolute; width: 420px; background: #ffffff; border-radius: 20px; padding: 26px 28px; transform: translateZ(-260px) translateX(340px) rotateY(-26deg); opacity: 0.5;">
+        <p class="mono" style="margin: 0; font-size: 10px; letter-spacing: 0.18em; color: #73695a;">SMS &middot; 16 JUL &middot; REPEATS</p>
+        <p class="disp" style="margin: 8px 0 0; font-size: 30px; font-weight: 800;">Telco bill</p>
+        <p style="margin: 6px 0 0; font-size: 15px; color: #73695a;">Utilities</p>
+        <p class="disp" style="margin: 14px 0 0; font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums;">&minus;$48.00</p>
+      </div>
+    </div>
+
+    <p class="mono sc-rise" style="margin: 66px auto 0; max-width: 620px; text-align: center; font-size: 13px; line-height: 1.9; letter-spacing: 0.06em; color: #73695a;">TYPED IN BY YOU &nbsp;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot; &nbsp;<span style="color: #b1301b; font-weight: 700;">0 ROWS</span></p>
+  </div>
+
+  <!-- ══════ THE EXTRUDED TOTAL ══════ -->
+  <div class="scene" style="position: relative; overflow: hidden; padding: 140px 80px 160px; background: #241d15; color: #f7f2e8; text-align: center;">
+    <div class="sc-dolly solid" style="position: relative;">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.34em; text-transform: uppercase; color: #e8b64a;">02 &mdash; in your pouch</p>
+      <!-- extruded by stacking the same glyph back through Z, dark to light -->
+      <div class="solid" style="position: relative; height: 250px; margin-top: 34px;">
+        <div class="disp" style="position: absolute; inset: 0; font-size: 210px; font-weight: 800; letter-spacing: -0.05em; color: #4a3410; transform: translateZ(-30px);">$486.20</div>
+        <div class="disp" style="position: absolute; inset: 0; font-size: 210px; font-weight: 800; letter-spacing: -0.05em; color: #6f4e0d; transform: translateZ(-22px);">$486.20</div>
+        <div class="disp" style="position: absolute; inset: 0; font-size: 210px; font-weight: 800; letter-spacing: -0.05em; color: #8a5f10; transform: translateZ(-14px);">$486.20</div>
+        <div class="disp" style="position: absolute; inset: 0; font-size: 210px; font-weight: 800; letter-spacing: -0.05em; color: #c9902a; transform: translateZ(-6px);">$486.20</div>
+        <div class="disp foil" style="position: absolute; inset: 0; font-size: 210px; font-weight: 800; letter-spacing: -0.05em; transform: translateZ(2px);">$486.20</div>
+      </div>
+      <p style="margin: 26px auto 0; max-width: 560px; font-size: 19px; line-height: 1.6; color: #c9bfae;">Kept 67% of what came in this month. The cat&rsquo;s ears are up. Nothing on this screen was typed by a human being.</p>
+    </div>
+  </div>
+
+  <!-- ══════ THE THREE, AS SOLIDS ══════ -->
+  <div class="scene" style="position: relative; padding: 130px 80px 140px; background: #f2efe9;">
+    <div class="grain" style="filter: url(#mint-grain); opacity: 0.2;"></div>
+    <div style="position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px; align-items: start;">
+
+      <div class="sc-rise" style="text-align: center;">
+        <div class="scene" style="height: 230px; display: flex; align-items: center; justify-content: center;">
+          <div class="solid turn-b" style="width: 170px; height: 119px; position: relative;">
+            <svg width="170" height="119" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-8px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#8a5f10"></ellipse></svg>
+            <svg width="170" height="119" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-4px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#b78722"></ellipse></svg>
+            <svg width="170" height="119" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(0px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e0ae3f"></ellipse></svg>
+            <svg width="170" height="119" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(4px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6f4e0d" stroke-width="1.8"></ellipse><text x="50" y="45" text-anchor="middle" font-size="26" font-weight="700" fill="#6f4e0d" font-family="serif">&#x53CE;</text></svg>
+          </div>
+        </div>
+        <h3 class="disp" style="margin: 0; font-size: 38px; font-weight: 800; letter-spacing: -0.03em;">It reads the pile</h3>
+        <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #4a4237;">Forward a bank SMS or an alert email. Merchant, amount, currency and category come out the other side, already filed.</p>
+      </div>
+
+      <div class="sc-rise" style="text-align: center;">
+        <div class="scene" style="height: 230px; display: flex; align-items: center; justify-content: center;">
+          <!-- the daruma, extruded -->
+          <div class="solid" style="position: relative; width: 150px; height: 168px; transform: rotateY(-16deg) rotateX(6deg);">
+            <svg width="150" height="168" viewBox="0 0 90 100" style="position: absolute; inset: 0; transform: translateZ(-14px);"><path d="M45 8c20 0 32 20 32 44 0 26-14 42-32 42S13 78 13 52C13 28 25 8 45 8z" fill="#6e1d10"></path></svg>
+            <svg width="150" height="168" viewBox="0 0 90 100" style="position: absolute; inset: 0; transform: translateZ(-7px);"><path d="M45 8c20 0 32 20 32 44 0 26-14 42-32 42S13 78 13 52C13 28 25 8 45 8z" fill="#95291a"></path></svg>
+            <svg width="150" height="168" viewBox="0 0 90 100" style="position: absolute; inset: 0; transform: translateZ(0px);">
+              <path d="M45 8c20 0 32 20 32 44 0 26-14 42-32 42S13 78 13 52C13 28 25 8 45 8z" fill="#b1301b"></path>
+              <ellipse cx="45" cy="52" rx="21" ry="15" fill="#f7f2e8"></ellipse>
+              <ellipse cx="36" cy="45" rx="6.5" ry="8" fill="#1e1913"></ellipse>
+              <ellipse cx="54" cy="45" rx="6.5" ry="8" fill="none" stroke="#1e1913" stroke-width="1.6"></ellipse>
+            </svg>
+          </div>
+        </div>
+        <h3 class="disp" style="margin: 0; font-size: 38px; font-weight: 800; letter-spacing: -0.03em;">One eye, then two</h3>
+        <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #4a4237;">Paint the first eye when you set the goal. The second gets painted the day you reach it &mdash; not a percentage bar, a promise kept.</p>
+      </div>
+
+      <div class="sc-rise" style="text-align: center;">
+        <div class="scene" style="height: 230px; display: flex; align-items: center; justify-content: center;">
+          <div class="solid turn-c" style="width: 170px; height: 119px; position: relative;">
+            <svg width="170" height="119" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-8px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#0a4a37"></ellipse></svg>
+            <svg width="170" height="119" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(-4px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#0e6f52"></ellipse></svg>
+            <svg width="170" height="119" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(0px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#1a8f6b"></ellipse></svg>
+            <svg width="170" height="119" viewBox="0 0 100 70" style="position: absolute; inset: 0; transform: translateZ(4px);"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#dcefe6" stroke="#0e6f52" stroke-width="1.8"></ellipse><text x="50" y="45" text-anchor="middle" font-size="26" font-weight="700" fill="#0e6f52" font-family="serif">&#x5409;</text></svg>
+          </div>
+        </div>
+        <h3 class="disp" style="margin: 0; font-size: 38px; font-weight: 800; letter-spacing: -0.03em;">A slip, once a day</h3>
+        <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #4a4237;">One omikuji, drawn from your own numbers. Not horoscope &mdash; arithmetic, in a form you will actually read.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════ CLOSE ══════ -->
+  <div class="scene" style="position: relative; overflow: hidden; padding: 130px 80px 120px; text-align: center; background: radial-gradient(1000px 560px at 50% 0%, rgba(232,182,74,0.55), transparent 64%), #f2efe9;">
+    <div class="grain" style="filter: url(#mint-grain); opacity: 0.26;"></div>
+    <div style="position: relative;">
+      <h2 class="disp foil sc-rise" style="margin: 0 auto; max-width: 1120px; font-size: 132px; font-weight: 800; line-height: 0.86; letter-spacing: -0.05em;">STRIKE ONE<br>COIN ONCE</h2>
+      <p class="sc-rise" style="margin: 30px auto 0; max-width: 540px; font-size: 19px; line-height: 1.6; color: #4a4237;">$9, one time. An app that bills you monthly to save money is a leak, not a fix. Free while the beta runs, yours forever after.</p>
+      <div class="sc-rise" style="margin-top: 40px;">
+        <span style="background: #241d15; color: #f6d878; border-radius: 0.7rem; padding: 22px 52px; font-size: 18px; font-weight: 700; box-shadow: 0 24px 50px -24px rgba(36,29,21,0.9);">Start tracking &mdash; it&rsquo;s free</span>
+      </div>
+      <p class="mono sc-rise" style="margin: 22px 0 0; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #8b8172;">no card &middot; no bank login &middot; any currency worldwide</p>
+    </div>
+  </div>
+
+  <div style="position: relative; z-index: 4; background: #241d15; color: #c9bfae; padding: 38px 80px; display: flex; align-items: center; justify-content: space-between;">
+    <span class="disp" style="font-size: 18px; font-weight: 800; color: #faf7f2;">Fortune&nbsp;Cat</span>
+    <div class="mono" style="display: flex; gap: 24px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

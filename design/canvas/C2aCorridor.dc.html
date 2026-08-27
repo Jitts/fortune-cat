@@ -1,0 +1,192 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #04060f; font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; color: #f7f1e6; -webkit-font-smoothing: antialiased; }
+    .disp { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    .foil {
+      background-image: linear-gradient(100deg, #6b4a0c 0%, #b9832a 14%, #f6d878 28%, #fffaeb 36%, #f6d878 44%, #b9832a 58%, #6b4a0c 72%, #b9832a 88%);
+      background-size: 280% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    @keyframes leaf-sweep { from { background-position: 250% 0; } to { background-position: -150% 0; } }
+    @media (prefers-reduced-motion: no-preference) { .foil { animation: leaf-sweep 8s linear infinite; } }
+
+    /* ── THE ONE IDEA ─────────────────────────────────────────────────────
+       C1 pinned one gate and grew it. This one puts TWELVE gates in real Z
+       and flies the camera down the line — a corridor you fall through, not
+       a picture of a corridor. Every gate is the same SVG at a different
+       depth, so the fog, the scale and the parallax all come out of the
+       perspective for free; nothing is faked with a blur filter. */
+    .corridor { perspective: 820px; perspective-origin: 50% 44%; }
+    .track { transform-style: preserve-3d; position: absolute; inset: 0; }
+    .gate { position: absolute; left: 50%; top: 50%; margin: -300px 0 0 -420px; width: 840px; height: 600px; }
+
+    @keyframes fly     { from { transform: translateZ(-2600px); } to { transform: translateZ(760px); } }
+    @keyframes fly-in  { from { transform: translateZ(-1400px) rotateY(24deg); } to { transform: translateZ(240px) rotateY(-4deg); } }
+    @keyframes c-rise  { from { opacity: 0; transform: translateY(68px); } to { opacity: 1; transform: none; } }
+    @keyframes c-open  { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .sc-fly  { animation: fly    linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+        .sc-in   { animation: fly-in linear both; animation-timeline: view(); animation-range: entry 0% cover 56%; }
+        .sc-rise { animation: c-rise linear both; animation-timeline: view(); animation-range: entry 2% cover 30%; }
+        .sc-open { animation: c-open linear both; animation-timeline: view(); animation-range: entry 8% cover 34%; }
+      }
+    }
+
+    /* Coins falling THROUGH the corridor, each at its own depth. */
+    @keyframes coin-fall-3d {
+      from { transform: translate3d(0, -260px, var(--z, 0px)) rotateY(0deg); }
+      to   { transform: translate3d(var(--drift, 0px), var(--fall, 3600px), var(--z, 0px)) rotateY(var(--flip, 1080deg)); }
+    }
+    .rain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; perspective: 1000px; }
+    .coin3 { position: absolute; top: 0; opacity: 0; transform-style: preserve-3d; }
+    @supports (animation-timeline: scroll()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .coin3 { opacity: 1; animation: coin-fall-3d linear both; animation-timeline: scroll(root); }
+      }
+    }
+
+    @keyframes tw { 0%,100% { opacity: 1; } 50% { opacity: 0.14; } }
+    @keyframes sway { 0%,100% { transform: rotate(-2.4deg); } 50% { transform: rotate(2.4deg); } }
+    @keyframes rimspin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: no-preference) {
+      .tw  { animation: tw 3.2s ease-in-out infinite; }
+      .tw2 { animation: tw 4.6s ease-in-out infinite 1.2s; }
+      .sway { animation: sway 5.4s ease-in-out infinite; transform-origin: 50% 0; }
+      .rim { animation: rimspin 48s linear infinite; transform-origin: 50% 50%; }
+    }
+    .solid { transform-style: preserve-3d; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; background: #04060f; position: relative; overflow: hidden;">
+
+  <!-- coin rain through the whole night -->
+  <div class="rain" style="z-index: 3; filter: drop-shadow(0 0 16px rgba(237,195,91,0.5));">
+    <div class="coin3" style="left: 8%;  --fall: 3800px; --drift: 60px;  --z: -420px; --flip: 1440deg; opacity: 0.35; animation-range: 2% 96%;"><svg width="30" height="21" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#6b4a0c" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 23%; --fall: 4700px; --drift: -80px; --z: 140px;  --flip: 720deg;  opacity: 0.9;  animation-range: 0% 92%;"><svg width="82" height="57" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 39%; --fall: 3400px; --drift: 130px; --z: -560px; --flip: 1800deg; opacity: 0.3;  animation-range: 7% 100%;"><svg width="24" height="17" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 53%; --fall: 5200px; --drift: -20px; --z: 300px;  --flip: 1080deg; opacity: 0.95; animation-range: 0% 88%;"><svg width="118" height="83" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 68%; --fall: 3900px; --drift: 90px;  --z: -300px; --flip: 1440deg; opacity: 0.45; animation-range: 4% 98%;"><svg width="40" height="28" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#6b4a0c" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 86%; --fall: 4500px; --drift: -110px;--z: 60px;   --flip: 720deg;  opacity: 0.8;  animation-range: 1% 94%;"><svg width="70" height="49" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
+  </div>
+
+  <!-- ══════ THE APPROACH ══════ -->
+  <div style="position: relative; height: 900px; overflow: hidden; background:
+      radial-gradient(ellipse 1100px 640px at 50% 40%, rgba(237,195,91,0.16), transparent 66%),
+      radial-gradient(ellipse 1400px 600px at 50% 112%, rgba(177,48,27,0.38), transparent 70%), #04060f;">
+    <svg width="4" height="4" style="position: absolute; left: 12%; top: 16%; z-index: 2;" class="tw"><circle cx="2" cy="2" r="1.6" fill="#f7f1e6"></circle></svg>
+    <svg width="4" height="4" style="position: absolute; left: 27%; top: 9%; z-index: 2;" class="tw2"><circle cx="2" cy="2" r="1.3" fill="#f7f1e6"></circle></svg>
+    <svg width="5" height="5" style="position: absolute; left: 71%; top: 13%; z-index: 2;" class="tw"><circle cx="2.5" cy="2.5" r="1.9" fill="#edc35b"></circle></svg>
+    <svg width="4" height="4" style="position: absolute; left: 88%; top: 22%; z-index: 2;" class="tw2"><circle cx="2" cy="2" r="1.5" fill="#f7f1e6"></circle></svg>
+
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between; padding: 24px 72px; z-index: 9;">
+      <span class="disp" style="font-size: 21px; font-weight: 800; letter-spacing: -0.02em;">Fortune&nbsp;Cat</span>
+      <div style="display: flex; align-items: center; gap: 24px;">
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8f97b8;">Method</span>
+        <span class="mono" style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8f97b8;">Pricing</span>
+        <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 12px 26px; font-size: 14px; font-weight: 700;">Get started</span>
+      </div>
+    </div>
+
+    <div style="position: relative; z-index: 8; text-align: center; padding: 60px 72px 0;">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.46em; text-transform: uppercase; color: #edc35b;">&#x2014;&nbsp; the approach &nbsp;&#x2014;</p>
+      <h1 class="disp foil" style="margin: 28px 0 0; font-size: 176px; font-weight: 800; line-height: 0.82; letter-spacing: -0.058em;">WALK IN<br>EMPTY&#8209;HANDED</h1>
+      <p style="margin: 34px auto 0; max-width: 600px; font-size: 20px; line-height: 1.6; color: #bcc3dd;">No bank login. No card. No spreadsheet to import. Twelve gates ahead of you and nothing to hand over at any of them.</p>
+      <p class="mono" style="margin: 40px 0 0; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: #4a5589;">scroll &mdash; the gates come to you</p>
+    </div>
+  </div>
+
+  <!-- ══════ THE CORRIDOR — twelve gates in Z, camera flies through ══════ -->
+  <div class="corridor" style="position: relative; height: 1500px; overflow: hidden; background:
+      radial-gradient(ellipse 900px 900px at 50% 46%, rgba(237,195,91,0.2), transparent 64%), #060a17;">
+    <div class="track sc-fly">
+      <div class="gate" style="transform: translateZ(-2400px); opacity: 0.30;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-2000px); opacity: 0.38;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-1650px); opacity: 0.46;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-1350px); opacity: 0.55;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-1090px); opacity: 0.63;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-870px); opacity: 0.71;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-680px); opacity: 0.79;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-520px); opacity: 0.86;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-390px); opacity: 0.92;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-280px); opacity: 0.96;"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-190px);"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+      <div class="gate" style="transform: translateZ(-110px);"><svg width="840" height="600" viewBox="0 0 280 200"><path d="M18 44h244l-10 15H28z" fill="#8d2616"></path><rect x="30" y="59" width="220" height="11" fill="#a83420"></rect><rect x="46" y="86" width="188" height="10" fill="#a83420"></rect><rect x="52" y="59" width="20" height="141" fill="#b1301b"></rect><rect x="208" y="59" width="20" height="141" fill="#b1301b"></rect></svg></div>
+
+      <!-- lanterns hung at depth, between the gates -->
+      <div class="gate sway" style="transform: translateZ(-1500px) translateX(-300px) translateY(-140px); opacity: 0.5;"><svg width="120" height="150" viewBox="0 0 60 76"><rect x="20" y="4" width="20" height="5" rx="2" fill="#4a3410"></rect><ellipse cx="30" cy="38" rx="22" ry="28" fill="#f6d878"></ellipse><rect x="20" y="66" width="20" height="5" rx="2" fill="#4a3410"></rect></svg></div>
+      <div class="gate sway" style="transform: translateZ(-760px) translateX(330px) translateY(-180px); opacity: 0.8;"><svg width="120" height="150" viewBox="0 0 60 76"><rect x="20" y="4" width="20" height="5" rx="2" fill="#4a3410"></rect><ellipse cx="30" cy="38" rx="22" ry="28" fill="#f6d878"></ellipse><rect x="20" y="66" width="20" height="5" rx="2" fill="#4a3410"></rect></svg></div>
+      <div class="gate sway" style="transform: translateZ(-340px) translateX(-380px) translateY(120px);"><svg width="120" height="150" viewBox="0 0 60 76"><rect x="20" y="4" width="20" height="5" rx="2" fill="#4a3410"></rect><ellipse cx="30" cy="38" rx="22" ry="28" fill="#f6d878"></ellipse><rect x="20" y="66" width="20" height="5" rx="2" fill="#4a3410"></rect></svg></div>
+    </div>
+
+    <!-- the one line you pass through the corridor to reach -->
+    <div style="position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; z-index: 6; pointer-events: none;">
+      <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.4em; text-transform: uppercase; color: #edc35b;">what do you hand over?</p>
+      <h2 class="disp sc-open" style="margin: 18px 0 0; font-size: 220px; font-weight: 800; letter-spacing: -0.06em; line-height: 0.86; color: #f7f1e6; text-shadow: 0 0 90px rgba(4,6,15,0.95), 0 0 30px rgba(4,6,15,1);">Nothing.</h2>
+      <p style="margin: 22px auto 0; max-width: 520px; font-size: 18px; line-height: 1.6; color: #bcc3dd; text-shadow: 0 0 24px rgba(4,6,15,1);">Not your bank password, not your card, not a single row typed by hand. You forward one message and the hall lights itself.</p>
+    </div>
+  </div>
+
+  <!-- ══════ THE MEDALLION, WITH THICKNESS ══════ -->
+  <div class="corridor" style="position: relative; padding: 150px 72px 160px; background: #04060f; text-align: center;">
+    <p class="mono" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.34em; text-transform: uppercase; color: #edc35b;">past the last gate</p>
+    <h2 class="disp sc-rise" style="margin: 22px auto 0; max-width: 1000px; font-size: 104px; font-weight: 800; line-height: 0.9; letter-spacing: -0.05em;">Sixty&#8209;seven percent<br>of it stayed.</h2>
+
+    <div class="sc-in solid" style="position: relative; height: 520px; margin-top: 40px; display: flex; align-items: center; justify-content: center;">
+      <div class="solid" style="position: relative; width: 420px; height: 420px;">
+        <svg class="rim" width="420" height="420" viewBox="0 0 100 100" style="position: absolute; inset: 0; transform: translateZ(-16px);"><circle cx="50" cy="50" r="47" fill="#4a3410"></circle></svg>
+        <svg width="420" height="420" viewBox="0 0 100 100" style="position: absolute; inset: 0; transform: translateZ(-11px);"><circle cx="50" cy="50" r="47" fill="#6b4a0c"></circle></svg>
+        <svg width="420" height="420" viewBox="0 0 100 100" style="position: absolute; inset: 0; transform: translateZ(-6px);"><circle cx="50" cy="50" r="47" fill="#8a5f10"></circle></svg>
+        <svg width="420" height="420" viewBox="0 0 100 100" style="position: absolute; inset: 0; transform: translateZ(-2px);"><circle cx="50" cy="50" r="47" fill="#b9832a"></circle></svg>
+        <svg width="420" height="420" viewBox="0 0 100 100" style="position: absolute; inset: 0; transform: translateZ(2px);">
+          <circle cx="50" cy="50" r="46" fill="#0a0f22" stroke="#6b4a0c" stroke-width="1.4"></circle>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#1b2440" stroke-width="7"></circle>
+          <!-- 67% of the ring, drawn the way the app's LuckRing draws it -->
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#edc35b" stroke-width="7" stroke-linecap="round"
+                  stroke-dasharray="159.9 238.8" transform="rotate(-90 50 50)"></circle>
+          <text x="50" y="47" text-anchor="middle" font-size="21" font-weight="800" fill="#f7f1e6" font-family="'Bricolage Grotesque', sans-serif">67%</text>
+          <text x="50" y="59" text-anchor="middle" font-size="6" letter-spacing="1.4" fill="#8f97b8" font-family="'JetBrains Mono', monospace">KEPT</text>
+        </svg>
+      </div>
+    </div>
+
+    <p class="sc-rise" style="margin: 0 auto; max-width: 580px; font-size: 19px; line-height: 1.65; color: #bcc3dd;">Earned 4,200. Spent 1,386. The ring is not decoration &mdash; it is that subtraction, and the cat&rsquo;s face is the same number wearing a different expression.</p>
+  </div>
+
+  <!-- ══════ THE OFFERING ══════ -->
+  <div style="position: relative; overflow: hidden; padding: 150px 72px 150px; text-align: center; background:
+      radial-gradient(ellipse 1000px 560px at 50% 0%, rgba(177,48,27,0.4), transparent 66%), #04060f;">
+    <p class="mono sc-rise" style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.44em; text-transform: uppercase; color: #edc35b;">the offering</p>
+    <h2 class="disp foil sc-rise" style="margin: 28px auto 0; max-width: 1180px; font-size: 148px; font-weight: 800; line-height: 0.84; letter-spacing: -0.055em;">CAST ONE COIN<br>ONCE</h2>
+    <p class="sc-rise" style="margin: 32px auto 0; max-width: 560px; font-size: 19px; line-height: 1.65; color: #bcc3dd;">A money-saving app that bills you monthly is a leak, not a fix. $9 unlocks every engine and stays unlocked &mdash; free while the beta runs, yours forever after.</p>
+    <div class="sc-rise" style="margin-top: 42px;">
+      <span style="background: linear-gradient(180deg, #f6d878, #edc35b); color: #2a1e05; border-radius: 999px; padding: 22px 56px; font-size: 18px; font-weight: 700; box-shadow: 0 0 70px -8px rgba(237,195,91,0.95);">Begin &mdash; it&rsquo;s free</span>
+    </div>
+    <p class="mono sc-rise" style="margin: 26px 0 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #4a5589;">no card &middot; no bank login &middot; any currency worldwide</p>
+  </div>
+
+  <div style="position: relative; z-index: 4; border-top: 1px solid #171f38; padding: 40px 72px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <span class="disp" style="font-size: 18px; font-weight: 800;">Fortune&nbsp;Cat</span>
+      <p class="mono" style="margin: 5px 0 0; font-size: 11px; letter-spacing: 0.1em; color: #4a5589;">your money logs itself</p>
+    </div>
+    <div style="display: flex; gap: 24px; font-size: 13px; color: #8f97b8;">
+      <span>Pro &mdash; free in beta</span><span>Sign up</span><span>Log in</span><span>Privacy</span><span>Terms</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
