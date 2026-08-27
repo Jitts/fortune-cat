@@ -233,7 +233,7 @@
               </div>
               <span class="seal-press" style="width: 40px; height: 40px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: #b1301b; color: #fff; border-radius: 6px; font-size: 20px; font-weight: 700; box-shadow: 0 2px 8px -2px rgba(177,48,27,0.7);">&#x5409;</span>
             </div>
-            <p class="tap mono" onClick="{{ reset }}" style="margin: 20px 0 0; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a7757;">&larr; put it back</p>
+            <p class="tap mono" onClick="{{ putBack }}" style="margin: 20px 0 0; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a7757;">&larr; put it back</p>
           </div>
         </div>
       </div>
@@ -286,7 +286,13 @@ class Component extends DCLogic {
 
     const st = this.state || {};
     const added = st.added || [];
-    const money = (n) => (n < 0 ? '−' : '+') + '$' + Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // One place forms the currency and the digits; only the SIGN rule differs
+    // by call site. The pouch used to build its own '$' + net.toLocaleString(),
+    // which put the minus on the wrong side of the symbol ($-60.40) for anyone
+    // who tapped expenses before the salary — i.e. most people.
+    const fmt   = (n) => '$' + Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const money = (n) => (n < 0 ? '−' : '+') + fmt(n);  // ledger rows: always signed
+    const total = (n) => (n < 0 ? '−' : '') + fmt(n);   // the pouch: minus only
 
     const rows = added.map((id) => {
       const s = SAMPLES.find((x) => x.id === id);
@@ -334,7 +340,7 @@ class Component extends DCLogic {
       rows: rows,
       emptyDisplay: rows.length ? 'none' : 'block',
       countLabel: added.length + ' of ' + SAMPLES.length + ' forwarded · 0 typed',
-      pouch: added.length ? '$' + net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '$0.00',
+      pouch: added.length ? total(net) : '$0.00',
       pouchNote: added.length ? 'income minus spending, so far' : 'waiting for its first message',
       cat: {
         savingDisplay:  mood === 'saving'  ? 'block' : 'none',
@@ -358,6 +364,9 @@ class Component extends DCLogic {
         this.setState({ shaking: true });
         setTimeout(() => this.setState({ shaking: false, slip: net >= 0 ? SLIPS[0] : SLIPS[1] }), 520);
       },
+      // Two different undos. Folding the slip back must NOT throw away the
+      // ledger the visitor just built — only "Clear the ledger" does that.
+      putBack: () => this.setState({ slip: null, shaking: false }),
       reset: () => this.setState({ added: [], slip: null, shaking: false })
     };
   }
