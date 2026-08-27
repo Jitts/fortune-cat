@@ -1,0 +1,47 @@
+<!--
+  Mockup 1 — the head mark, candidate for app/icon.svg.
+
+  Not a new drawing: every path here is lifted verbatim from the `saving` state
+  of app/app/components/FortuneCat.tsx, so the favicon and the cat on the
+  dashboard are the same mark rather than two things that look alike.
+
+  Dropped for 16px, per the asset spec: body, raised paw, resting paw, bell
+  collar, koban and whiskers. All of them turn to mud at tab size.
+
+  Kept: ears with cream inner triangles, cream muzzle, closed content eyes,
+  nose and smile. The muzzle is what stops it reading as a generic circle.
+
+  Strokes are 2.8 where the component uses 2 — optical compensation, because
+  the 0.49 scale below would otherwise leave a 1px outline at 32px and a
+  half-pixel one at 16px, which the browser renders as grey mush.
+
+  The transform fits the ears-to-chin bbox (21.6..78.4 x, 13.6..74.4 y in the
+  component's 100-unit space) into a 32 box with 1px of air on the tight axis.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Fortune Cat">
+  <defs>
+    <linearGradient id="leaf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4d888"/>
+      <stop offset="1" stop-color="#e8bd54"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(-8.48 -5.56) scale(0.49)" stroke-linejoin="round">
+    <!-- ears -->
+    <path d="M27 38 L30 15 L46 31 Z" fill="url(#leaf)" stroke="#6f4e0d" stroke-width="2.8"/>
+    <path d="M73 38 L70 15 L54 31 Z" fill="url(#leaf)" stroke="#6f4e0d" stroke-width="2.8"/>
+    <path d="M31 33 L33 22 L41 30 Z" fill="#fbf3dd"/>
+    <path d="M69 33 L67 22 L59 30 Z" fill="#fbf3dd"/>
+
+    <!-- head over the ear bases, exactly as the component stacks them -->
+    <circle cx="50" cy="46" r="27" fill="url(#leaf)" stroke="#6f4e0d" stroke-width="2.8"/>
+    <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"/>
+
+    <!-- closed, content -->
+    <path d="M36 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+    <path d="M54 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+
+    <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"/>
+    <path d="M45 54 q5 4 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

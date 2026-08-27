@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fortune Cat — OG card 1200×630</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+  /* Mockup 3 — app/opengraph-image, at exact final size.
+
+     Authored as HTML rather than a generated raster on purpose: the headline
+     stays real text in the real face, so the safe margins are exact and the
+     copy is editable. Production path is the existing next/og ImageResponse
+     component, which takes this markup almost verbatim.
+
+     Everything is at true 1200x630. Do not scale this file to review it —
+     the whole question is whether the type survives at the size LinkedIn and
+     Slack actually crop to. */
+  body { margin: 0; background: #17130f; display: grid; place-items: center; min-height: 100vh; }
+
+  .card {
+    position: relative;
+    width: 1200px; height: 630px;
+    overflow: hidden;
+    background:
+      radial-gradient(900px 640px at 78% 12%, #2a2013 0%, rgba(42,32,19,0) 62%),
+      #17130f;
+    font-family: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+    display: flex; align-items: center;
+  }
+
+  /* 60px safe area — LinkedIn and Slack crop differently and both bite in
+     from the edges. Nothing that must be read sits outside this. */
+  .safe { position: absolute; inset: 60px; pointer-events: none; }
+
+  .copy {
+    position: relative; z-index: 2;
+    width: 55%; padding: 0 0 0 84px;
+    display: flex; flex-direction: column; gap: 26px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 78px; font-weight: 800; line-height: 0.94; letter-spacing: -0.035em;
+    color: #f7f1e6; text-wrap: balance;
+  }
+  .rule { width: 92px; height: 3px; background: #edc35b; border-radius: 2px; }
+  .meta {
+    margin: 0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 17px; font-weight: 500; letter-spacing: 0.06em; line-height: 1.7;
+    color: #edc35b;
+  }
+  .meta .dim { color: #a08a5e; }
+
+  .art { position: absolute; right: 96px; top: 50%; transform: translateY(-50%); z-index: 1; }
+  .art svg { display: block; filter: drop-shadow(0 30px 70px rgba(0,0,0,0.55)); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="safe"></div>
+
+  <div class="copy">
+    <h1>Your money<br>logs itself.</h1>
+    <div class="rule"></div>
+    <p class="meta">
+      FORTUNE CAT<br>
+      <span class="dim">no bank login &nbsp;·&nbsp; any currency &nbsp;·&nbsp; $9 once for Pro</span>
+    </p>
+  </div>
+
+  <div class="art">
+    <!-- the same paths as 02-full-body.svg / FortuneCat.tsx, saving state -->
+    <svg width="380" height="380" viewBox="0 0 100 100" role="img" aria-label="Fortune cat, content">
+      <defs>
+        <linearGradient id="og-leaf" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f4d888"/>
+          <stop offset="1" stop-color="#e8bd54"/>
+        </linearGradient>
+      </defs>
+      <path d="M27 38 L30 15 L46 31 Z" fill="url(#og-leaf)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M73 38 L70 15 L54 31 Z" fill="url(#og-leaf)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M31 33 L33 22 L41 30 Z" fill="#fbf3dd"/>
+      <path d="M69 33 L67 22 L59 30 Z" fill="#fbf3dd"/>
+      <path d="M24 74 Q24 92 50 92 Q76 92 76 74 Q76 62 50 62 Q24 62 24 74 Z"
+            fill="url(#og-leaf)" stroke="#6f4e0d" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="78" cy="55" r="8" fill="url(#og-leaf)" stroke="#6f4e0d" stroke-width="2"/>
+      <ellipse cx="34" cy="82" rx="7" ry="5" fill="#fbf3dd" stroke="#6f4e0d" stroke-width="1.4"/>
+      <circle cx="50" cy="46" r="27" fill="url(#og-leaf)" stroke="#6f4e0d" stroke-width="2"/>
+      <ellipse cx="50" cy="52" rx="13" ry="9" fill="#fbf3dd"/>
+      <path d="M36 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M54 44 q5 5 10 0" stroke="#6f4e0d" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M48.5 49 h3 l-1.5 2 Z" fill="#6f4e0d"/>
+      <path d="M45 54 q5 4 10 0" stroke="#6f4e0d" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M28 45 l-9 -2 M28 49 l-9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+      <path d="M72 45 l9 -2 M72 49 l9 2" stroke="#6f4e0d" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+      <path d="M34 62 Q50 70 66 62" stroke="#cf9528" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <circle cx="50" cy="67" r="3.4" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.2"/>
+      <path d="M47 67 h6" stroke="#6f4e0d" stroke-width="0.9"/>
+      <ellipse cx="82" cy="70" rx="10" ry="7" fill="#f4d888" stroke="#6f4e0d" stroke-width="1.6" transform="rotate(-14 82 70)"/>
+      <text x="82" y="73.5" text-anchor="middle" font-size="8" font-weight="700" fill="#6f4e0d"
+            font-family="serif" transform="rotate(-14 82 70)">&#x91D1;</text>
+    </svg>
+  </div>
+</div>
+
+</body>
+</html>
