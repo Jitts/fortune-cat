@@ -1,24 +1,139 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "title": "A · Lacquer (round 1 — the parent)", "x": 0, "y": 0, "w": 1440, "h": 3400 },
-    { "file": "A1Scroll.dc.html", "title": "A1 · Scroll — the ledger fills as you scroll", "x": 1600, "y": 0, "w": 1440, "h": 940, "expand": "fill" },
-    { "file": "A2Explosive.dc.html", "title": "A2 · Explosive — struck gold, now raining coins", "x": 3200, "y": 0, "w": 1440, "h": 3300 },
-    { "file": "A3Interactive.dc.html", "title": "A3 · Interactive — the hero IS the product", "x": 4800, "y": 0, "w": 1440, "h": 2560, "is_interactive": true },
-
-    { "file": "A2aMint.dc.html", "title": "A2a · The Mint — every coin is a real 3D solid", "x": 1600, "y": 3900, "w": 1440, "h": 3900 },
-    { "file": "A2bSorter.dc.html", "title": "A2b · Sort It Yourself — a minigame you are meant to lose", "x": 3200, "y": 3900, "w": 1440, "h": 3260, "is_interactive": true },
-    { "file": "A2cOffGrid.dc.html", "title": "A2c · Off Grid — the page refuses to draw a straight line", "x": 4800, "y": 3900, "w": 1440, "h": 3600 },
-
-    { "file": "DirectionC.dc.html", "title": "C · Night Shrine (round 1 — the parent)", "x": 0, "y": 8400, "w": 1440, "h": 3520 },
-    { "file": "C1Scroll.dc.html", "title": "C1 · Scroll — you walk under the gate", "x": 1600, "y": 8400, "w": 1440, "h": 940, "expand": "fill" },
-    { "file": "C2Explosive.dc.html", "title": "C2 · Explosive — the shrine at full blaze, now raining coins", "x": 3200, "y": 8400, "w": 1440, "h": 4400 },
-    { "file": "C3Interactive.dc.html", "title": "C3 · Interactive — SHIPPED to the real page", "x": 4800, "y": 8400, "w": 1440, "h": 3000, "is_interactive": true },
-
-    { "file": "C2aCorridor.dc.html", "title": "C2a · The Corridor — twelve gates in real 3D depth", "x": 1600, "y": 13400, "w": 1440, "h": 4100 },
-    { "file": "C2bGacha.dc.html", "title": "C2b · Cast a Coin — an omikuji machine with a twist", "x": 3200, "y": 13400, "w": 1440, "h": 3540, "is_interactive": true },
-    { "file": "C2cWell.dc.html", "title": "C2c · The Well — gravity inverted, no rows, no columns", "x": 4800, "y": 13400, "w": 1440, "h": 4600 },
-
-    { "file": "DirectionB.dc.html", "title": "B · The Receipt (round 1 — not carried forward)", "x": 0, "y": 18600, "w": 1440, "h": 3260 }
+    {
+      "file": "Main.dc.html",
+      "title": "A · Lacquer (round 1 — the parent)",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 3400
+    },
+    {
+      "file": "A1Scroll.dc.html",
+      "title": "A1 · Scroll — the ledger fills as you scroll",
+      "x": 1600,
+      "y": 0,
+      "w": 1440,
+      "h": 940,
+      "expand": "fill"
+    },
+    {
+      "file": "A2Explosive.dc.html",
+      "title": "A2 · Explosive — struck gold, now raining coins",
+      "x": 3200,
+      "y": 0,
+      "w": 1440,
+      "h": 3300,
+      "expand": "fill"
+    },
+    {
+      "file": "A3Interactive.dc.html",
+      "title": "A3 · Interactive — the hero IS the product",
+      "x": 4800,
+      "y": 0,
+      "w": 1440,
+      "h": 2560,
+      "is_interactive": true
+    },
+    {
+      "file": "A2aMint.dc.html",
+      "title": "A2a · The Mint — every coin is a real 3D solid",
+      "x": 1600,
+      "y": 3900,
+      "w": 1440,
+      "h": 3900,
+      "expand": "fill"
+    },
+    {
+      "file": "A2bSorter.dc.html",
+      "title": "A2b · Sort It Yourself — a minigame you are meant to lose",
+      "x": 3200,
+      "y": 3900,
+      "w": 1440,
+      "h": 3260,
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    {
+      "file": "A2cOffGrid.dc.html",
+      "title": "A2c · Off Grid — the page refuses to draw a straight line",
+      "x": 4800,
+      "y": 3900,
+      "w": 1440,
+      "h": 3600,
+      "expand": "fill"
+    },
+    {
+      "file": "DirectionC.dc.html",
+      "title": "C · Night Shrine (round 1 — the parent)",
+      "x": 0,
+      "y": 8400,
+      "w": 1440,
+      "h": 3520
+    },
+    {
+      "file": "C1Scroll.dc.html",
+      "title": "C1 · Scroll — you walk under the gate",
+      "x": 1600,
+      "y": 8400,
+      "w": 1440,
+      "h": 940,
+      "expand": "fill"
+    },
+    {
+      "file": "C2Explosive.dc.html",
+      "title": "C2 · Explosive — the shrine at full blaze, now raining coins",
+      "x": 3200,
+      "y": 8400,
+      "w": 1440,
+      "h": 4400,
+      "expand": "fill"
+    },
+    {
+      "file": "C3Interactive.dc.html",
+      "title": "C3 · Interactive — SHIPPED to the real page",
+      "x": 4800,
+      "y": 8400,
+      "w": 1440,
+      "h": 3000,
+      "is_interactive": true
+    },
+    {
+      "file": "C2aCorridor.dc.html",
+      "title": "C2a · The Corridor — twelve gates in real 3D depth",
+      "x": 1600,
+      "y": 13400,
+      "w": 1440,
+      "h": 4100,
+      "expand": "fill"
+    },
+    {
+      "file": "C2bGacha.dc.html",
+      "title": "C2b · Cast a Coin — an omikuji machine with a twist",
+      "x": 3200,
+      "y": 13400,
+      "w": 1440,
+      "h": 3540,
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    {
+      "file": "C2cWell.dc.html",
+      "title": "C2c · The Well — gravity inverted, no rows, no columns",
+      "x": 4800,
+      "y": 13400,
+      "w": 1440,
+      "h": 4600,
+      "expand": "fill"
+    },
+    {
+      "file": "DirectionB.dc.html",
+      "title": "B · The Receipt (round 1 — not carried forward)",
+      "x": 0,
+      "y": 18600,
+      "w": 1440,
+      "h": 3260
+    }
   ],
   "annotations": [
     {
@@ -26,95 +141,122 @@
       "x": -700,
       "y": 0,
       "w": 540,
-      "text": "HOW TO READ THIS CANVAS\n\nFive rows, fifteen artboards, one page.\n\nROW 1 — the A · Lacquer lineage: the round-1 parent, then scroll / explosive / interactive.\nROW 2 — three spin-offs of A2, all built on the falling-coin idea.\nROW 3 — the C · Night Shrine lineage, same three round-2 spin-offs. C3 is the one now built into app/page.tsx.\nROW 4 — three spin-offs of C2, same coin base.\nROW 5 — B · The Receipt, round 1, parked.\n\nZoom out to see everything, or click an artboard's title to focus it. Give it a while on first open — fifteen full landing pages have to paint before anything is legible, and the 3D ones are the slowest.\n\nThe two SCROLL artboards (A1, C1) are one viewport tall on purpose. Expand them and scroll — that is the whole point of those two.\n\nFour artboards have working controls: A3, A2b, C2b, C3."
+      "text": "HOW TO READ THIS CANVAS\n\nFive rows, fifteen artboards, one page.\n\nROW 1 — the A · Lacquer lineage: the round-1 parent, then scroll / explosive / interactive.\nROW 2 — three spin-offs of A2, all built on the falling-coin idea.\nROW 3 — the C · Night Shrine lineage, same three round-2 spin-offs. C3 is the one now built into app/page.tsx.\nROW 4 — three spin-offs of C2, same coin base.\nROW 5 — B · The Receipt, round 1, parked.\n\nZoom out to see everything, or click an artboard's title to focus it. Give it a while on first open — fifteen full landing pages have to paint before anything is legible, and the 3D ones are the slowest.\n\nTEN artboards only make sense EXPANDED AND SCROLLED: A1 and C1 (which are one viewport tall on purpose), plus all eight coin artboards in rows 2 and 4. On the canvas a frame is its own full height, so nothing scrolls and no scroll-driven animation runs. Click a title, expand, scroll.\n\nFour artboards have working controls: A3, A2b, C2b, C3."
     },
     {
       "id": "note-coin-rain",
       "x": -700,
       "y": 1300,
       "w": 540,
-      "text": "THE COIN RAIN — the shared idea under rows 2 and 4\n\nA2 and C2 now rain gold koban, and every spin-off inherits it. The coins are driven by the SCROLL POSITION, not a clock: `animation-timeline: scroll(root)` with a per-coin --fall distance for parallax depth. They only move while you move, so the page reads as a chute you are pouring money down.\n\nSixty lines of CSS, no JavaScript, no animation library, nothing to leak — and it ports into the real Next.js page unchanged.\n\nBrowsers without scroll timelines (Safari, Firefox today) get NO coins rather than a heap stuck at the top. That was a deliberate choice: the fallback for a decorative layer is absence, not a broken version of it.\n\nEverything is wrapped in prefers-reduced-motion. Desktop 1440 only."
+      "text": "THE COIN RAIN — the shared idea under rows 2 and 4\n\nA2 and C2 now rain gold koban, and every spin-off inherits it. The coins are driven by the SCROLL POSITION, not a clock: `animation-timeline: scroll(root)` with a per-coin --fall distance for parallax depth. They only move while you move, so the page reads as a chute you are pouring money down.\n\nYOU HAVE TO EXPAND AN ARTBOARD TO SEE IT. A frame sitting on the canvas is its own full height, so it has nothing to scroll and the coins correctly stay hidden. All eight coin artboards are set to open expanded-and-scrolling for exactly this reason — click the title, expand, then scroll.\n\nSixty lines of CSS, no JavaScript, no animation library, nothing to leak — and it ports into the real Next.js page unchanged.\n\nBrowsers without scroll timelines (Safari, Firefox today) get NO coins rather than a heap stuck at the top. That is deliberate: the fallback for a decorative layer is absence, not a broken version of it. The opacity lives in the keyframes rather than on the element so that a timeline which never runs leaves the coins invisible.\n\nEverything is wrapped in prefers-reduced-motion. Desktop 1440 only."
     },
-
     {
       "id": "note-a-parent",
-      "x": 0, "y": -320, "w": 440,
+      "x": 0,
+      "y": -320,
+      "w": 440,
       "text": "THE PARENT — round 1, unchanged.\n\nKept here so you can see what the three to its right are departing from. Static, one screen of ideas per section."
     },
     {
       "id": "note-a1",
-      "x": 1600, "y": -320, "w": 440,
+      "x": 1600,
+      "y": -320,
+      "w": 440,
       "text": "A1 · SCROLL\n\nThe axis: scroll IS the demo.\n\nThe pitch is not described, it is performed. A pinned left column holds still while raw bank messages print into finished ledger rows beside it. The gold swash draws itself, $486.20 counts up from zero, the luck ring fills. A lantern rail lights one lantern per section — the app's own streak metaphor doing double duty as a progress bar.\n\nTradeoff: five screens of scrolling before the offer is fully made, which punishes a visitor who wanted the price in three seconds.\n\nOPEN THIS ONE EXPANDED — the frame is one viewport tall on purpose."
     },
     {
       "id": "note-a2",
-      "x": 3200, "y": -320, "w": 440,
+      "x": 3200,
+      "y": -320,
+      "w": 440,
       "text": "A2 · EXPLOSIVE — now with the coin rain\n\nThe axis: same warm palette, ten times the volume.\n\n178px headline in gold leaf with a live sheen. Real grain over every surface (SVG turbulence, not a texture file). A 1010px ledger slab tilted −1.6° breaking out of the fold. A 12-column grid the cards refuse to sit inside.\n\nNEW: forty-two koban now fall the length of the page as you scroll, and the big hero coin is clickable — one click latches a spin (:focus, not :active, so it does not stop the moment you let go). Zero JavaScript on either.\n\nTradeoff: this is a shout, and a shout is tiring. It also raises a promise the signed-in app does not keep — the dashboard is calm and this is not."
     },
     {
       "id": "note-a3",
-      "x": 4800, "y": -320, "w": 440,
+      "x": 4800,
+      "y": -320,
+      "w": 440,
       "text": "A3 · INTERACTIVE\n\nThe axis: stop describing the product, hand it over.\n\nThe hero is a working capture demo. Tap any of five real bank-message shapes and watch it parse into the ledger. The pouch recomputes, the luck ring moves, the cat's face changes — all from lib/catState's actual rule.\n\nTwo bugs found and fixed here: the pouch rendered negatives as \"$-60.40\", and \"← put it back\" was wired to reset and wiped the ledger. Both now covered by a runnable check against the real renderVals.\n\nTradeoff: the demo has to be flawless, because it IS the pitch."
     },
-
     {
       "id": "note-a2a",
-      "x": 1600, "y": 3580, "w": 440,
+      "x": 1600,
+      "y": 3580,
+      "w": 440,
       "text": "A2a · THE MINT — 3D\n\nThe axis: A2 drew coins. This one MINTS them.\n\nEvery coin here is a real solid — twenty-two SVG discs stacked along Z inside a preserve-3d parent — so it has an edge, the rim catches light, and turning it makes it go thin. Nothing is an image and nothing is faked with a blur.\n\nThe ledger is a DECK standing up in Z that fans open as you scroll. The $486.20 total is extruded by stacking the same glyph back through Z, dark to light. The daruma has depth. The camera dollies rather than fading.\n\nClick the hero coin: it turns twice and settles.\n\nTradeoff: CSS 3D has no lighting model, so every 'solid' here is hand-shaded by picking the stack colours — it looks right at these sizes and would need reworking at others. It is also the heaviest artboard on the canvas to paint."
     },
     {
       "id": "note-a2b",
-      "x": 3200, "y": 3580, "w": 440,
+      "x": 3200,
+      "y": 3580,
+      "w": 440,
       "text": "A2b · SORT IT YOURSELF — minigame · WORKING\n\nThe axis: make the visitor do the job, then take it away.\n\nEight real bank messages fall one at a time. You catch each in Food / Bills / Money in. Get it wrong and the coin drops through — and the money is then visibly MISSING from your pouch, because that is the entire argument.\n\nAt the end it grades you, and every grade lands on the same point: a month is sixty-eight of these. Perfect score gets the sharpest version of it.\n\nThe drop replays by alternating between two identical keyframe sets — a re-render alone does not restart a finished animation on a reused node.\n\nCovered by a runnable check against the real renderVals: scoring, the pouch excluding missed rows, the ninth-tap guard, and both verdict branches.\n\nTradeoff: it is a landing page that opens by giving you homework. Some visitors will bounce before the punchline lands, and the punchline is the whole page."
     },
     {
       "id": "note-a2c",
-      "x": 4800, "y": 3580, "w": 440,
+      "x": 4800,
+      "y": 3580,
+      "w": 440,
       "text": "A2c · OFF GRID — broken layout\n\nThe axis: a ledger is a straight line you have been failing to keep. So this page refuses to draw one.\n\nEverything hangs off a −6.5° baseline while the frame stays square, so the whitespace comes out as wedges instead of margins. The nav is stood on its end down the right edge. The headline runs off the left edge and you read the tail. The ledger is column-reverse — newest at the BOTTOM, the way a real receipt pile grows. Two feature cards overlap with mix-blend-mode so the seam is a third colour. The price is set sideways. One line is upside down.\n\nThe coins fall along the PAGE's axis, not the screen's, so they land at an angle the frame never agrees with.\n\nThe only straight rule on the page is in the closing section, and it is the payoff.\n\nTradeoff: genuinely harder to read, and that is on purpose — which is a real bet, not a free one. Rotated text also renders slightly softer on Windows."
     },
-
     {
       "id": "note-c-parent",
-      "x": 0, "y": 8080, "w": 440,
+      "x": 0,
+      "y": 8080,
+      "w": 440,
       "text": "THE PARENT — round 1, unchanged.\n\nKept for comparison. Torii, lantern string, ema plaques, all static."
     },
     {
       "id": "note-c1",
-      "x": 1600, "y": 8080, "w": 440,
+      "x": 1600,
+      "y": 8080,
+      "w": 440,
       "text": "C1 · SCROLL\n\nThe axis: the scroll is a walk to the shrine.\n\nYou approach at night. Two star layers drift at different rates, the moon rises. The gate pins to the screen and grows from distant to overhead — and at the moment it passes over you, the answer to 'what do you hand over at the gate?' resolves to a single word: Nothing.\n\nTradeoff: nearly three screens of scrolling buy one word. Beautiful if they are willing; infuriating if they came to compare pricing.\n\nOPEN THIS ONE EXPANDED — the frame is one viewport tall on purpose."
     },
     {
       "id": "note-c2",
-      "x": 3200, "y": 8080, "w": 440,
+      "x": 3200,
+      "y": 8080,
+      "w": 440,
       "text": "C2 · EXPLOSIVE — now with the coin rain\n\nThe axis: every dial past its stop.\n\n208px foil headline. A twenty-ray sunburst rotating behind everything on a 90-second cycle. The luck medallion at 500px with its reeded rim turning. A 440px 金吉 watermark bled off the right edge. A full-bleed vermilion flood with 104px knockout type.\n\nNEW: fifty-two coins now fall the length of the night, each carrying its own glow (drop-shadow on the layer, so the light comes off the coins rather than being painted behind them).\n\nTradeoff: the most striking of the six and the least defensible — at this scale the cultural motif stops being flavour and becomes the entire brand claim."
     },
     {
       "id": "note-c3",
-      "x": 4800, "y": 8080, "w": 440,
+      "x": 4800,
+      "y": 8080,
+      "w": 440,
       "text": "C3 · INTERACTIVE — THIS IS THE ONE THAT SHIPPED\n\nNow built into app/page.tsx and running on localhost:3000, on branch landing-night-shrine (committed, not pushed).\n\nShake the omikuji box. Pick a month and the cat's ears, eyes and mouth change, the ring re-fills and recolours — straight from lib/catState. Set money aside and the daruma's second eye fills in. Tap the lanterns to build a streak.\n\nIn the real build these reuse the app's OWN components — LuckRing, catState, Daruma, Lantern — not copies, so the landing page and the dashboard cannot drift apart.\n\nTradeoff: four interactions deep before it makes an offer, and it sets the highest bar of the six."
     },
-
     {
       "id": "note-c2a",
-      "x": 1600, "y": 13080, "w": 440,
+      "x": 1600,
+      "y": 13080,
+      "w": 440,
       "text": "C2a · THE CORRIDOR — 3D\n\nThe axis: C1 pinned one gate and grew it. This one puts TWELVE in real Z and flies the camera down the line.\n\nSame torii SVG twelve times at different depths inside one preserve-3d track; the fog, the scale and the parallax all fall out of the perspective for free. Lanterns hang between the gates at their own depths. Scroll drives a 3.3k-pixel dolly, and the word you travel the corridor to reach — Nothing. — sits pinned at the vanishing point.\n\nThe medallion past the last gate has thickness too: five stacked discs, with the 67% arc drawn the way the app's own LuckRing draws it.\n\nTradeoff: a corridor is a commitment — the visitor is inside it for a full 1500px section before anything is offered, and there is no way to skim it. It is also the one artboard where an underpowered machine will visibly drop frames."
     },
     {
       "id": "note-c2b",
-      "x": 3200, "y": 13080, "w": 440,
+      "x": 3200,
+      "y": 13080,
+      "w": 440,
       "text": "C2b · CAST A COIN — minigame · WORKING\n\nThe axis: build an actual gacha, then turn it on itself.\n\nYou get five coins. Each one buys a pull: the coin drops through the slot, the box rattles, a slip unfurls. Collect three distinct fortunes and the full reading opens — and the full reading is the punchline. Every gacha ever made takes a coin per look; Fortune Cat draws you one slip a day forever and never asks. The $9 is for the engines, once.\n\nRun out of coins before you get three and the page says so, plainly. That state is deliberate, not an accident of the game.\n\nAll six fortunes are plain arithmetic on the same month — earned 4,200, spent 1,386, kept 67%. Draw order is fixed rather than random so a review can talk about the same demo twice.\n\nCovered by a runnable check: the purse, the distinct-slip rack, the unlock at three, and that an empty purse is a real stop.\n\nTradeoff: it flirts with the mechanic it is criticising, and a visitor who does not reach the third slip only gets the flirt."
     },
     {
       "id": "note-c2c",
-      "x": 4800, "y": 13080, "w": 440,
+      "x": 4800,
+      "y": 13080,
+      "w": 440,
       "text": "C2c · THE WELL — the unconventional one\n\nTwo rules broken on purpose.\n\nONE: gravity is inverted. Every other artboard here drops coins; this one pours them UP out of a well at the bottom, because the argument is that what you do not spend comes back — and a page that only ever falls cannot say that.\n\nTWO: there are no rows and no columns. Not one card, not one grid. Sections are RINGS around a centre. The nav is bent onto an arc. The three features orbit a pouch at 12, 4 and 8 o'clock. Sixty-eight ledger rows are wound into four concentric turns of SVG textPath, reading outside-in, with 'typed by you: 0' at the dead centre. The price sits at the exact centre of a set of counter-rotating rings.\n\nThe only straight line on the entire page is the closing rule, and that is the point of it.\n\nTradeoff: the most likely of all fifteen to be admired and not converted. Circular type is slow to read and cannot be scanned, and a landing page that cannot be scanned is asking for a lot. Worth building precisely once, to see."
     },
-
     {
       "id": "note-b",
-      "x": 0, "y": 18280, "w": 460,
+      "x": 0,
+      "y": 18280,
+      "w": 460,
       "text": "B · THE RECEIPT — round 1, not carried forward.\n\nParked here rather than deleted. The one line worth stealing into whichever direction wins is the punchline: 'Typed in by you .... 0 rows'."
     }
   ],
-  "launch": { "view": "canvas" }
+  "launch": {
+    "view": "canvas"
+  }
 }

@@ -45,14 +45,16 @@
 
     /* Coins falling THROUGH the corridor, each at its own depth. */
     @keyframes coin-fall-3d {
-      from { transform: translate3d(0, -260px, var(--z, 0px)) rotateY(0deg); }
-      to   { transform: translate3d(var(--drift, 0px), var(--fall, 3600px), var(--z, 0px)) rotateY(var(--flip, 1080deg)); }
+      from { transform: translate3d(0, -260px, var(--z, 0px)) rotateY(0deg); opacity: 0; }
+      6%   { opacity: var(--peak, 0.8); }
+      90%  { opacity: var(--peak, 0.8); }
+      to   { transform: translate3d(var(--drift, 0px), var(--fall, 3600px), var(--z, 0px)) rotateY(var(--flip, 1080deg)); opacity: 0; }
     }
     .rain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; perspective: 1000px; }
     .coin3 { position: absolute; top: 0; opacity: 0; transform-style: preserve-3d; }
     @supports (animation-timeline: scroll()) {
       @media (prefers-reduced-motion: no-preference) {
-        .coin3 { opacity: 1; animation: coin-fall-3d linear both; animation-timeline: scroll(root); }
+        .coin3 { animation: coin-fall-3d linear both; animation-timeline: scroll(root); }
       }
     }
 
@@ -73,12 +75,12 @@
 
   <!-- coin rain through the whole night -->
   <div class="rain" style="z-index: 3; filter: drop-shadow(0 0 16px rgba(237,195,91,0.5));">
-    <div class="coin3" style="left: 8%;  --fall: 3800px; --drift: 60px;  --z: -420px; --flip: 1440deg; opacity: 0.35; animation-range: 2% 96%;"><svg width="30" height="21" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#6b4a0c" stroke-width="3"></ellipse></svg></div>
-    <div class="coin3" style="left: 23%; --fall: 4700px; --drift: -80px; --z: 140px;  --flip: 720deg;  opacity: 0.9;  animation-range: 0% 92%;"><svg width="82" height="57" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
-    <div class="coin3" style="left: 39%; --fall: 3400px; --drift: 130px; --z: -560px; --flip: 1800deg; opacity: 0.3;  animation-range: 7% 100%;"><svg width="24" height="17" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
-    <div class="coin3" style="left: 53%; --fall: 5200px; --drift: -20px; --z: 300px;  --flip: 1080deg; opacity: 0.95; animation-range: 0% 88%;"><svg width="118" height="83" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
-    <div class="coin3" style="left: 68%; --fall: 3900px; --drift: 90px;  --z: -300px; --flip: 1440deg; opacity: 0.45; animation-range: 4% 98%;"><svg width="40" height="28" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#6b4a0c" stroke-width="3"></ellipse></svg></div>
-    <div class="coin3" style="left: 86%; --fall: 4500px; --drift: -110px;--z: 60px;   --flip: 720deg;  opacity: 0.8;  animation-range: 1% 94%;"><svg width="70" height="49" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 8%;  --fall: 6938px; --drift: 60px;  --z: -420px; --flip: 1440deg; --peak: 0.35; animation-range: 2% 96%;"><svg width="30" height="21" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#6b4a0c" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 23%; --fall: 6784px; --drift: -80px; --z: 140px;  --flip: 720deg;  --peak: 0.9;  animation-range: 0% 92%;"><svg width="82" height="57" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 39%; --fall: 6538px; --drift: 130px; --z: -560px; --flip: 1800deg; --peak: 0.3;  animation-range: 7% 100%;"><svg width="24" height="17" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 53%; --fall: 5458px; --drift: -20px; --z: 300px;  --flip: 1080deg; --peak: 0.95; animation-range: 0% 88%;"><svg width="118" height="83" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#6b4a0c" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin3" style="left: 68%; --fall: 5264px; --drift: 90px;  --z: -300px; --flip: 1440deg; --peak: 0.45; animation-range: 4% 98%;"><svg width="40" height="28" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#edc35b" stroke="#6b4a0c" stroke-width="3"></ellipse></svg></div>
+    <div class="coin3" style="left: 86%; --fall: 7195px; --drift: -110px;--z: 60px;   --flip: 720deg;  --peak: 0.8;  animation-range: 1% 94%;"><svg width="70" height="49" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#b9832a" stroke-width="1.6"></ellipse></svg></div>
   </div>
 
   <!-- ══════ THE APPROACH ══════ -->

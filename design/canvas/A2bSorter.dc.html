@@ -38,14 +38,16 @@
 
     /* Decorative rain, still scroll-driven — the coins you are NOT catching. */
     @keyframes coin-fall {
-      from { transform: translate3d(0, -220px, 0) rotate(var(--tilt, 0deg)) rotateX(0deg); }
-      to   { transform: translate3d(var(--drift, 0px), var(--fall, 3200px), 0) rotate(var(--tilt, 0deg)) rotateX(var(--flip, 1080deg)); }
+      from { transform: translate3d(0, -220px, 0) rotate(var(--tilt, 0deg)) rotateX(0deg); opacity: 0; }
+      6%   { opacity: var(--peak, 0.8); }
+      90%  { opacity: var(--peak, 0.8); }
+      to   { transform: translate3d(var(--drift, 0px), var(--fall, 3200px), 0) rotate(var(--tilt, 0deg)) rotateX(var(--flip, 1080deg)); opacity: 0; }
     }
     .rain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
     .coin { position: absolute; top: 0; opacity: 0; }
     @supports (animation-timeline: scroll()) {
       @media (prefers-reduced-motion: no-preference) {
-        .coin { opacity: 1; animation: coin-fall linear both; animation-timeline: scroll(root); }
+        .coin { animation: coin-fall linear both; animation-timeline: scroll(root); }
       }
     }
 
@@ -66,10 +68,10 @@
   <svg width="0" height="0" style="position: absolute;"><filter id="g-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter></svg>
 
   <div class="rain" style="z-index: 2;">
-    <div class="coin" style="left: 4%;  --fall: 2900px; --drift: 80px;  --tilt: -14deg; --flip: 1440deg; opacity: 0.4; animation-range: 3% 96%;"><svg width="36" height="25" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
-    <div class="coin" style="left: 20%; --fall: 3700px; --drift: -60px; --tilt: 20deg;  --flip: 720deg;  opacity: 0.55; animation-range: 0% 92%;"><svg width="58" height="41" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#8a5f10" stroke-width="1.6"></ellipse></svg></div>
-    <div class="coin" style="left: 79%; --fall: 3300px; --drift: 110px; --tilt: 8deg;   --flip: 1800deg; opacity: 0.45; animation-range: 5% 98%;"><svg width="44" height="31" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
-    <div class="coin" style="left: 93%; --fall: 4200px; --drift: -90px; --tilt: -24deg; --flip: 1080deg; opacity: 0.6;  animation-range: 1% 90%;"><svg width="74" height="52" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin" style="left: 4%;  --fall: 4919px; --drift: 80px;  --tilt: -14deg; --flip: 1440deg; --peak: 0.4; animation-range: 3% 96%;"><svg width="36" height="25" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 20%; --fall: 5398px; --drift: -60px; --tilt: 20deg;  --flip: 720deg;  --peak: 0.55; animation-range: 0% 92%;"><svg width="58" height="41" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#8a5f10" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin" style="left: 79%; --fall: 5507px; --drift: 110px; --tilt: 8deg;   --flip: 1800deg; --peak: 0.45; animation-range: 5% 98%;"><svg width="44" height="31" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 93%; --fall: 6199px; --drift: -90px; --tilt: -24deg; --flip: 1080deg; --peak: 0.6;  animation-range: 1% 90%;"><svg width="74" height="52" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
   </div>
 
   <!-- ══════ HERO + GAME ══════ -->

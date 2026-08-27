@@ -35,14 +35,16 @@
     /* The coins fall along the PAGE's axis, not the screen's — so they land
        at an angle the frame never agrees with. */
     @keyframes coin-fall-tilt {
-      from { transform: rotate(-6.5deg) translate3d(0, -220px, 0) rotateX(0deg); }
-      to   { transform: rotate(-6.5deg) translate3d(var(--drift, 0px), var(--fall, 3400px), 0) rotateX(var(--flip, 1080deg)); }
+      from { transform: rotate(-6.5deg) translate3d(0, -220px, 0) rotateX(0deg); opacity: 0; }
+      6%   { opacity: var(--peak, 0.8); }
+      90%  { opacity: var(--peak, 0.8); }
+      to   { transform: rotate(-6.5deg) translate3d(var(--drift, 0px), var(--fall, 3400px), 0) rotateX(var(--flip, 1080deg)); opacity: 0; }
     }
     .rain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
     .coin { position: absolute; top: 0; opacity: 0; }
     @supports (animation-timeline: scroll()) {
       @media (prefers-reduced-motion: no-preference) {
-        .coin { opacity: 1; animation: coin-fall-tilt linear both; animation-timeline: scroll(root); }
+        .coin { animation: coin-fall-tilt linear both; animation-timeline: scroll(root); }
       }
     }
 
@@ -65,11 +67,11 @@
   <svg width="0" height="0" style="position: absolute;"><filter id="og-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter></svg>
 
   <div class="rain" style="z-index: 2;">
-    <div class="coin" style="left: 9%;  --fall: 3000px; --drift: 120px;  --flip: 1440deg; opacity: 0.5;  animation-range: 2% 96%;"><svg width="42" height="29" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
-    <div class="coin" style="left: 26%; --fall: 3900px; --drift: -80px;  --flip: 720deg;  opacity: 0.75; animation-range: 0% 92%;"><svg width="78" height="55" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#8a5f10" stroke-width="1.6"></ellipse></svg></div>
-    <div class="coin" style="left: 48%; --fall: 3300px; --drift: 160px;  --flip: 1800deg; opacity: 0.4;  animation-range: 6% 100%;"><svg width="30" height="21" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
-    <div class="coin" style="left: 66%; --fall: 4400px; --drift: -40px;  --flip: 1080deg; opacity: 0.85; animation-range: 0% 90%;"><svg width="98" height="69" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
-    <div class="coin" style="left: 88%; --fall: 3500px; --drift: 70px;   --flip: 1440deg; opacity: 0.55; animation-range: 4% 98%;"><svg width="52" height="36" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 9%;  --fall: 4342px; --drift: 120px;  --flip: 1440deg; --peak: 0.5;  animation-range: 2% 96%;"><svg width="42" height="29" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 26%; --fall: 6172px; --drift: -80px;  --flip: 720deg;  --peak: 0.75; animation-range: 0% 92%;"><svg width="78" height="55" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#8a5f10" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin" style="left: 48%; --fall: 5208px; --drift: 160px;  --flip: 1800deg; --peak: 0.4;  animation-range: 6% 100%;"><svg width="30" height="21" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f6d878" stroke="#8a5f10" stroke-width="3"></ellipse></svg></div>
+    <div class="coin" style="left: 66%; --fall: 5692px; --drift: -40px;  --flip: 1080deg; --peak: 0.85; animation-range: 0% 90%;"><svg width="98" height="69" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#f4d888" stroke="#6f4e0d" stroke-width="3"></ellipse><ellipse cx="50" cy="35" rx="37" ry="23" fill="none" stroke="#c9902a" stroke-width="1.6"></ellipse></svg></div>
+    <div class="coin" style="left: 88%; --fall: 5016px; --drift: 70px;   --flip: 1440deg; --peak: 0.55; animation-range: 4% 98%;"><svg width="52" height="36" viewBox="0 0 100 70"><ellipse cx="50" cy="35" rx="47" ry="32" fill="#e8b64a" stroke="#6f4e0d" stroke-width="3"></ellipse></svg></div>
   </div>
 
   <!-- ══════ THE NAV, STOOD ON ITS END ══════ -->
