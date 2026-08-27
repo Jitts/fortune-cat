@@ -1,0 +1,669 @@
+<title>Fortune Cat Riso Directions</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --paper:     #fbf6ec;
+    --panel:     #ffffff;
+    --ink:       #241c11;
+    --ink-mute:  #6b6153;
+    --ink-faint: #9c9384;
+    --hair:      #e0d7c6;
+    --accent:    #8a5f10;
+
+    --riso-lacquer: #2e2114;
+    --riso-gold:    #f0b429;
+    --riso-blue:    #2f4fa8;
+    --riso-verm:    #e4533c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #12100c;
+      --panel:     #1b1710;
+      --ink:       #f6efe1;
+      --ink-mute:  #a49883;
+      --ink-faint: #6d6353;
+      --hair:      #322a1e;
+      --accent:    #edc35b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:     #12100c;
+    --panel:     #1b1710;
+    --ink:       #f6efe1;
+    --ink-mute:  #a49883;
+    --ink-faint: #6d6353;
+    --hair:      #322a1e;
+    --accent:    #edc35b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 68px 32px 120px; }
+
+  .eyebrow {
+    margin: 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 16px 0 0; font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: clamp(2.3rem, 5.6vw, 3.7rem); font-weight: 800; line-height: 0.94;
+    letter-spacing: -0.04em; text-wrap: balance;
+  }
+  .lede { margin: 20px 0 0; max-width: 64ch; font-size: 17px; line-height: 1.62; color: var(--ink-mute); }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 28px; }
+
+  .callout {
+    margin: 28px 0 0; padding: 18px 22px; border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    font-size: 15.5px; line-height: 1.62;
+  }
+  .callout b { color: var(--accent); }
+
+  section { margin-top: 84px; }
+  .head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--hair); padding-bottom: 14px; }
+  .id {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.16em; color: var(--accent); border: 1px solid var(--hair);
+    border-radius: 3px; padding: 4px 9px;
+  }
+  h2 { margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.025em; }
+  .inks { margin-left: auto; display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); }
+  .chip { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+
+  .grid { display: grid; grid-template-columns: minmax(0,1fr) 306px; gap: 36px; margin-top: 28px; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0,1fr); } }
+
+  /* ── the riso plate ───────────────────────────────────────────────────
+     Two flat inks, multiplied where they overlap so the overlap makes a
+     real third colour the way a duplicator actually does it — not a third
+     swatch picked by hand. The grain rect on top is what stops it reading
+     as vector. */
+  .plate {
+    position: relative; background: #fbf6ec;
+    border: 1px solid var(--hair); border-radius: 4px; overflow: hidden;
+  }
+  .plate .grain {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; mix-blend-mode: multiply; opacity: 0.42;
+  }
+  .ink { mix-blend-mode: multiply; }
+
+  .hero { display: flex; align-items: center; justify-content: center; padding: 26px 20px 12px; }
+  .moods { display: flex; align-items: flex-end; justify-content: center; gap: 6px; padding: 0 20px 8px; flex-wrap: wrap; }
+  .mood { text-align: center; }
+  .mood .cap {
+    margin: 2px 0 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #a1937c;
+  }
+  .tiny {
+    display: flex; align-items: flex-end; justify-content: center; gap: 26px;
+    padding: 14px 20px 22px; border-top: 1px dashed #ddd2ba; margin: 8px 16px 0;
+  }
+  .tiny .cap { margin: 6px 0 0; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #a1937c; text-align: center; }
+
+  .spec { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.85; color: var(--ink-mute); }
+  .spec h3 {
+    margin: 0 0 12px; font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
+  }
+  .spec dl { margin: 0 0 18px; display: grid; grid-template-columns: 68px minmax(0,1fr); gap: 2px 12px; }
+  .spec dt { color: var(--ink-faint); }
+  .spec dd { margin: 0; color: var(--ink); }
+  .note { margin: 16px 0 0; font-family: 'Hanken Grotesk', sans-serif; font-size: 14.5px; line-height: 1.6; color: var(--ink-mute); }
+  .note strong { color: var(--ink); font-weight: 600; }
+  .verdict { margin-top: 18px; padding: 12px 14px; border-radius: 4px; background: color-mix(in srgb, var(--accent) 10%, transparent); font-family: 'Hanken Grotesk', sans-serif; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+
+  .close { margin-top: 100px; border-top: 2px solid var(--ink); padding-top: 26px; }
+  .close ul { margin: 18px 0 0; padding-left: 20px; }
+  .close li { margin-bottom: 13px; font-size: 16px; line-height: 1.6; color: var(--ink-mute); max-width: 68ch; }
+  .close li strong { color: var(--ink); font-weight: 600; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; color: var(--accent); }
+</style>
+
+<!-- one grain source, reused by every plate -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="riso-grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.5" intercept="0.32"/></feComponentTransfer>
+  </filter>
+</svg>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Art direction &#183; three ways</p>
+    <h1>The cat, redrawn by hand.</h1>
+    <p class="lede">
+      Three riso directions for the Fortune&nbsp;Cat mark. Each is two flat inks, multiplied where they
+      overlap, printed slightly out of register with real paper grain &#8212; the way a duplicator
+      actually behaves, not a filter laid over vector art.
+    </p>
+    <p class="callout">
+      <b>On your three references:</b> line art, doodle and na&#239;ve are three names for the same
+      neighbourhood, so choosing all three would give you one idea wearing three coats. These three differ
+      structurally instead &#8212; <b>line only</b>, <b>line plus texture</b>, <b>shape only</b>. Every one
+      is drawn by hand as vector, so whichever wins is already production art rather than a reference to
+      trace.
+    </p>
+  </header>
+
+  <!-- ══════════════════ R1 ══════════════════ -->
+  <section>
+    <div class="head">
+      <span class="id">R1</span>
+      <h2>One Line</h2>
+      <span class="inks">
+        <span class="chip" style="background:#2e2114"></span>LACQUER
+        <span class="chip" style="background:#f0b429"></span>GOLD
+      </span>
+    </div>
+
+    <div class="grid">
+      <div class="plate">
+        <div class="hero">
+          <svg width="330" height="250" viewBox="0 0 220 168" role="img" aria-label="Fortune cat drawn as one continuous line">
+            <!-- gold plate, deliberately off-register by ~3px -->
+            <g class="ink" transform="translate(4.5 3)">
+              <path d="M55 122 C46 100 56 78 74 70 C76 56 72 47 68 39 C81 43 90 48 96 55
+                       C110 50 124 50 137 55 C144 47 153 42 166 38 C161 47 158 57 160 70
+                       C179 80 188 102 181 123 C176 137 160 145 138 147 C114 149 84 148 66 143"
+                    fill="#f0b429" stroke="none"/>
+              <ellipse cx="188" cy="120" rx="16" ry="11" fill="#f0b429"/>
+            </g>
+
+            <!-- the line: ONE path, no lift, tail included -->
+            <g class="ink" fill="none" stroke="#2e2114" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M55 122
+                       C46 100 56 78 74 70
+                       C76 56 72 47 68 39
+                       C81 43 90 48 96 55
+                       C110 50 124 50 137 55
+                       C144 47 153 42 166 38
+                       C161 47 158 57 160 70
+                       C179 80 188 102 181 123
+                       C176 137 160 145 138 147
+                       C114 149 84 148 66 143
+                       C52 139 46 130 48 121
+                       C40 126 30 124 27 115
+                       C24 106 33 99 40 103"/>
+              <ellipse cx="184" cy="117" rx="16" ry="11" transform="rotate(-12 184 117)"/>
+            </g>
+
+            <!-- face, same ink, drawn as separate marks (a face cannot be one stroke and stay legible) -->
+            <g class="ink" fill="none" stroke="#2e2114" stroke-width="3" stroke-linecap="round">
+              <path d="M92 88 q7 7 14 0"/>
+              <path d="M128 88 q7 7 14 0"/>
+              <path d="M110 101 l6 0 l-3 4 z" fill="#2e2114" stroke="none"/>
+              <path d="M104 108 q9 7 18 0"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="moods">
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="Content">
+              <g class="ink" transform="translate(3 2)"><circle cx="50" cy="52" r="30" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M27 62 C22 40 34 24 50 24 C66 24 78 40 73 62 C70 76 62 82 50 82 C38 82 30 76 27 62"/>
+                <path d="M31 34 C29 26 28 20 28 15 C34 19 40 24 44 29"/>
+                <path d="M69 34 C71 26 72 20 72 15 C66 19 60 24 56 29"/>
+                <path d="M38 52 q6 6 12 0"/><path d="M52 52 q6 6 12 0"/>
+                <path d="M44 65 q6 5 12 0"/>
+              </g>
+            </svg>
+            <p class="cap">Saving</p>
+          </div>
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="Watchful">
+              <g class="ink" transform="translate(3 2)"><circle cx="50" cy="52" r="30" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M27 62 C22 40 34 24 50 24 C66 24 78 40 73 62 C70 76 62 82 50 82 C38 82 30 76 27 62"/>
+                <path d="M31 34 C29 26 28 20 28 15 C34 19 40 24 44 29"/>
+                <path d="M69 34 C71 26 72 20 72 15 C66 19 60 24 56 29"/>
+                <circle cx="43" cy="53" r="3" fill="#2e2114" stroke="none"/>
+                <circle cx="58" cy="53" r="3" fill="#2e2114" stroke="none"/>
+                <path d="M44 66 h12"/>
+              </g>
+            </svg>
+            <p class="cap">Break-even</p>
+          </div>
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="In the red">
+              <g class="ink" transform="translate(3 2)"><circle cx="50" cy="52" r="30" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M27 62 C22 40 34 24 50 24 C66 24 78 40 73 62 C70 76 62 82 50 82 C38 82 30 76 27 62"/>
+                <path d="M33 33 C26 28 21 24 18 19 C25 20 33 23 39 27"/>
+                <path d="M67 33 C74 28 79 24 82 19 C75 20 67 23 61 27"/>
+                <circle cx="43" cy="52" r="4.6" fill="none"/>
+                <circle cx="58" cy="52" r="4.6" fill="none"/>
+                <circle cx="43" cy="53" r="1.8" fill="#2e2114" stroke="none"/>
+                <circle cx="58" cy="53" r="1.8" fill="#2e2114" stroke="none"/>
+                <ellipse cx="50" cy="67" rx="4" ry="5" fill="none"/>
+              </g>
+            </svg>
+            <p class="cap">In the red</p>
+          </div>
+        </div>
+
+        <div class="tiny">
+          <div>
+            <svg width="16" height="16" viewBox="0 0 100 100" aria-label="16 pixels">
+              <g class="ink" transform="translate(3 2)"><circle cx="50" cy="52" r="30" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M27 62 C22 40 34 24 50 24 C66 24 78 40 73 62 C70 76 62 82 50 82 C38 82 30 76 27 62"/>
+                <path d="M31 34 C29 26 28 20 28 15 C34 19 40 24 44 29"/>
+                <path d="M69 34 C71 26 72 20 72 15 C66 19 60 24 56 29"/>
+                <path d="M38 52 q6 6 12 0"/><path d="M52 52 q6 6 12 0"/>
+              </g>
+            </svg>
+            <p class="cap">16</p>
+          </div>
+          <div>
+            <svg width="32" height="32" viewBox="0 0 100 100" aria-label="32 pixels">
+              <g class="ink" transform="translate(3 2)"><circle cx="50" cy="52" r="30" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M27 62 C22 40 34 24 50 24 C66 24 78 40 73 62 C70 76 62 82 50 82 C38 82 30 76 27 62"/>
+                <path d="M31 34 C29 26 28 20 28 15 C34 19 40 24 44 29"/>
+                <path d="M69 34 C71 26 72 20 72 15 C66 19 60 24 56 29"/>
+                <path d="M38 52 q6 6 12 0"/><path d="M52 52 q6 6 12 0"/>
+                <path d="M44 65 q6 5 12 0"/>
+              </g>
+            </svg>
+            <p class="cap">32</p>
+          </div>
+          <div>
+            <svg width="48" height="48" viewBox="0 0 100 100" aria-label="48 pixels">
+              <g class="ink" transform="translate(3 2)"><circle cx="50" cy="52" r="30" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M27 62 C22 40 34 24 50 24 C66 24 78 40 73 62 C70 76 62 82 50 82 C38 82 30 76 27 62"/>
+                <path d="M31 34 C29 26 28 20 28 15 C34 19 40 24 44 29"/>
+                <path d="M69 34 C71 26 72 20 72 15 C66 19 60 24 56 29"/>
+                <path d="M38 52 q6 6 12 0"/><path d="M52 52 q6 6 12 0"/>
+                <path d="M44 65 q6 5 12 0"/>
+              </g>
+            </svg>
+            <p class="cap">48</p>
+          </div>
+        </div>
+
+        <svg class="grain" aria-hidden="true"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+      </div>
+
+      <div class="spec">
+        <h3>R1 &#183; One Line</h3>
+        <dl>
+          <dt>body</dt><dd>a single unbroken path</dd>
+          <dt>inks</dt><dd>#2e2114 &#183; #f0b429</dd>
+          <dt>offset</dt><dd>4.5 / 3 px, gold behind</dd>
+          <dt>weight</dt><dd>3.4 hero &#8594; 5.0 at 16px</dd>
+        </dl>
+        <p class="note">
+          The whole body &#8212; back, ears, haunch, tail &#8212; is one stroke that never lifts, so the
+          gesture reads as one confident movement rather than assembly. The face is drawn separately;
+          a face folded into the same stroke stops being legible, and pretending otherwise is the usual
+          way &#8220;one line&#8221; logos fail.
+        </p>
+        <p class="note">
+          The gold sits <strong>behind and off-register</strong>, doing the job a second plate does on a
+          real duplicator: it doesn't fill the line, it misses it slightly.
+        </p>
+        <p class="verdict">
+          <strong>Strongest at large sizes, weakest small.</strong> A pure contour has nothing left to give
+          up when it shrinks &#8212; the 16px test below is the honest answer, not the hero.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ R2 ══════════════════ -->
+  <section>
+    <div class="head">
+      <span class="id">R2</span>
+      <h2>Margin Doodle</h2>
+      <span class="inks">
+        <span class="chip" style="background:#2f4fa8"></span>BLUE
+        <span class="chip" style="background:#f0b429"></span>GOLD
+      </span>
+    </div>
+
+    <div class="grid">
+      <div class="plate">
+        <div class="hero">
+          <svg width="330" height="250" viewBox="0 0 220 168" role="img" aria-label="Fortune cat drawn as a notebook doodle">
+            <g class="ink" transform="translate(5 4)">
+              <ellipse cx="108" cy="96" rx="46" ry="44" fill="#f0b429"/>
+              <circle cx="171" cy="122" r="19" fill="#f0b429"/>
+            </g>
+
+            <g class="ink" fill="none" stroke="#2f4fa8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <!-- head, drawn twice as a sketcher would -->
+              <path d="M74 78 C70 56 84 40 106 40 C128 40 142 56 138 78 C136 96 124 106 106 106 C88 106 76 96 74 78"/>
+              <path d="M78 74 C76 58 88 46 106 46" opacity="0.55"/>
+              <!-- ears, wobbly -->
+              <path d="M79 52 C75 42 73 34 73 27 C81 32 90 39 95 45"/>
+              <path d="M133 52 C137 42 139 34 139 27 C131 32 122 39 117 45"/>
+              <!-- body -->
+              <path d="M84 100 C74 118 76 140 92 148 C108 155 128 152 136 140 C144 128 140 110 130 100"/>
+              <!-- raised paw -->
+              <path d="M139 108 C150 102 158 106 158 114 C158 122 150 126 142 122"/>
+              <!-- tail, one loose flick -->
+              <path d="M84 146 C68 152 56 148 52 138 C49 130 56 124 62 128"/>
+              <!-- face -->
+              <path d="M92 74 q7 7 14 0"/>
+              <path d="M114 74 q7 7 14 0"/>
+              <path d="M104 86 l6 0 l-3 4 z" fill="#2f4fa8" stroke="none"/>
+              <path d="M99 92 q8 7 16 0"/>
+              <!-- whisker ticks -->
+              <path d="M70 80 l-11 -3 M70 86 l-11 4" stroke-width="2" opacity="0.7"/>
+              <path d="M142 80 l11 -3 M142 86 l11 4" stroke-width="2" opacity="0.7"/>
+              <!-- doodle marks: the thing that makes it a doodle -->
+              <path d="M52 46 l0 -9 M47 51 l-8 -4 M58 51 l8 -4" stroke-width="2.4"/>
+              <path d="M176 60 l0 -8 M171 64 l-7 -4 M182 64 l7 -4" stroke-width="2.4"/>
+              <!-- yarn -->
+              <circle cx="171" cy="122" r="19"/>
+              <path d="M158 112 C168 118 176 128 180 136 M162 136 C170 130 178 120 182 112" stroke-width="2.2"/>
+              <path d="M152 128 C144 136 136 140 130 138" stroke-width="2.2"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="moods">
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="Content">
+              <g class="ink" transform="translate(3.5 3)"><ellipse cx="50" cy="52" rx="29" ry="28" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2f4fa8" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 54 C18 34 32 20 50 20 C68 20 82 34 78 54 C75 72 64 82 50 82 C36 82 25 72 22 54"/>
+                <path d="M27 30 C24 22 23 16 23 11 C30 15 38 21 43 26"/>
+                <path d="M73 30 C76 22 77 16 77 11 C70 15 62 21 57 26"/>
+                <path d="M36 50 q7 7 14 0"/><path d="M50 50 q7 7 14 0"/>
+                <path d="M43 65 q7 6 14 0"/>
+                <path d="M18 56 l-9 -3 M18 62 l-9 4" stroke-width="2"/>
+                <path d="M82 56 l9 -3 M82 62 l9 4" stroke-width="2"/>
+              </g>
+            </svg>
+            <p class="cap">Saving</p>
+          </div>
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="Watchful">
+              <g class="ink" transform="translate(3.5 3)"><ellipse cx="50" cy="52" rx="29" ry="28" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2f4fa8" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 54 C18 34 32 20 50 20 C68 20 82 34 78 54 C75 72 64 82 50 82 C36 82 25 72 22 54"/>
+                <path d="M27 30 C24 22 23 16 23 11 C30 15 38 21 43 26"/>
+                <path d="M73 30 C76 22 77 16 77 11 C70 15 62 21 57 26"/>
+                <circle cx="42" cy="52" r="3.2" fill="#2f4fa8" stroke="none"/>
+                <circle cx="59" cy="52" r="3.2" fill="#2f4fa8" stroke="none"/>
+                <path d="M43 66 h14"/>
+                <path d="M18 56 l-9 -3 M18 62 l-9 4" stroke-width="2"/>
+                <path d="M82 56 l9 -3 M82 62 l9 4" stroke-width="2"/>
+              </g>
+            </svg>
+            <p class="cap">Break-even</p>
+          </div>
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="In the red">
+              <g class="ink" transform="translate(3.5 3)"><ellipse cx="50" cy="52" rx="29" ry="28" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2f4fa8" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 54 C18 34 32 20 50 20 C68 20 82 34 78 54 C75 72 64 82 50 82 C36 82 25 72 22 54"/>
+                <path d="M29 29 C21 25 15 20 12 15 C19 15 28 18 35 23"/>
+                <path d="M71 29 C79 25 85 20 88 15 C81 15 72 18 65 23"/>
+                <circle cx="42" cy="51" r="5" fill="none"/><circle cx="59" cy="51" r="5" fill="none"/>
+                <circle cx="42" cy="52" r="2" fill="#2f4fa8" stroke="none"/>
+                <circle cx="59" cy="52" r="2" fill="#2f4fa8" stroke="none"/>
+                <ellipse cx="50" cy="67" rx="4.5" ry="5.5" fill="none"/>
+                <path d="M16 40 l-8 -6 M84 40 l8 -6" stroke-width="2.2"/>
+              </g>
+            </svg>
+            <p class="cap">In the red</p>
+          </div>
+        </div>
+
+        <div class="tiny">
+          <div>
+            <svg width="16" height="16" viewBox="0 0 100 100" aria-label="16 pixels">
+              <g class="ink" transform="translate(3.5 3)"><ellipse cx="50" cy="52" rx="29" ry="28" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2f4fa8" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 54 C18 34 32 20 50 20 C68 20 82 34 78 54 C75 72 64 82 50 82 C36 82 25 72 22 54"/>
+                <path d="M27 30 C24 22 23 16 23 11 C30 15 38 21 43 26"/>
+                <path d="M73 30 C76 22 77 16 77 11 C70 15 62 21 57 26"/>
+                <path d="M36 50 q7 7 14 0"/><path d="M50 50 q7 7 14 0"/>
+              </g>
+            </svg>
+            <p class="cap">16</p>
+          </div>
+          <div>
+            <svg width="32" height="32" viewBox="0 0 100 100" aria-label="32 pixels">
+              <g class="ink" transform="translate(3.5 3)"><ellipse cx="50" cy="52" rx="29" ry="28" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2f4fa8" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 54 C18 34 32 20 50 20 C68 20 82 34 78 54 C75 72 64 82 50 82 C36 82 25 72 22 54"/>
+                <path d="M27 30 C24 22 23 16 23 11 C30 15 38 21 43 26"/>
+                <path d="M73 30 C76 22 77 16 77 11 C70 15 62 21 57 26"/>
+                <path d="M36 50 q7 7 14 0"/><path d="M50 50 q7 7 14 0"/>
+                <path d="M43 65 q7 6 14 0"/>
+              </g>
+            </svg>
+            <p class="cap">32</p>
+          </div>
+          <div>
+            <svg width="48" height="48" viewBox="0 0 100 100" aria-label="48 pixels">
+              <g class="ink" transform="translate(3.5 3)"><ellipse cx="50" cy="52" rx="29" ry="28" fill="#f0b429"/></g>
+              <g class="ink" fill="none" stroke="#2f4fa8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 54 C18 34 32 20 50 20 C68 20 82 34 78 54 C75 72 64 82 50 82 C36 82 25 72 22 54"/>
+                <path d="M27 30 C24 22 23 16 23 11 C30 15 38 21 43 26"/>
+                <path d="M73 30 C76 22 77 16 77 11 C70 15 62 21 57 26"/>
+                <path d="M36 50 q7 7 14 0"/><path d="M50 50 q7 7 14 0"/>
+                <path d="M43 65 q7 6 14 0"/>
+                <path d="M18 56 l-9 -3 M82 56 l9 -3" stroke-width="2.6"/>
+              </g>
+            </svg>
+            <p class="cap">48</p>
+          </div>
+        </div>
+
+        <svg class="grain" aria-hidden="true"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+      </div>
+
+      <div class="spec">
+        <h3>R2 &#183; Margin Doodle</h3>
+        <dl>
+          <dt>body</dt><dd>many loose strokes</dd>
+          <dt>inks</dt><dd>#2f4fa8 &#183; #f0b429</dd>
+          <dt>offset</dt><dd>5 / 4 px</dd>
+          <dt>tells</dt><dd>double lines, spark ticks</dd>
+        </dl>
+        <p class="note">
+          The head contour is drawn <strong>twice</strong>, the second pass faint and not quite tracking the
+          first. That single detail is what separates a doodle from a clean vector pretending to be one &#8212;
+          a person searching for the line, not finding it once.
+        </p>
+        <p class="note">
+          Blue is the nod to your reference sheets, and it is not a departure: the app's dark ground is
+          already <code>#0a0e1c</code>, a blue-black. This makes that relationship explicit.
+        </p>
+        <p class="verdict">
+          <strong>The warmest of the three, and the most fragile.</strong> Every wobble has to be drawn
+          deliberately &#8212; and a wobble that lands wrong reads as a mistake, not as charm.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ R3 ══════════════════ -->
+  <section>
+    <div class="head">
+      <span class="id">R3</span>
+      <h2>Cut Paper</h2>
+      <span class="inks">
+        <span class="chip" style="background:#f0b429"></span>GOLD
+        <span class="chip" style="background:#e4533c"></span>VERMILION
+      </span>
+    </div>
+
+    <div class="grid">
+      <div class="plate">
+        <div class="hero">
+          <svg width="330" height="250" viewBox="0 0 220 168" role="img" aria-label="Fortune cat cut from paper">
+            <!-- Vermilion plate, offset and BEHIND. It has to overlap the gold,
+                 not float beside it: where the two inks cross, multiply makes the
+                 dark third tone a duplicator actually produces. -->
+            <g class="ink" transform="translate(4 3)" fill="#e4533c">
+              <path d="M18 16 L52 13 L55 47 L21 50 z"/>
+              <path d="M80 105 C98 114 132 114 150 105 C149 112 148 117 147 121 C128 128 102 128 83 121 C82 117 81 112 80 105 z"/>
+              <ellipse cx="182" cy="112" rx="21" ry="14" transform="rotate(-12 182 112)"/>
+            </g>
+
+            <!-- Gold plate: the cat. No outline anywhere, edges cut slightly wonky. -->
+            <g class="ink" fill="#f0b429">
+              <path d="M64 46 C61 33 58 23 57 15 C71 21 84 30 92 39
+                       C100 36 113 35 125 38 C133 29 146 20 159 14
+                       C157 25 155 36 154 47
+                       C166 58 171 74 167 90 C162 107 143 117 119 117
+                       C95 117 77 107 71 90 C66 74 68 58 64 46 z"/>
+              <path d="M76 106 C68 122 67 140 76 152 C95 159 141 159 160 152
+                       C167 140 164 122 154 106 z"/>
+              <ellipse cx="178" cy="88" rx="17" ry="16"/>
+            </g>
+
+            <!-- The muzzle is a HOLE. On a duplicator, paper is the only white. -->
+            <g fill="#fbf6ec">
+              <ellipse cx="111" cy="88" rx="20" ry="13"/>
+              <text x="40" y="44" text-anchor="middle" font-size="27" font-weight="700"
+                    font-family="Georgia, serif">&#x91D1;</text>
+              <rect x="175" y="110" width="16" height="3.5" rx="1.5" transform="rotate(-12 183 112)"/>
+            </g>
+
+            <g class="ink" fill="none" stroke="#2e2114" stroke-width="3" stroke-linecap="round">
+              <path d="M89 70 q8 8 16 0"/>
+              <path d="M117 70 q8 8 16 0"/>
+              <path d="M107 83 l7 0 l-3.5 5 z" fill="#2e2114" stroke="none"/>
+              <path d="M103 92 q9 7 18 0"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="moods">
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="Content">
+              <g class="ink" transform="translate(3 2.5)" fill="#e4533c"><path d="M28 70 C38 76 62 76 72 70 C71 78 69 82 68 85 C57 89 43 89 32 85 C31 82 29 78 28 70 z"/></g>
+              <g class="ink" fill="#f0b429"><path d="M26 32 C24 22 22 15 21 9 C31 14 41 21 47 28 C55 25 65 25 73 28 C79 21 88 14 98 9 C96 16 93 25 92 33 C99 43 101 57 96 68 C90 80 76 86 60 86 C42 86 28 80 23 68 C18 56 20 42 26 32 z"/></g>
+              <g fill="#fbf6ec"><ellipse cx="59" cy="60" rx="14" ry="10"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="3.2" stroke-linecap="round">
+                <path d="M40 47 q7 7 14 0"/><path d="M64 47 q7 7 14 0"/>
+                <path d="M55 57 l6 0 l-3 4 z" fill="#2e2114" stroke="none"/>
+                <path d="M51 65 q8 6 16 0"/>
+              </g>
+            </svg>
+            <p class="cap">Saving</p>
+          </div>
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="Watchful">
+              <g class="ink" transform="translate(3 2.5)" fill="#e4533c"><path d="M28 70 C38 76 62 76 72 70 C71 78 69 82 68 85 C57 89 43 89 32 85 C31 82 29 78 28 70 z"/></g>
+              <g class="ink" fill="#f0b429"><path d="M26 32 C24 22 22 15 21 9 C31 14 41 21 47 28 C55 25 65 25 73 28 C79 21 88 14 98 9 C96 16 93 25 92 33 C99 43 101 57 96 68 C90 80 76 86 60 86 C42 86 28 80 23 68 C18 56 20 42 26 32 z"/></g>
+              <g fill="#fbf6ec"><ellipse cx="59" cy="60" rx="14" ry="10"/></g>
+              <g class="ink" fill="#2e2114">
+                <circle cx="47" cy="49" r="3.4"/><circle cx="71" cy="49" r="3.4"/>
+                <path d="M55 57 l6 0 l-3 4 z"/>
+              </g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="3.2" stroke-linecap="round"><path d="M51 66 h14"/></g>
+            </svg>
+            <p class="cap">Break-even</p>
+          </div>
+          <div class="mood">
+            <svg width="104" height="104" viewBox="0 0 100 100" aria-label="In the red">
+              <g class="ink" transform="translate(3 2.5)" fill="#e4533c"><path d="M28 70 C38 76 62 76 72 70 C71 78 69 82 68 85 C57 89 43 89 32 85 C31 82 29 78 28 70 z"/></g>
+              <g class="ink" fill="#f0b429"><path d="M24 34 C18 25 13 18 10 12 C21 14 33 19 41 25 C51 22 63 22 73 26 C82 19 93 14 104 12 C100 19 96 27 94 35 C100 45 101 58 96 68 C90 80 76 86 60 86 C42 86 28 80 23 68 C18 57 19 43 24 34 z"/></g>
+              <g fill="#fbf6ec"><ellipse cx="59" cy="60" rx="14" ry="10"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="3" stroke-linecap="round">
+                <circle cx="47" cy="48" r="5.4" fill="#fbf6ec"/><circle cx="71" cy="48" r="5.4" fill="#fbf6ec"/>
+                <circle cx="47" cy="49" r="2" fill="#2e2114" stroke="none"/>
+                <circle cx="71" cy="49" r="2" fill="#2e2114" stroke="none"/>
+                <ellipse cx="59" cy="67" rx="4.4" ry="5.4" fill="none"/>
+              </g>
+            </svg>
+            <p class="cap">In the red</p>
+          </div>
+        </div>
+
+        <div class="tiny">
+          <div>
+            <svg width="16" height="16" viewBox="0 0 100 100" aria-label="16 pixels">
+              <g class="ink" fill="#f0b429"><path d="M26 32 C24 22 22 15 21 9 C31 14 41 21 47 28 C55 25 65 25 73 28 C79 21 88 14 98 9 C96 16 93 25 92 33 C99 43 101 57 96 68 C90 80 76 86 60 86 C42 86 28 80 23 68 C18 56 20 42 26 32 z"/></g>
+              <g fill="#fbf6ec"><ellipse cx="59" cy="60" rx="14" ry="10"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="5" stroke-linecap="round">
+                <path d="M40 47 q7 7 14 0"/><path d="M64 47 q7 7 14 0"/>
+              </g>
+            </svg>
+            <p class="cap">16</p>
+          </div>
+          <div>
+            <svg width="32" height="32" viewBox="0 0 100 100" aria-label="32 pixels">
+              <g class="ink" transform="translate(2 1.5)" fill="#e4533c"><path d="M28 70 C38 76 62 76 72 70 C71 78 69 82 68 85 C57 89 43 89 32 85 C31 82 29 78 28 70 z"/></g>
+              <g class="ink" fill="#f0b429"><path d="M26 32 C24 22 22 15 21 9 C31 14 41 21 47 28 C55 25 65 25 73 28 C79 21 88 14 98 9 C96 16 93 25 92 33 C99 43 101 57 96 68 C90 80 76 86 60 86 C42 86 28 80 23 68 C18 56 20 42 26 32 z"/></g>
+              <g fill="#fbf6ec"><ellipse cx="59" cy="60" rx="14" ry="10"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="4.4" stroke-linecap="round">
+                <path d="M40 47 q7 7 14 0"/><path d="M64 47 q7 7 14 0"/>
+                <path d="M51 65 q8 6 16 0"/>
+              </g>
+            </svg>
+            <p class="cap">32</p>
+          </div>
+          <div>
+            <svg width="48" height="48" viewBox="0 0 100 100" aria-label="48 pixels">
+              <g class="ink" transform="translate(2.5 2)" fill="#e4533c"><path d="M28 70 C38 76 62 76 72 70 C71 78 69 82 68 85 C57 89 43 89 32 85 C31 82 29 78 28 70 z"/></g>
+              <g class="ink" fill="#f0b429"><path d="M26 32 C24 22 22 15 21 9 C31 14 41 21 47 28 C55 25 65 25 73 28 C79 21 88 14 98 9 C96 16 93 25 92 33 C99 43 101 57 96 68 C90 80 76 86 60 86 C42 86 28 80 23 68 C18 56 20 42 26 32 z"/></g>
+              <g fill="#fbf6ec"><ellipse cx="59" cy="60" rx="14" ry="10"/></g>
+              <g class="ink" fill="none" stroke="#2e2114" stroke-width="3.8" stroke-linecap="round">
+                <path d="M40 47 q7 7 14 0"/><path d="M64 47 q7 7 14 0"/>
+                <path d="M55 57 l6 0 l-3 4 z" fill="#2e2114" stroke="none"/>
+                <path d="M51 65 q8 6 16 0"/>
+              </g>
+            </svg>
+            <p class="cap">48</p>
+          </div>
+        </div>
+
+        <svg class="grain" aria-hidden="true"><rect width="100%" height="100%" filter="url(#riso-grain)"/></svg>
+      </div>
+
+      <div class="spec">
+        <h3>R3 &#183; Cut Paper</h3>
+        <dl>
+          <dt>body</dt><dd>flat shape, no outline</dd>
+          <dt>inks</dt><dd>#f0b429 &#183; #e4533c</dd>
+          <dt>offset</dt><dd>4 / 3 px, vermilion behind</dd>
+          <dt>knockout</dt><dd>muzzle is cut paper, not white</dd>
+        </dl>
+        <p class="note">
+          No contour anywhere on the body. The silhouette does the work, the edges are cut slightly wonky,
+          and the muzzle is a <strong>hole</strong> &#8212; paper removed, so the sheet colour shows through.
+          On a real duplicator that is the only white you get.
+        </p>
+        <p class="note">
+          Vermilion is on the <strong>collar, seal and coin only</strong>, never on the cat. Your rule
+          survives intact, and the red finally has somewhere honest to live.
+        </p>
+        <p class="verdict">
+          <strong>The only one that holds at 16px</strong> &#8212; a filled shape loses detail gracefully
+          where a contour just disappears. Also the biggest departure from what you ship today.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="close">
+    <p class="eyebrow">Where this leaves you</p>
+    <ul>
+      <li><strong>These are drawings, not references.</strong> Every path is hand-authored vector, so whichever you pick is already the production mark &#8212; no tracing step, no generation, nothing to redraw.</li>
+      <li><strong>All three carry the three moods</strong>, because the cat's face is a pure function of net cash flow in <code>lib/catState</code>. A style that can't hold saving / break-even / in-the-red isn't a candidate, whatever it looks like at hero size.</li>
+      <li><strong>This is a real break from the gold-leaf mark.</strong> Riso and lacquer-gold are different promises. Picking one of these means the dashboard cat changes too, or the landing page and the app stop looking related.</li>
+      <li><strong>Combining is available.</strong> R3's silhouette with R2's spark ticks is the obvious hybrid &#8212; shape that survives small, doodle warmth where there's room for it.</li>
+    </ul>
+  </div>
+
+</div>
