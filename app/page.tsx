@@ -5,7 +5,7 @@ import Wordmark from "@/app/components/Wordmark";
 import {
   HeroLoop,
   SafeToSpend,
-  WeekWidget,
+  WeekScroll,
 } from "@/app/components/landing/Players";
 import { FREE_PRO_BETA } from "@/lib/beta";
 import { PRO_PRICE } from "@/lib/proFeatures";
@@ -107,8 +107,8 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="l-band l-band-bright" id="widget">
-        <div className="l-wrap l-split">
+      <section className="l-band l-band-bright l-band-track" id="widget">
+        <WeekScroll>
           <div>
             <h2>Watch one alert become a row.</h2>
             <p className="l-intro">
@@ -122,8 +122,7 @@ export default async function Home() {
               your own forwarded messages.
             </p>
           </div>
-          <WeekWidget />
-        </div>
+        </WeekScroll>
       </section>
 
       <section className="l-band">

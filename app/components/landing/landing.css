@@ -280,6 +280,34 @@
   }
 }
 
+/* ── The scroll track: the whole split pins while the week fills ── */
+.l-band-track {
+  padding-block: 0;
+}
+.l-track {
+  height: 400vh;
+}
+.l-track[data-still] {
+  height: auto;
+  padding-block: var(--l-space-xl);
+}
+.l-stage {
+  position: sticky;
+  top: 4rem; /* under the sticky header */
+  min-height: calc(100svh - 4rem);
+  align-content: center;
+  padding-block: 1.5rem;
+}
+.l-track[data-still] .l-stage {
+  position: static;
+  min-height: 0;
+}
+.l-hint {
+  margin: 0;
+  font-family: var(--l-font-mono);
+  font-size: 0.75rem;
+}
+
 /* ── The live widget on the bright band ── */
 .l-widget {
   display: grid;

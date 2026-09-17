@@ -10,7 +10,7 @@ import SafeToSpendTick, { TICK_DURATION, TICK_FPS } from "./SafeToSpendTick";
  * The three places Remotion works on this page, each with its own rule for
  * when it moves:
  *  - HeroLoop plays on its own (muted, looping) — it's ambient, like a globe.
- *  - WeekWidget moves only when the visitor presses "Next alert".
+ *  - WeekScroll moves only as the visitor scrolls — progress is the frame.
  *  - SafeToSpend ticks once, the first time it scrolls into view.
  * `prefers-reduced-motion` turns each into its final frame.
  */
@@ -58,93 +58,94 @@ export function HeroLoop() {
   );
 }
 
-export function WeekWidget() {
+/**
+ * The week, scrubbed by scrolling: a tall track with the whole split (copy on
+ * the left, ledger on the right) stuck inside it. Progress through the track
+ * is the Player's frame, so scrolling down fills the week and scrolling up
+ * unfills it. Nothing plays on its own. Reduced motion collapses the track
+ * and rests on the completed week.
+ */
+export function WeekScroll({ children }: { children: React.ReactNode }) {
   const player = useRef<PlayerRef>(null);
-  const [step, setStep] = useState(-1); // -1: nothing pressed yet
+  const track = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(0);
   const still = useReducedMotion();
   const last = STEPS.length - 1;
 
-  // Play exactly one step's worth of frames, then hold on its last frame.
-  // The stop frame lives in a ref so the one listener never reads stale state.
-  const stop = useRef(Infinity);
   useEffect(() => {
     const p = player.current;
     if (!p) return;
-    const onFrame = (e: { detail: { frame: number } }) => {
-      if (e.detail.frame >= stop.current) p.pause();
-    };
-    p.addEventListener("frameupdate", onFrame);
-    return () => p.removeEventListener("frameupdate", onFrame);
-  }, []);
-
-  const next = () => {
-    const s = Math.min(last, step + 1);
-    setStep(s);
-    const p = player.current;
-    if (!p) return;
-    stop.current = (s + 1) * STEP_FRAMES - 1;
     if (still) {
-      p.seekTo(stop.current);
-    } else {
-      p.seekTo(s * STEP_FRAMES);
-      p.play();
+      setStep(last);
+      p.seekTo(DURATION - 1);
+      return;
     }
-  };
-  const reset = () => {
-    setStep(-1);
-    stop.current = Infinity;
-    player.current?.pause();
-    player.current?.seekTo(0);
-  };
+    let raf = 0;
+    let lastFrame = -1;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = track.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const t = Math.min(
+          1,
+          Math.max(0, -r.top / (r.height - window.innerHeight)),
+        );
+        const frame = Math.round(t * (DURATION - 1));
+        if (frame === lastFrame) return;
+        lastFrame = frame;
+        p.seekTo(frame);
+        setStep(Math.min(last, Math.floor(frame / STEP_FRAMES)));
+      });
+    };
+    onScroll();
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    return () => {
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, [still, last]);
 
   return (
-    <div className="l-widget">
-      <div className="l-widget-head">
-        <span className="l-count" aria-live="polite">
-          {step < 0 ? "Sample week" : `${step + 1} / ${STEPS.length}`}
-        </span>
-        <ol className="l-segs" aria-hidden>
-          {STEPS.map((s, i) => (
-            <li key={s.day + i} data-on={i <= step || undefined} />
-          ))}
-        </ol>
-      </div>
-      <div className="l-player">
-        <Player
-          ref={player}
-          component={CaptureWeek}
-          durationInFrames={DURATION}
-          fps={FPS}
-          compositionWidth={480}
-          compositionHeight={600}
-          style={{ width: "100%" }}
-          controls={false}
-          clickToPlay={false}
-        />
-      </div>
-      <p className="l-caption" aria-live="polite">
-        {step < 0
-          ? "Seven days. Press the button and each alert arrives the way your phone shows it."
-          : STEPS[step].caption}
-      </p>
-      <div className="l-widget-ctl">
-        <button
-          type="button"
-          className="l-pill"
-          onClick={next}
-          disabled={step >= last}
-        >
-          {step < 0
-            ? "First alert"
-            : step >= last
-              ? "Week complete"
-              : "Next alert"}
-        </button>
-        {step >= 0 && (
-          <button type="button" className="l-pill l-pill-ghost" onClick={reset}>
-            Start over
-          </button>
-        )}
+    <div ref={track} className="l-track" data-still={still || undefined}>
+      <div className="l-stage l-wrap l-split">
+        {children}
+        <div className="l-widget">
+          <div className="l-widget-head">
+            <span className="l-count" aria-live="polite">
+              {step + 1} / {STEPS.length}
+            </span>
+            <ol className="l-segs" aria-hidden>
+              {STEPS.map((s, i) => (
+                <li key={s.day + i} data-on={i <= step || undefined} />
+              ))}
+            </ol>
+          </div>
+          <div className="l-player">
+            <Player
+              ref={player}
+              component={CaptureWeek}
+              durationInFrames={DURATION}
+              fps={FPS}
+              compositionWidth={480}
+              compositionHeight={600}
+              style={{ width: "100%" }}
+              controls={false}
+              clickToPlay={false}
+            />
+          </div>
+          <p className="l-caption" aria-live="polite">
+            {STEPS[step].caption}
+          </p>
+          {!still && (
+            <p className="l-hint" aria-hidden>
+              {step < last ? "Scroll to fill the week ↓" : "Week complete"}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
