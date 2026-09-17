@@ -11,6 +11,7 @@
     "test:security": "node tests/security.mjs"
   },
   "dependencies": {
+    "@remotion/player": "^4.0.525",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.2",
     "country-flag-icons": "^1.6.20",
@@ -21,6 +22,7 @@
     "pdfjs-dist": "^6.2.108",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "remotion": "^4.0.525",
     "stripe": "^17.0.0",
     "tesseract.js": "^7.0.0"
   },

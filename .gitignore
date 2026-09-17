@@ -25,3 +25,7 @@ supabase/.temp/
 # under .impeccable/critique/ are deliberately NOT ignored — those are a design
 # record, and /impeccable polish reads them as its backlog.
 .impeccable/live/
+
+.claude/skills/
+.agents/
+skills-lock.json
