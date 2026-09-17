@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import LandingDemo from "@/app/components/LandingDemo";
-import ProShowcase from "@/app/components/ProShowcase";
-import ThemeToggle from "@/app/components/ThemeToggle";
-import UspSection from "@/app/components/UspSection";
 import FaqSection from "@/app/components/FaqSection";
-import Reveal from "@/app/components/Reveal";
-import ShrineStars from "@/app/components/ShrineStars";
 import Wordmark from "@/app/components/Wordmark";
+import {
+  HeroLoop,
+  SafeToSpend,
+  WeekWidget,
+} from "@/app/components/landing/Players";
 import { FREE_PRO_BETA } from "@/lib/beta";
 import { PRO_PRICE } from "@/lib/proFeatures";
+import "@/app/components/landing/landing.css";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,12 @@ const APP_JSON_LD = {
   description:
     "A personal expense tracker that fills itself: the SMS and emails your bank already sends become a live cash-flow ledger. No bank login, and you choose how much access to give. Works in any currency worldwide.",
   offers: [
-    { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free tier" },
+    {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      description: "Free tier",
+    },
     {
       "@type": "Offer",
       price: "9",
@@ -35,38 +40,46 @@ const APP_JSON_LD = {
   ],
 };
 
+/**
+ * The landing page — a Marquee Hero over a Feature Stack, built from the DNA
+ * studied at wise.com (see the stamp in landing/landing.css). One uppercase
+ * statement, the product moving underneath it, a live widget on a gold band,
+ * then one idea per band. Remotion does three jobs here, each with its own
+ * rule for when it moves (see landing/Players.tsx).
+ *
+ * Trust is carried by what the page never shows: there is no bank-shaped
+ * field anywhere on it, and the limitation gets the dramatic band.
+ */
 export default async function Home() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const go = user ? "/app" : "/signup";
+  const cta = user ? "Open app" : "Create your account";
 
   return (
-    <main className="relative min-h-screen bg-surface-2">
-      {/* Gold night sky in Shrine mode — same field as the signed-in app */}
-      <ShrineStars />
-
-      <header className="sticky top-0 z-40 border-b border-line/70 bg-surface-2/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
+    <main className="landing">
+      <header className="l-head">
+        <div className="l-wrap l-head-in">
           <Link href="/" aria-label="Fortune Cat home">
             <Wordmark />
           </Link>
-          <nav className="flex items-center gap-2 text-sm sm:gap-3">
-            <ThemeToggle variant="compact" />
+          <nav className="l-nav-mid" aria-label="Site">
+            <a href="#widget">How it works</a>
+            <a href="#price">Pricing</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <nav className="l-nav-end" aria-label="Account">
             {user ? (
-              <Link href="/app" className="btn btn-gold px-4 py-2 text-sm">
+              <Link href="/app" className="l-pill l-pill-sm">
                 Open app
               </Link>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  className="hidden rounded-lg px-3 py-2 font-medium text-ink-muted hover:text-ink sm:inline-block"
-                >
-                  Log in
-                </Link>
-                <Link href="/signup" className="btn btn-gold px-4 py-2 text-sm">
-                  Get started
+                <Link href="/login">Log in</Link>
+                <Link href="/signup" className="l-pill l-pill-sm">
+                  Sign up
                 </Link>
               </>
             )}
@@ -74,95 +87,239 @@ export default async function Home() {
         </div>
       </header>
 
-      {/* ===== Hero ===== */}
-      <section className="relative overflow-hidden">
-        {/* atmospheric gold arc behind the fold */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-40 -top-24 h-[38rem] w-[38rem] rounded-full opacity-60 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, color-mix(in oklab, var(--gold) 26%, transparent), transparent 62%)",
-          }}
-        />
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-16 sm:px-8 md:grid-cols-[1.05fr_0.95fr] md:items-center md:py-24">
-          <div>
-            <Reveal>
-              <span className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted shadow-sm ring-1 ring-line">
-                <span aria-hidden className="h-2 w-2 rounded-full bg-gold shadow-[0_0_6px_var(--gold)]" />
-                <span className="font-mono uppercase tracking-[0.14em] text-ink-subtle">
-                  the tracker that fills itself
-                </span>
-              </span>
-            </Reveal>
-            <Reveal delay={70}>
-              <h1 className="mt-5 font-display text-[clamp(2.6rem,7vw,4.5rem)] font-extrabold leading-[0.98] tracking-tight text-ink">
-                Your money{" "}
-                <span className="gold-swash whitespace-nowrap">logs itself.</span>
-              </h1>
-            </Reveal>
-            <Reveal delay={130}>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
-                Fortune Cat reads the SMS, emails, and statements your bank already sends you — no
-                bank login, and you choose how much access to give — and turns them into a live
-                cash-flow ledger in your own currency, with overseas spends converted automatically.
-              </p>
-            </Reveal>
-            <Reveal delay={190}>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Link href={user ? "/app" : "/signup"} className="btn btn-gold px-6 py-3.5 text-sm">
-                  {user ? "Open your app" : "Start tracking — it's free"}
-                </Link>
-                <Link href="/upgrade" className="btn btn-ghost px-6 py-3.5 text-sm">
-                  {FREE_PRO_BETA ? "See Pro — free in beta" : `See Pro — ${PRO_PRICE} once`}
-                </Link>
-              </div>
-            </Reveal>
-            <Reveal delay={250}>
-              <p className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-ink-subtle">
-                <span>no bank login</span>
-                <span aria-hidden className="text-gold">·</span>
-                <span>free to start</span>
-                <span aria-hidden className="text-gold">·</span>
-                <span>any currency worldwide</span>
-              </p>
-            </Reveal>
+      <section className="l-hero">
+        <div className="l-wrap">
+          <h1>Your bank already tells you.</h1>
+          <p className="l-lede">
+            Fortune Cat writes it down. The alerts your bank already sends
+            become a live spending picture — with no bank login, because there
+            is no field for one.
+          </p>
+          <div className="l-hero-cta">
+            <Link href={go} className="l-pill">
+              {cta}
+            </Link>
+            <a href="#widget" className="l-link">
+              See how it works
+            </a>
           </div>
-
-          {/* Live capture-loop demo, entirely client-side */}
-          <Reveal delay={160} className="md:justify-self-end">
-            <LandingDemo />
-          </Reveal>
+          <HeroLoop />
         </div>
       </section>
 
-      <UspSection />
-      <ProShowcase />
+      <section className="l-band l-band-bright" id="widget">
+        <div className="l-wrap l-split">
+          <div>
+            <h2>Watch one alert become a row.</h2>
+            <p className="l-intro">
+              A sample week, one bank alert at a time. Two days get no alert,
+              and the row is printed blank rather than hidden. The last step
+              uploads a statement — and you&rsquo;ll see exactly which blank it
+              can fill, and which it can&rsquo;t.
+            </p>
+            <p>
+              Nothing here is faked: this is the same reading the app does with
+              your own forwarded messages.
+            </p>
+          </div>
+          <WeekWidget />
+        </div>
+      </section>
+
+      <section className="l-band">
+        <div className="l-wrap">
+          <h2>One direction.</h2>
+          <p className="l-intro">
+            The alert leaves your bank the way it always has. Fortune Cat sits
+            at the far end of that trip and reads what arrives. Nothing travels
+            back.
+          </p>
+          <ul className="l-rows">
+            <li>
+              <b>Your bank</b>
+              <span>
+                Sends the alert it already sends. Nothing about your bank
+                changes.
+              </span>
+            </li>
+            <li>
+              <b>Your phone</b>
+              <span>
+                A one-time shortcut forwards bank SMS to your capture inbox. You
+                can see every message it sends, and switch it off from your
+                phone.
+              </span>
+            </li>
+            <li>
+              <b>Fortune Cat</b>
+              <span>
+                Reads the amount, the merchant and the date, and files the row.
+                The first message from a new sender waits for your approval.
+              </span>
+            </li>
+            <li className="l-return">
+              <b>Back to the bank</b>
+              <span>
+                Nothing. No login, no account link, no screen-scraping — there
+                is no access to revoke, because none was given.
+              </span>
+            </li>
+            <li className="l-optional">
+              <b>An inbox</b>
+              <span>
+                Connect an email account and Fortune Cat scans it for receipts.
+                That uses an app password from your email provider — a real
+                credential, which you can cut off from your provider&rsquo;s
+                settings at any time; it stops working whether or not we
+                cooperate. Skip it, and Fortune Cat never sees your email at
+                all.
+              </span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="l-band" style={{ paddingTop: 0 }}>
+        <div className="l-wrap l-split">
+          <div>
+            <h2>One number you can actually spend.</h2>
+            <p className="l-intro">
+              Safe-to-Spend is what is left after the bills due before payday
+              and the money you set aside for a goal. It is arithmetic, not
+              advice — and every line of it is yours to correct.
+            </p>
+            <p>
+              Sample figures. With Pro, confirming your real balance makes it
+              exact rather than estimated.
+            </p>
+          </div>
+          <SafeToSpend />
+        </div>
+      </section>
+
+      <section className="l-band l-band-deep">
+        <div className="l-wrap">
+          <h2>It only knows what your bank says.</h2>
+          <p className="l-intro">
+            Your bank&rsquo;s alerts see every card transaction, and that is the
+            backbone. What they don&rsquo;t see, Fortune Cat doesn&rsquo;t
+            either — so here is where the gaps are.
+          </p>
+          <ul className="l-gaps">
+            <li>Cash is never captured. Nothing outside your bank sees it.</li>
+            <li>
+              Some banks don&rsquo;t alert on small amounts, direct debits or
+              standing orders.
+            </li>
+            <li>
+              A blank row takes a few seconds to fill by hand, and one statement
+              upload — read on your device — backfills a whole month.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="l-break">
+        <div className="l-wrap">
+          <p className="l-statement">The whole form is two fields.</p>
+          <p>
+            Email and a password. There is no field for a bank, and there will
+            never be a step that adds one. Free to track; no card to sign up.
+          </p>
+          <Link href={go} className="l-pill">
+            {cta}
+          </Link>
+        </div>
+      </section>
+
+      <section className="l-band l-band-bright" id="price">
+        <div className="l-wrap">
+          <h2>Two prices, neither of them monthly.</h2>
+          <div className="l-price">
+            <div>
+              <b>Free</b>
+              <p>
+                Tracking, one capture inbox, statement and receipt upload,
+                monthly budgets, your daily fortune slip, Safe-to-Spend, CSV
+                export.
+              </p>
+            </div>
+            <div>
+              <b>{PRO_PRICE} once</b>
+              <p>
+                Savings goals, the month-ahead forecast, recurring-bill radar,
+                deep analytics, full history, three capture inboxes. Not a
+                subscription — there is no renewal.
+                {FREE_PRO_BETA &&
+                  " During the beta the $9 is waived: beta testers unlock Pro free and keep it."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <FaqSection />
 
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-10 text-sm text-ink-subtle sm:px-8">
-          <div className="flex flex-col gap-1">
-            <Wordmark size="sm" />
-            <span className="font-mono text-xs text-ink-faint">your money logs itself</span>
+      <footer className="l-foot">
+        <div className="l-wrap">
+          <div className="l-foot-cols">
+            <div>
+              <Wordmark size="sm" />
+              <p
+                style={{
+                  marginTop: "0.75rem",
+                  maxWidth: "18rem",
+                  color: "var(--l-ink-dim)",
+                }}
+              >
+                The money tracker that fills itself from the alerts your bank
+                already sends.
+              </p>
+            </div>
+            <div>
+              <h3>Product</h3>
+              <ul>
+                <li>
+                  <a href="#widget">How it works</a>
+                </li>
+                <li>
+                  <a href="#price">Pricing</a>
+                </li>
+                <li>
+                  <Link href="/faq">FAQ</Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3>Account</h3>
+              <ul>
+                <li>
+                  <Link href="/signup">Sign up</Link>
+                </li>
+                <li>
+                  <Link href="/login">Log in</Link>
+                </li>
+                <li>
+                  <Link href="/feedback">Feedback</Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3>Legal</h3>
+              <ul>
+                <li>
+                  <Link href="/privacy">Privacy</Link>
+                </li>
+                <li>
+                  <Link href="/terms">Terms</Link>
+                </li>
+              </ul>
+            </div>
           </div>
-          <nav className="flex flex-wrap gap-x-5 gap-y-2">
-            <Link href="/upgrade" className="hover:text-ink">
-              {FREE_PRO_BETA ? "Pro — free in beta" : `Pro — ${PRO_PRICE} once`}
-            </Link>
-            <Link href="/signup" className="hover:text-ink">
-              Sign up free
-            </Link>
-            <Link href="/login" className="hover:text-ink">
-              Log in
-            </Link>
-            <Link href="/privacy" className="hover:text-ink">
-              Privacy
-            </Link>
-            <Link href="/terms" className="hover:text-ink">
-              Terms
-            </Link>
-          </nav>
+          <div className="l-foot-note">
+            <span>© {new Date().getFullYear()} Fortune Cat</span>
+            <span>Data stored in Singapore (AWS ap-southeast-1)</span>
+          </div>
         </div>
       </footer>
 

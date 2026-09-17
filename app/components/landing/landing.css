@@ -1,0 +1,547 @@
+/* Hallmark · macrostructure: Marquee Hero (over a Feature Stack) · H1 hero knobs: size=xxl, alignment=centred, uppercase · nav: N1b · footer: Ft3 (three real columns)
+ * theme: studied-DNA (source: url) · flood: gold pair (bright surface / deep ink) · studied: yes · DNA-source: url
+ * source-url: https://wise.com/  ·  observed-fonts: Wise Sans 900 + Inter (rebuilt with the project's Bricolage Grotesque 800 + Hanken Grotesk + JetBrains Mono)
+ * observed-paper: #ffffff  ·  observed-flood: #9fe870 / #163300 (re-pointed to gold: oklch(88% 0.12 88) / oklch(28% 0.06 75))  ·  rhythm: generous, centred hero then left-biased splits (screenshot pass)
+ * Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V5
+ *
+ * The DNA: one uppercase statement, centred; the product moving underneath it
+ * where Wise puts the globe; then a live widget on a flood band; then a stack
+ * of one-idea sections alternating white / bright / deep; giant uppercase
+ * statements as section breaks; pill buttons; a real three-column footer.
+ * Wise's green pair becomes Fortune Cat's gold pair — same lightness roles.
+ *
+ * Project tokens (--surface, --ink, --line …) are re-declared on .landing so
+ * Wordmark and FaqSection inherit the theme untouched.
+ */
+
+.landing {
+  /* ── DNA tokens ── */
+  --l-paper: oklch(100% 0 0);
+  --l-paper-2: oklch(97% 0.006 80);
+  --l-ink: oklch(20% 0.012 70); /* near-black, warm — the project's ink */
+  --l-ink-dim: oklch(48% 0.02 70);
+  --l-rule: oklch(88% 0.012 80);
+  --l-bright: oklch(88% 0.12 88); /* the flood — Wise's #9fe870 role, in gold */
+  --l-deep: oklch(
+    28% 0.06 75
+  ); /* Wise's #163300 role: ink on bright, ground for the dark band */
+  --l-accent: oklch(52% 0.12 75); /* gold that reads as text on white */
+  --l-surface-900: var(--l-paper); /* composition ground; wrappers override */
+  --l-surface-400: oklch(94% 0.006 80); /* the received bubble */
+  --l-font-display: var(--font-display);
+  --l-font-body: var(--font-sans);
+  --l-font-mono: var(--font-mono);
+  --l-font-received: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --l-radius: 16px;
+  --l-radius-sm: 10px;
+  --l-ease: cubic-bezier(0.2, 0, 0, 1);
+  --l-dur-control: 150ms;
+  --l-dur-state: 340ms;
+  --l-gutter: clamp(1.25rem, 4vw, 3rem);
+  --l-space-xl: clamp(4rem, 9vw, 7.5rem);
+  --l-text-statement: clamp(2.5rem, 9vw, 6.25rem);
+  --l-text-h2: clamp(1.875rem, 3.4vw + 0.75rem, 2.75rem);
+  --l-measure: 38rem;
+
+  /* ── Project tokens, re-pointed ── */
+  --surface: var(--l-paper);
+  --surface-2: var(--l-paper);
+  --surface-3: var(--l-paper-2);
+  --ink: var(--l-ink);
+  --ink-muted: oklch(36% 0.015 70);
+  --ink-subtle: var(--l-ink-dim);
+  --ink-faint: var(--l-ink-dim);
+  --line: var(--l-rule);
+  --gold-text: var(--l-accent);
+  --focus-ring: var(--l-deep);
+
+  min-height: 100vh;
+  background: var(--l-paper);
+  color: var(--l-ink);
+  font-family: var(--l-font-body);
+  overflow-x: clip;
+  color-scheme: light;
+}
+
+.l-wrap {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: var(--l-gutter);
+}
+
+/* ── Nav: N1b, three sections ── */
+.l-head {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--l-paper);
+  border-bottom: 1px solid var(--l-rule);
+}
+.l-head-in {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  height: 4rem;
+}
+.l-nav-mid {
+  display: none;
+  justify-content: center;
+  gap: 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+@media (min-width: 720px) {
+  .l-nav-mid {
+    display: flex;
+  }
+}
+.l-nav-end {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+.l-nav-mid a,
+.l-nav-end a:not(.l-pill) {
+  color: var(--l-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--l-dur-control) var(--l-ease);
+}
+.l-nav-mid a:hover,
+.l-nav-end a:not(.l-pill):hover {
+  color: var(--l-accent);
+}
+.landing a:focus-visible,
+.landing button:focus-visible {
+  outline: 2px solid var(--l-deep);
+  outline-offset: 3px;
+}
+
+/* ── Pill buttons (the DNA's one button shape) ── */
+.l-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 3rem;
+  padding-inline: 1.5rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--l-bright);
+  color: var(--l-deep);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--l-dur-control) var(--l-ease),
+    transform var(--l-dur-control) var(--l-ease);
+}
+.l-pill:hover {
+  background: oklch(90% 0.13 90);
+}
+.l-pill:active {
+  transform: translateY(1px);
+}
+.l-pill:disabled {
+  cursor: default;
+  background: var(--l-paper-2);
+  color: var(--l-ink-dim);
+}
+.l-pill-sm {
+  height: 2.5rem;
+  padding-inline: 1.125rem;
+  font-size: 0.875rem;
+}
+.l-pill-ghost {
+  background: transparent;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.l-pill-ghost:hover {
+  background: transparent;
+  color: var(--l-accent);
+}
+.l-band-deep .l-pill-ghost {
+  color: var(--l-bright);
+}
+
+/* ── Hero: H1-Marquee, centred, uppercase statement ── */
+.l-hero {
+  padding-block: clamp(3rem, 8vw, 6rem) 0;
+  text-align: center;
+}
+.l-hero h1,
+.l-statement {
+  font-family: var(--l-font-display);
+  font-weight: 800;
+  font-style: normal;
+  font-size: var(--l-text-statement);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  margin: 0;
+  color: var(--l-ink);
+}
+.l-hero h1 {
+  max-width: 14ch;
+  margin-inline: auto;
+}
+.l-lede {
+  margin: 1.25rem auto 0;
+  max-width: 34rem;
+  font-size: clamp(1.0625rem, 1vw + 0.8rem, 1.25rem);
+  line-height: 1.5;
+  color: var(--l-ink);
+}
+.l-hero-cta {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+.l-hero-cta .l-link {
+  color: var(--l-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.l-hero-cta .l-link:hover {
+  color: var(--l-accent);
+}
+.l-player {
+  border-radius: var(--l-radius);
+  overflow: hidden;
+  background: var(--l-surface-900);
+}
+.l-player-hero {
+  --l-surface-900: var(--l-paper-2);
+  max-width: 56rem;
+  margin: clamp(2rem, 5vw, 3.5rem) auto 0;
+}
+
+/* ── Bands: one idea each ── */
+.l-band {
+  padding-block: var(--l-space-xl);
+}
+.l-band-bright {
+  background: var(--l-bright);
+  color: var(--l-deep);
+}
+.l-band-deep {
+  background: var(--l-deep);
+  color: var(--l-bright);
+}
+.l-band h2 {
+  font-family: var(--l-font-display);
+  font-weight: 700;
+  font-style: normal;
+  font-size: var(--l-text-h2);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 16ch;
+  margin: 0;
+}
+.l-band p,
+.l-band li {
+  max-width: var(--l-measure);
+  line-height: 1.55;
+}
+.l-band p + p {
+  margin-top: 0.75rem;
+}
+.l-intro {
+  margin-top: 1rem;
+  font-size: 1.0625rem;
+}
+.l-split {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .l-split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4rem;
+  }
+}
+
+/* ── The live widget on the bright band ── */
+.l-widget {
+  display: grid;
+  gap: 0.875rem;
+  max-width: 30rem;
+  justify-self: center;
+  width: 100%;
+}
+@media (min-width: 900px) {
+  .l-widget {
+    justify-self: end;
+  }
+}
+.l-widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--l-font-mono);
+  font-size: 0.8125rem;
+}
+.l-count {
+  font-variant-numeric: tabular-nums;
+}
+.l-segs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  max-width: 14rem;
+}
+.l-segs li {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in oklch, var(--l-deep) 22%, transparent);
+  transition: background var(--l-dur-control) var(--l-ease);
+}
+.l-segs li[data-on] {
+  background: var(--l-deep);
+}
+.l-widget .l-player {
+  --l-surface-900: var(--l-paper);
+  --l-ink: oklch(20% 0.012 70);
+  --l-ink-dim: oklch(48% 0.02 70);
+  --l-rule: oklch(88% 0.012 80);
+  --l-accent: oklch(52% 0.12 75);
+  box-shadow: 0 12px 40px -16px
+    color-mix(in oklch, var(--l-deep) 45%, transparent);
+}
+.l-widget .l-caption {
+  margin: 0;
+  min-height: 3.1em;
+  font-size: 0.9375rem;
+}
+.l-widget-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.l-band-bright .l-pill {
+  background: var(--l-deep);
+  color: var(--l-bright);
+}
+.l-band-bright .l-pill:hover {
+  background: oklch(24% 0.06 75);
+}
+.l-band-bright .l-pill:disabled {
+  background: color-mix(in oklch, var(--l-deep) 18%, transparent);
+  color: var(--l-deep);
+}
+.l-band-bright .l-pill-ghost,
+.l-band-bright .l-pill-ghost:hover {
+  background: transparent;
+  color: var(--l-deep);
+}
+
+/* ── Rows (one direction) ── */
+.l-rows {
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--l-rule);
+}
+.l-rows li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem 2rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--l-rule);
+  max-width: none;
+}
+@media (min-width: 640px) {
+  .l-rows li {
+    grid-template-columns: 11rem minmax(0, 1fr);
+  }
+}
+.l-rows b {
+  font-weight: 700;
+  font-size: 1rem;
+}
+.l-rows span {
+  color: var(--l-ink-dim);
+  line-height: 1.5;
+  max-width: var(--l-measure);
+}
+.l-rows .l-return {
+  border-bottom-style: dashed;
+}
+.l-rows .l-optional b::after {
+  content: " · optional";
+  font-weight: 400;
+  color: var(--l-ink-dim);
+}
+
+/* ── Safe-to-Spend tick ── */
+.l-player-tick {
+  --l-surface-900: var(--l-paper-2);
+  max-width: 34rem;
+  width: 100%;
+  justify-self: center;
+}
+@media (min-width: 900px) {
+  .l-player-tick {
+    justify-self: end;
+  }
+}
+
+/* ── The deep band: the honest limitation, given the dramatic ground ── */
+.l-band-deep h2 {
+  color: var(--l-bright);
+}
+.l-band-deep p {
+  color: oklch(88% 0.03 85);
+}
+.l-gaps {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+  font-family: var(--l-font-mono);
+  font-size: 0.9375rem;
+}
+.l-gaps li {
+  padding: 0.75rem 0;
+  border-top: 1px dashed color-mix(in oklch, var(--l-bright) 40%, transparent);
+  color: oklch(88% 0.03 85);
+}
+
+/* ── Giant statement as a section break ── */
+.l-break {
+  padding-block: var(--l-space-xl);
+  text-align: center;
+}
+.l-break .l-statement {
+  max-width: 12ch;
+  margin-inline: auto;
+}
+.l-break p {
+  margin: 1.25rem auto 0;
+  max-width: 32rem;
+  line-height: 1.5;
+}
+.l-break .l-pill {
+  margin-top: 1.75rem;
+}
+
+/* ── Price ── */
+.l-price {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+@media (min-width: 640px) {
+  .l-price {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+.l-price > div {
+  padding: 1.5rem;
+  border-radius: var(--l-radius);
+  background: var(--l-paper-2);
+}
+.l-price b {
+  display: block;
+  font-family: var(--l-font-display);
+  font-weight: 800;
+  font-size: 2.25rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.l-price p {
+  margin-top: 0.75rem;
+  color: var(--l-ink-dim);
+}
+
+/* ── FAQ (existing component) on the DNA's radius ── */
+.landing #faq {
+  border-top: 1px solid var(--l-rule);
+}
+.landing #faq details {
+  box-shadow: none;
+}
+
+/* ── Footer: Ft3, three real columns ── */
+.l-foot {
+  border-top: 1px solid var(--l-rule);
+  padding-block: 3rem 2rem;
+  font-size: 0.9375rem;
+}
+.l-foot-cols {
+  display: grid;
+  gap: 2rem;
+}
+@media (min-width: 640px) {
+  .l-foot-cols {
+    grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
+  }
+}
+.l-foot h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--l-ink-dim);
+}
+.l-foot ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.l-foot a {
+  color: var(--l-ink);
+  text-decoration: none;
+}
+.l-foot a:hover {
+  color: var(--l-accent);
+}
+.l-foot-note {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--l-rule);
+  font-family: var(--l-font-mono);
+  font-size: 0.75rem;
+  color: var(--l-ink-dim);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing * {
+    transition-duration: 0.01ms !important;
+  }
+}
